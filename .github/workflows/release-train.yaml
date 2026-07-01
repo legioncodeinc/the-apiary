@@ -1,0 +1,92 @@
+name: Release Train
+
+# The combined release train (ADR-0001 / PRD-001b b-AC-3). Fires on a
+# superproject fleet tag (`v*` pushed to THIS repo, the-apiary) — a distinct
+# tag namespace from any submodule's own `v*` tags in ITS repo. Promotes the
+# hive-release.json committed at that tag into a named, reproducible fleet
+# release.
+#
+# This train NEVER rebuilds a product and NEVER invokes or alters any
+# submodule's own CI or release workflow (PRD-001b b-AC-4 / parent AC-5): it
+# only reads hive-release.json (already committed in the superproject at this
+# tag) and confirms — via the same validator manifest-validate.yaml uses —
+# that every pinned version that claims to be published actually resolves on
+# the public npm registry. It is not a build job; there is no `npm ci`, no
+# submodule checkout, and no artifact produced beyond the validation result
+# and (on success) a GitHub Release that stamps this manifestVersion as a
+# released fleet.
+#
+# Reproducibility (PRD-001b b-AC-5): because hive-release.json is a plain
+# committed file (never regenerated from submodule pointers — see
+# hive-release.schema.md "Ownership and versioning"), the pinned set at a
+# given superproject tag is fixed forever. Two installer runs resolving
+# against the same released manifestVersion always get the same four pins.
+#
+# NOTE (Wave 1 honesty): as of this workflow's creation, `hive-release.json`
+# marks `thehive` and `hivenectar` as `published: false` because PRD-001c's
+# publish pipelines were only just added and neither product has cut a first
+# real tag. Running this train today validates internal consistency and the
+# two already-published products (honeycomb, hivedoctor) against the real
+# registry, but does NOT yet prove all four are installable end-to-end
+# (parent AC-2's full bar). Once the-hive and hivenectar cut their first real
+# releases, flip their `published` flags in the manifest (or remove the
+# field) and this same train will enforce full four-way registry resolution
+# with no workflow change required.
+
+on:
+  push:
+    tags: ['v*']
+  # Manual entry point to rehearse the train against the current manifest
+  # without needing to push a tag (e.g. to sanity-check a manifest edit
+  # before tagging a fleet release).
+  workflow_dispatch: {}
+
+concurrency:
+  group: release-train-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# contents: write is ONLY used to mint the GitHub Release that stamps the
+# manifestVersion as a released fleet (PRD-001b b-AC-3). Nothing here needs
+# id-token/OIDC — this workflow never publishes to npm; it only reads the
+# public registry (unauthenticated) and reads/reports on a committed file.
+permissions:
+  contents: write
+
+jobs:
+  validate-and-promote:
+    name: Validate manifest and promote fleet release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (superproject only, no submodules)
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '22.x'
+
+      # Same validator as manifest-validate.yaml — the release train performs
+      # the identical check, it does not reinvent it. Fails the train (and
+      # therefore blocks the fleet release) exactly as it would block a PR.
+      - name: Validate manifest (schema + registry resolution where published)
+        run: node .github/scripts/validate-hive-release-manifest.mjs hive-release.json
+
+      - name: Read manifestVersion for the release summary
+        id: manifest
+        run: |
+          MANIFEST_VERSION="$(node -p "require('./hive-release.json').manifestVersion")"
+          echo "manifestVersion=$MANIFEST_VERSION" >> "$GITHUB_OUTPUT"
+
+      # Only on a real tag push (never on workflow_dispatch rehearsals) — a
+      # manual run validates but never mints a Release, mirroring the
+      # dry-run-by-default posture of every submodule's own release.yaml.
+      - name: Create fleet GitHub Release
+        if: ${{ github.ref_type == 'tag' }}
+        uses: softprops/action-gh-release@v2.4.1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: 'Hive fleet release ${{ github.ref_name }} (manifest v${{ steps.manifest.outputs.manifestVersion }})'
+          body_path: hive-release.json
+          generate_release_notes: true

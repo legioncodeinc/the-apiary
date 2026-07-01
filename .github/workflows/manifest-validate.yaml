@@ -1,0 +1,63 @@
+name: Manifest Validate
+
+# Validates hive-release.json (PRD-001a) on every PR that touches it.
+#
+# This is the FIRST CI the-apiary superproject has ever had (ADR-0001 /
+# PRD-001b b-AC-1). It sits ABOVE every submodule's own CI/release pipeline
+# and never touches them: it only reads hive-release.json and, for any
+# product the manifest marks as already published, confirms the pinned
+# version resolves on the public npm registry. It never checks out any
+# submodule, never runs `npm ci`/build/test inside a submodule, and never
+# triggers or alters honeycomb's, hivedoctor's, the-hive's, or hivenectar's
+# own workflows (PRD-001b b-AC-4 / parent AC-5).
+#
+# For a product the manifest marks `published: false` (the-hive and
+# hivenectar today — see hive-release.schema.md), registry resolution is
+# deliberately SKIPPED and a clear, distinguishable "not yet published" note
+# is logged instead of the job crashing on an expected 404. Internal
+# consistency (required fields present, valid semver) is still enforced for
+# every product regardless of its published flag.
+#
+# The validator (`.github/scripts/validate-hive-release-manifest.mjs`) is a
+# zero-dependency Node script: the superproject root has no package.json or
+# lockfile, so this workflow does NOT run `npm ci` — it only needs a modern
+# `node` binary (>=18, for global fetch) on PATH.
+
+on:
+  pull_request:
+    paths:
+      - 'hive-release.json'
+      - 'hive-release.schema.md'
+      - '.github/scripts/validate-hive-release-manifest.mjs'
+      - '.github/workflows/manifest-validate.yaml'
+  # Manual entry point so a maintainer can re-run validation on demand (e.g.
+  # after flipping a `published` flag to true post-first-publish) without
+  # needing to open a throwaway PR.
+  workflow_dispatch: {}
+
+concurrency:
+  group: manifest-validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: this job only reads the repo and the public npm registry.
+# It writes nothing, publishes nothing, and touches no submodule.
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate hive-release.json
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (superproject only, no submodules)
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '22.x'
+
+      - name: Validate manifest (schema + registry resolution where published)
+        run: node .github/scripts/validate-hive-release-manifest.mjs hive-release.json
