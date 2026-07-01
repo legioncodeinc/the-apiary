@@ -3,7 +3,7 @@
 > **Status:** Active · **Date:** 2026-07-01
 > **Supersedes:** none · **Refines:** [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md) (this ADR consumes the manifest that ADR-0001 pins)
 > **Owners:** platform, honeycomb, hivedoctor
-> **Related:** [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md), [`../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home.md`](../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home.md), [`../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-installer-owned-service-and-product-registry.md`](../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-installer-owned-service-and-product-registry.md)
+> **Related:** [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md), [`../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md`](../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md), [`../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md)
 
 ## Context
 
@@ -34,7 +34,7 @@ The versions the installer loads for the selected products come from the hive re
 
 ### Registration is written on every lifecycle transition
 
-- The installer **creates** a registration entry when it installs a product or service, and **updates** it on install, update, and deletion of a service or product. The installer writes hivedoctor's registry as the durable record of what is deployed on the machine. See hivedoctor [`ADR-0002`](../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-installer-owned-service-and-product-registry.md) for the registry contract this cross-references.
+- The installer **creates** a registration entry when it installs a product or service, and **updates** it on install, update, and deletion of a service or product. The installer writes hivedoctor's registry as the durable record of what is deployed on the machine. See hivedoctor [`ADR-0002`](../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) for the registry contract this cross-references.
 
 ### Install telemetry is fired from the shell script
 
@@ -101,6 +101,6 @@ Leave `honeycomb_installed` firing from `honeycomb/src/commands/install.ts` and 
 - `honeycomb/.github/workflows/deploy-install-site.yaml` - deploys the install site to `get.theapiary.sh` (Cloudflare Pages).
 - `honeycomb/src/commands/install.ts` - the Node CLI that fires `honeycomb_installed` today (the transport this ADR moves to the shell).
 - `honeycomb/src/daemon/runtime/auth/deeplake-issuer.ts` - fires `honeycomb_first_link` on Deep Lake login; unchanged by this ADR.
-- [`../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-installer-owned-service-and-product-registry.md`](../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-installer-owned-service-and-product-registry.md) - the hivedoctor registry the installer creates and updates on every product and service lifecycle transition.
+- [`../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - the hivedoctor registry the installer creates and updates on every product and service lifecycle transition.
 - [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md) - the manifest that supplies the pinned versions this installer loads for the selected products.
-- [`../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home.md`](../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home.md) - the forthcoming PRD specifying the flag grammar, code/license resolution, and the phone-home payloads.
+- [`../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md`](../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md) - the forthcoming PRD specifying the flag grammar, code/license resolution, and the phone-home payloads.
