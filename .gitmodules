@@ -1,0 +1,9 @@
+[submodule "hivenectar"]
+	path = hivenectar
+	url = git@github.com:legioncodeinc/hivenectar.git
+[submodule "hivedoctor"]
+	path = hivedoctor
+	url = git@github.com:legioncodeinc/hivedoctor.git
+[submodule "honeycomb"]
+	path = honeycomb
+	url = git@github.com:legioncodeinc/honeycomb.git
