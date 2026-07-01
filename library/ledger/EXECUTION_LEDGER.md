@@ -254,6 +254,7 @@ Single stream at `GET http://127.0.0.1:3852/events` (loopback only), `text/event
   - honeycomb: `npm run typecheck` clean, `npm test` 3917/3929 pass (12 pre-existing skips), matching the implementer's reported count exactly.
   - the-apiary: `hive-release.json` parses as valid JSON with the documented 4-product shape; all 4 new/edited workflow YAML files present with `name`/`on` keys. Workflows themselves remain untested in real GitHub Actions (expected, no push yet).
   - All 58 implementer-reported `DONE` rows flipped to `VERIFIED` (bulk, status-column only) following this independent pass.
+- Phase 2 close-out, security review (5 parallel per-repo reviews dispatched). hivedoctor: 1 medium finding, unconstrained `telemetryDbPath` let a poisoned registry entry point hivedoctor at an arbitrary user-readable SQLite file and broadcast its contents over the unauthenticated loopback SSE stream. Remediated immediately (commit `ad2174a`): `coerceTelemetryDbPath` now enforces containment under `~/.honeycomb/telemetry/` via the existing `assertWithinBase` helper, falling back to `undefined` (health-probe-only) on any escape attempt, mirroring `coerceHealthUrl`'s fallback posture. Updated the pre-existing test that asserted the vulnerable behavior; added 3 new containment tests. 566/569 tests pass (3 pre-existing unrelated failures), typecheck clean.
 
 ## Blocked items requiring user input
 
