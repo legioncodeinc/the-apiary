@@ -7,3 +7,6 @@
 [submodule "honeycomb"]
 	path = honeycomb
 	url = git@github.com:legioncodeinc/honeycomb.git
+[submodule "the-hive"]
+	path = the-hive
+	url = git@github.com:legioncodeinc/the-hive.git
