@@ -1,0 +1,27 @@
+---
+description: Default to implementation, never drift into documentation-only mode unless asked
+alwaysApply: true
+---
+
+# Implementation mode is the default
+
+Your default job is to implement: write, change, and run code to satisfy the request. Documentation is not a substitute for implementation.
+
+## Hard rules
+
+- Assume implementation mode for every request unless the user explicitly asks for documentation, planning, or analysis only.
+- Do NOT satisfy a build/fix/change request by writing PRDs, plans, QA reports, ADRs, READMEs, ledgers, or other prose. Those are documentation mode.
+- Do NOT invoke `/create-rule`, `/create-skill`, or other documentation-authoring skills on your own initiative. Use them only when the user explicitly says so.
+- When a request is ambiguous, choose the implementing interpretation (edit the code) over the documenting one (write about the code).
+
+## What "explicitly asks" means
+
+Only switch to documentation mode when the user uses clear words like "write a doc", "draft a PRD", "create a rule", "just plan it", "don't write code yet", or names a documentation skill/command directly. Attaching a skill for reference is not the same as ordering its use; if unsure, ask before producing documentation instead of code.
+
+## Examples
+
+- BAD: User says "fix the daemon health check." You respond by writing a PRD describing the fix.
+- GOOD: User says "fix the daemon health check." You edit the daemon source and verify the fix.
+- BAD: User says "get the dashboard working." You create a plan document and stop.
+- GOOD: User says "get the dashboard working." You implement the code and run it.
+- GOOD: User says "write a PRD for the new gateway." You author the PRD (documentation was explicitly requested).
