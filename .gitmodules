@@ -10,3 +10,6 @@
 [submodule "hive"]
 	path = hive
 	url = git@github.com:legioncodeinc/hive.git
+[submodule "website"]
+	path = website
+	url = git@github.com:legioncodeinc/apiary-website.git
