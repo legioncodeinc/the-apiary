@@ -10,9 +10,9 @@
 
 ## Overview
 
-Install-time telemetry does not work well today. `honeycomb_installed` fires from the Node CLI ([`honeycomb/src/commands/install.ts`](../../../../../honeycomb/src/commands/install.ts)) after a successful install, which rolls three problems into one: it depends on a build-time PostHog key baked into the Node package (so a keyless build sends nothing), it is fire-and-forget with no retry, and it never fires when the install fails before the CLI runs or when the-hive/hivenectar are absent. The single most important business event, "someone installed," is the least reliable one.
+Install-time telemetry does not work well today. `honeycomb_installed` fires from the Node CLI ([`honeycomb/src/commands/install.ts`](../../../../../honeycomb/src/commands/install.ts)) after a successful install, which rolls three problems into one: it depends on a build-time PostHog key baked into the Node package (so a keyless build sends nothing), it is fire-and-forget with no retry, and it never fires when the install fails before the CLI runs or when hive/hivenectar are absent. The single most important business event, "someone installed," is the least reliable one.
 
-This sub-PRD implements the telemetry half of [`ADR-0002`](../../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md): move the install-time phone-home **into the shell script itself** (`install.sh` / `install.ps1`), firing at **start** and at **completion or failure**, using a **public PostHog project key baked into the install site** (independent of the Node build key), with a **stable anonymous install id** so a run's start and terminal events correlate. PostHog project keys are safe to expose client-side, so this transport is legitimate and, crucially, present even on a keyless Node build or an early abort. The daemon-side `honeycomb_first_link` login event ([`honeycomb/src/daemon/runtime/auth/deeplake-issuer.ts`](../../../../../honeycomb/src/daemon/runtime/auth/deeplake-issuer.ts)) stays exactly where it is.
+This sub-PRD implements the telemetry half of [`ADR-0002`](../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md): move the install-time phone-home **into the shell script itself** (`install.sh` / `install.ps1`), firing at **start** and at **completion or failure**, using a **public PostHog project key baked into the install site** (independent of the Node build key), with a **stable anonymous install id** so a run's start and terminal events correlate. PostHog project keys are safe to expose client-side, so this transport is legitimate and, crucially, present even on a keyless Node build or an early abort. The daemon-side `honeycomb_first_link` login event ([`honeycomb/src/daemon/runtime/auth/deeplake-issuer.ts`](../../../../../honeycomb/src/daemon/runtime/auth/deeplake-issuer.ts)) stays exactly where it is.
 
 ## Goals
 
@@ -56,7 +56,7 @@ This sub-PRD implements the telemetry half of [`ADR-0002`](../../../../knowledge
 
 ## Related
 
-- [`ADR-0002`](../../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) - the shell-fired telemetry decision.
+- [`ADR-0002`](../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) - the shell-fired telemetry decision.
 - [`honeycomb/scripts/install/install.sh`](../../../../../honeycomb/scripts/install/install.sh) and [`install.ps1`](../../../../../honeycomb/scripts/install/install.ps1) - gain the start and terminal phone-home.
 - [`honeycomb/site/install/`](../../../../../honeycomb/site/install/) - where the public PostHog key is baked.
 - [`honeycomb/.github/workflows/deploy-install-site.yaml`](../../../../../honeycomb/.github/workflows/deploy-install-site.yaml) - deploys the install site to `get.theapiary.sh`.

@@ -2,7 +2,7 @@
 
 > Category: Index | Version: 1.0 | Date: July 2026 | Status: Active
 
-The umbrella documentation library for **cross-repo / superproject-level** work in The Apiary. The Apiary is a meta-repository that aggregates independently versioned submodules (`honeycomb`, `hivenectar`, `hivedoctor`, `the-hive`) as git submodules; each submodule owns its own `library/` for product work scoped to that repo.
+The umbrella documentation library for **cross-repo / superproject-level** work in The Apiary. The Apiary is a meta-repository that aggregates independently versioned submodules (`honeycomb`, `nectar`, `doctor`, `hive`) as git submodules; each submodule owns its own `library/` for product work scoped to that repo.
 
 This umbrella library holds only work that genuinely spans repos or belongs to the superproject itself: the combined release train and "hive release manifest", the one-line installer and its product-loading/configuration model, cross-cutting install-time telemetry, and the ADRs that bind the submodules together at the fleet level.
 
@@ -27,4 +27,4 @@ library/
 - Move a PRD's whole folder between lifecycle folders when its status changes; the folder location is the lifecycle source of truth.
 
 **Related:**
-- Submodule libraries: `honeycomb/library/`, `hivenectar/library/`, `hivedoctor/library/`, `the-hive/library/`.
+- Submodule libraries: `honeycomb/library/`, `nectar/library/`, `doctor/library/`, `hive/library/`.

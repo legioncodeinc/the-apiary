@@ -10,13 +10,13 @@
 
 ## Overview
 
-Two of the four products cannot be installed from a package registry yet: `the-hive` (the always-on portal daemon on port 3853) and `hivenectar` (port 3854) have no publish pipeline. The hive release manifest can only pin versions a registry can actually serve, so the manifest is incomplete until both products publish. This sub-PRD gives each of them an OIDC Trusted Publishing release pipeline that mirrors the model honeycomb and hivedoctor already use, per [`ADR-0001`](../../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md).
+Two of the four products cannot be installed from a package registry yet: `the-hive` (the always-on portal daemon on port 3853) and `hivenectar` (port 3854) have no publish pipeline. The hive release manifest can only pin versions a registry can actually serve, so the manifest is incomplete until both products publish. This sub-PRD gives each of them an OIDC Trusted Publishing release pipeline that mirrors the model honeycomb and hivedoctor already use, per [`ADR-0001`](../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md).
 
 Getting these two products published also closes half of the installer coverage gap: today the installer opens the-hive's URL but never installs it, and never touches hivenectar at all. Making them installable is the precondition; actually installing them from the selected product set is PRD-002b.
 
 ## Goals
 
-- Add `the-hive/.github/workflows/release.yaml` and `hivenectar/.github/workflows/release.yaml`, each an OIDC Trusted Publishing release on `v*` tags, mirroring [`honeycomb/.github/workflows/release.yaml`](../../../../../honeycomb/.github/workflows/release.yaml).
+- Add `hive/.github/workflows/release.yaml` and `nectar/.github/workflows/release.yaml`, each an OIDC Trusted Publishing release on `v*` tags, mirroring [`honeycomb/.github/workflows/release.yaml`](../../../../../honeycomb/.github/workflows/release.yaml).
 - Publish each product to npm under the `@legioncodeinc` org so it is installable with `npm i -g` and pinnable in the manifest.
 - Keep each product's release independent: its own tag namespace, changelog, and tarball, exactly like the two already-published products.
 - Ensure the versions these pipelines publish are resolvable by the release-train validation in 001b.
@@ -51,7 +51,7 @@ Getting these two products published also closes half of the installer coverage 
 
 ## Related
 
-- [`ADR-0001`](../../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md) - onboards new products by giving them a publish pipeline and adding them to the manifest.
+- [`ADR-0001`](../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md) - onboards new products by giving them a publish pipeline and adding them to the manifest.
 - [`honeycomb/.github/workflows/release.yaml`](../../../../../honeycomb/.github/workflows/release.yaml) - the OIDC Trusted Publishing model these two pipelines copy.
 - [PRD-001b](./prd-001b-hive-release-manifest-and-ci-superproject-release-ci.md) - the release train that must resolve the versions these pipelines publish.
 - [PRD-002b](../prd-002-installer-product-loading-and-phone-home/prd-002b-installer-product-loading-and-phone-home-registration-and-install-coverage.md) - installs the-hive and hivenectar once they are publishable, closing the installer coverage gap.

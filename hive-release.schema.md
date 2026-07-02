@@ -4,7 +4,7 @@
 
 ## What this file is
 
-`hive-release.json` is the single source of truth for "what ships together": it pins one tested, compatible set of versions across the four independently-published products in the fleet (`honeycomb`, `hivedoctor`, `the-hive`, `hivenectar`). It is a **pinning artifact**, not a build output — it never rebuilds or repackages a product. Every pinned version must already exist (or be validated to soon exist) as its own npm tarball, published by that product's own OIDC release pipeline.
+`hive-release.json` is the single source of truth for "what ships together": it pins one tested, compatible set of versions across the four independently-published products in the fleet (`honeycomb`, `doctor`, `hive`, `nectar`). It is a **pinning artifact**, not a build output — it never rebuilds or repackages a product. Every pinned version must already exist (or be validated to soon exist) as its own npm tarball, published by that product's own OIDC release pipeline.
 
 - **Read by:** `.github/workflows/manifest-validate.yaml` and `.github/workflows/release-train.yaml` (this repo), and — once built — the one-line installer (PRD-002), which resolves a selected product to the manifest-pinned version instead of "latest."
 - **Written by:** a human (or an agent acting on human intent) as a deliberate act of promoting a fleet release. It is not regenerated automatically from submodule pointers; see "Ownership and versioning" below.
@@ -16,9 +16,9 @@
   "manifestVersion": "0.1.0",
   "products": {
     "honeycomb": { "...": "..." },
-    "hivedoctor": { "...": "..." },
-    "thehive": { "...": "..." },
-    "hivenectar": { "...": "..." }
+    "doctor": { "...": "..." },
+    "hive": { "...": "..." },
+    "nectar": { "...": "..." }
   }
 }
 ```
@@ -35,11 +35,11 @@ The four keys below are **required**. A manifest missing any one of them, or wit
 | Slug | Product | npm package |
 |---|---|---|
 | `honeycomb` | Honeycomb daemon + clients | `@legioncodeinc/honeycomb` |
-| `hivedoctor` | HiveDoctor watchdog | `@legioncodeinc/hivedoctor` |
-| `thehive` | The Hive portal daemon | `@legioncodeinc/thehive` |
-| `hivenectar` | Hivenectar semantic memory layer | `@legioncodeinc/hivenectar` |
+| `doctor` | Doctor watchdog | `@legioncodeinc/doctor` |
+| `hive` | The Hive portal daemon | `@legioncodeinc/hive` |
+| `nectar` | Nectar semantic memory layer | `@legioncodeinc/nectar` |
 
-Slugs deliberately match (or are trivially derivable from) the installer's `--products=` tokens in PRD-002a, so product selection maps to a manifest pin with no translation table. `thehive` (no hyphen) is used, not `the-hive`, to stay a valid bare identifier.
+Slugs deliberately match the installer's `--products=` tokens in PRD-002a, so product selection maps to a manifest pin with no translation table. The slugs were renamed together with the July 2026 repository renames (`hivedoctor` to `doctor`, `thehive` to `hive`, `hivenectar` to `nectar`); the installer accepts the pre-rename tokens as aliases and normalizes them to these slugs, so older invocations keep working.
 
 ## Per-product entry shape
 
@@ -57,7 +57,7 @@ Each value under `products.<slug>` is an **object**, not a bare version string. 
 |---|---|---|---|
 | `version` | string (semver `x.y.z`, no `v` prefix, no range operators) | **Required** | The exact pinned version. Empty string or missing = invalid manifest (a-AC-2). This is the only field CI and the installer treat as load-bearing today. |
 | `packageName` | string | Optional (recommended) | The exact npm package name to resolve `version` against. If omitted, CI falls back to the table above. Present explicitly so a future rename doesn't require touching every consumer. |
-| `published` | boolean | Optional, default `true` | Set to `false` **only** while a product genuinely has no publish pipeline yet or has never cut a real tag. When `false`, `manifest-validate.yaml` / `release-train.yaml` skip live npm-registry resolution for that product and only check internal consistency (valid semver, required fields present) — this is what lets the manifest exist and validate cleanly *before* `the-hive` and `hivenectar` have published their first real version (see PRD-001c). Flip to `true` (or remove the field) the moment a product cuts its first real tag; from then on CI enforces full registry resolution for it, same as `honeycomb`/`hivedoctor` today. |
+| `published` | boolean | Optional, default `true` | Set to `false` **only** while a product genuinely has no publish pipeline yet or has never cut a real tag. When `false`, `manifest-validate.yaml` / `release-train.yaml` skip live npm-registry resolution for that product and only check internal consistency (valid semver, required fields present) — this is what lets the manifest exist and validate cleanly *before* `hive` and `nectar` have published their first real version (see PRD-001c). Flip to `true` (or remove the field) the moment a product cuts its first real tag; from then on CI enforces full registry resolution for it, same as `honeycomb`/`doctor` today. |
 
 ### Reserved for future use (not implemented yet, do not remove-on-sight if present)
 
@@ -78,7 +78,7 @@ These are explicitly anticipated by a-AC-4 and MAY be added later without a sche
 
 1. The file parses as valid JSON.
 2. `manifestVersion` is present and matches `^\d+\.\d+\.\d+$`.
-3. `products` is present and is an object containing **exactly** the four required slugs (`honeycomb`, `hivedoctor`, `thehive`, `hivenectar`). An extra unknown slug or a missing required slug is invalid.
+3. `products` is present and is an object containing **exactly** the four required slugs (`honeycomb`, `doctor`, `hive`, `nectar`). An extra unknown slug or a missing required slug is invalid.
 4. Every product entry has a non-empty `version` matching `^\d+\.\d+\.\d+$` (no `v` prefix, no ranges, no pre-release tags for a fleet pin).
 5. If `published` is present, it must be a boolean.
 6. If `packageName` is present, it must be a non-empty string.
@@ -88,7 +88,7 @@ These are explicitly anticipated by a-AC-4 and MAY be added later without a sche
 
 ## Current pinned set (Wave 1)
 
-As of this manifest's creation, `honeycomb` and `hivedoctor` are already published and independently verified against the registry. `thehive` and `hivenectar` are pinned at their current `package.json` versions with `published: false`, because [PRD-001c](./library/requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001c-hive-release-manifest-and-ci-thehive-hivenectar-publish-pipelines.md)'s release pipelines were only just added in this same change and neither product has cut a first real tag yet. The first maintainer action after this change lands is: register each as an npm Trusted Publisher, cut each product's first real `v*` tag, confirm the publish, then flip `published: true` (or drop the field) here.
+As of this manifest's creation, `honeycomb` and `doctor` are already published and independently verified against the registry. `hive` and `nectar` are pinned at their current `package.json` versions with `published: false`, because [PRD-001c](./library/requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001c-hive-release-manifest-and-ci-thehive-hivenectar-publish-pipelines.md)'s release pipelines were only just added in this same change and neither product has cut a first real tag yet. The first maintainer action after this change lands is: register each as an npm Trusted Publisher, cut each product's first real `v*` tag, confirm the publish, then flip `published: true` (or drop the field) here.
 
 ## Related
 

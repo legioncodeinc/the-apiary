@@ -23,12 +23,12 @@ name: Release Train
 # against the same released manifestVersion always get the same four pins.
 #
 # NOTE (Wave 1 honesty): as of this workflow's creation, `hive-release.json`
-# marks `thehive` and `hivenectar` as `published: false` because PRD-001c's
+# marks `hive` and `nectar` as `published: false` because PRD-001c's
 # publish pipelines were only just added and neither product has cut a first
 # real tag. Running this train today validates internal consistency and the
-# two already-published products (honeycomb, hivedoctor) against the real
+# two already-published products (honeycomb, doctor) against the real
 # registry, but does NOT yet prove all four are installable end-to-end
-# (parent AC-2's full bar). Once the-hive and hivenectar cut their first real
+# (parent AC-2's full bar). Once hive and nectar cut their first real
 # releases, flip their `published` flags in the manifest (or remove the
 # field) and this same train will enforce full four-way registry resolution
 # with no workflow change required.

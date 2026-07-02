@@ -21,9 +21,9 @@ The cross-repo coordination index for the portal + telemetry realignment. This i
 
 | ADR | Repo | Decision |
 |---|---|---|
-| [ADR-0001 telemetry transport + SoT](../../hivedoctor/library/knowledge/private/architecture/ADR-0001-hive-telemetry-transport-and-single-source-of-truth.md) | hivedoctor | services write local SQLite; hivedoctor polls + is SoT; one SSE to the-hive |
-| [ADR-0002 registration](../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) | hivedoctor | static installer registry + runtime SQLite status, merged |
-| [ADR-0004 portal gate + routing](../../the-hive/library/knowledge/private/architecture/ADR-0004-portal-landing-gate-and-path-based-routing.md) | the-hive | path-based, server-gated: health, then login, then root `/` |
+| [ADR-0001 telemetry transport + SoT](../../doctor/library/knowledge/private/architecture/ADR-0001-hive-telemetry-transport-and-single-source-of-truth.md) | hivedoctor | services write local SQLite; hivedoctor polls + is SoT; one SSE to the-hive |
+| [ADR-0002 registration](../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) | hivedoctor | static installer registry + runtime SQLite status, merged |
+| [ADR-0004 portal gate + routing](../../hive/library/knowledge/private/architecture/ADR-0004-portal-landing-gate-and-path-based-routing.md) | the-hive | path-based, server-gated: health, then login, then root `/` |
 | [ADR-0001 release manifest](../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md) | the-apiary | version-pinning manifest; independent OIDC publishes |
 | [ADR-0002 installer + phone-home](../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) | the-apiary | flags + product code; shell-fired PostHog phone-home |
 
@@ -58,13 +58,13 @@ Spec status is the merged PRD (the specification). Impl status is the code work 
 
 | # | Repo | PRD (spec) | Wave | Depends on | Spec | Impl | Suggested model |
 |---|---|---|---|---|---|---|---|
-| 1 | hivedoctor | [PRD-001 registration + ingestion](../../hivedoctor/library/requirements/backlog/prd-001-service-registration-and-telemetry-ingestion/prd-001-service-registration-and-telemetry-ingestion-index.md) | 0 to 1 | hivenectar PRD-004 (done) | Merged | Pending | `claude-opus-4-8-thinking-high` |
-| 2 | hivedoctor | [PRD-002 SSE SoT + schema](../../hivedoctor/library/requirements/backlog/prd-002-telemetry-sot-sse-and-schema/prd-002-telemetry-sot-sse-and-schema-index.md) | 0 to 1 | row 1 contracts | Merged | Pending | `claude-opus-4-8-thinking-high` |
+| 1 | hivedoctor | [PRD-001 registration + ingestion](../../doctor/library/requirements/backlog/prd-001-service-registration-and-telemetry-ingestion/prd-001-service-registration-and-telemetry-ingestion-index.md) | 0 to 1 | hivenectar PRD-004 (done) | Merged | Pending | `claude-opus-4-8-thinking-high` |
+| 2 | hivedoctor | [PRD-002 SSE SoT + schema](../../doctor/library/requirements/backlog/prd-002-telemetry-sot-sse-and-schema/prd-002-telemetry-sot-sse-and-schema-index.md) | 0 to 1 | row 1 contracts | Merged | Pending | `claude-opus-4-8-thinking-high` |
 | 3 | honeycomb | [PRD-071 check-in + SQLite telemetry](../../honeycomb/library/requirements/backlog/prd-071-service-checkin-and-sqlite-telemetry/prd-071-service-checkin-and-sqlite-telemetry-index.md) | 1 | rows 1, 2 (schemas) | Merged | Pending | `composer-2.5` |
-| 4 | hivenectar | [PRD-017 check-in + SQLite telemetry](../../hivenectar/library/requirements/backlog/prd-017-service-checkin-and-sqlite-telemetry/prd-017-service-checkin-and-sqlite-telemetry-index.md) | 1 | rows 1, 2 (schemas) | Merged | Pending | `composer-2.5` |
-| 5 | the-hive | [PRD-003 landing gate + routing](../../the-hive/library/requirements/backlog/prd-003-portal-landing-gate-and-routing/prd-003-portal-landing-gate-and-routing-index.md) | 1 | `/setup/state` (exists) | Merged | Pending | `composer-2.5` |
-| 6 | the-hive | [PRD-004 buzzing + service loaders](../../the-hive/library/requirements/backlog/prd-004-buzzing-service-loaders/prd-004-buzzing-service-loaders-index.md) | 2 | rows 1, 2 (SSE + registration) | Merged | Pending | `composer-2.5` |
-| 7 | the-hive | [PRD-005 health rail + page](../../the-hive/library/requirements/backlog/prd-005-health-rail-and-page/prd-005-health-rail-and-page-index.md) | 2 | rows 1, 2 (SSE + schema) | Merged | Pending | `composer-2.5` |
+| 4 | hivenectar | [PRD-017 check-in + SQLite telemetry](../../nectar/library/requirements/backlog/prd-017-service-checkin-and-sqlite-telemetry/prd-017-service-checkin-and-sqlite-telemetry-index.md) | 1 | rows 1, 2 (schemas) | Merged | Pending | `composer-2.5` |
+| 5 | the-hive | [PRD-003 landing gate + routing](../../hive/library/requirements/backlog/prd-003-portal-landing-gate-and-routing/prd-003-portal-landing-gate-and-routing-index.md) | 1 | `/setup/state` (exists) | Merged | Pending | `composer-2.5` |
+| 6 | the-hive | [PRD-004 buzzing + service loaders](../../hive/library/requirements/backlog/prd-004-buzzing-service-loaders/prd-004-buzzing-service-loaders-index.md) | 2 | rows 1, 2 (SSE + registration) | Merged | Pending | `composer-2.5` |
+| 7 | the-hive | [PRD-005 health rail + page](../../hive/library/requirements/backlog/prd-005-health-rail-and-page/prd-005-health-rail-and-page-index.md) | 2 | rows 1, 2 (SSE + schema) | Merged | Pending | `composer-2.5` |
 | 8 | the-apiary | [PRD-001 release manifest + CI](../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md) | 1 | independent | Merged | Pending | `gpt-5.3-codex-high` |
 | 9 | the-apiary | [PRD-002 installer + phone-home](../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md) | 2 | rows 1 (registry writes), 8 (publishable products) | Merged | Pending | `gpt-5.3-codex-high` |
 

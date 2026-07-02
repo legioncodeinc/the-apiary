@@ -10,7 +10,7 @@
 
 ## Overview
 
-Today the installer installs only honeycomb and hivedoctor, then opens the-hive's URL on port 3853 without ever installing the-hive, and never touches hivenectar (port 3854). This sub-PRD closes that coverage gap: given the resolved product selection from 002a and the pinned versions from PRD-001, the installer **installs the-hive and hivenectar** (and any other selected product), and it **writes hivedoctor's registry** as the durable record of what is deployed, creating a registration on install and updating it on install, update, and delete, per [`ADR-0002`](../../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md).
+Today the installer installs only honeycomb and hivedoctor, then opens the-hive's URL on port 3853 without ever installing the-hive, and never touches hivenectar (port 3854). This sub-PRD closes that coverage gap: given the resolved product selection from 002a and the pinned versions from PRD-001, the installer **installs the-hive and hivenectar** (and any other selected product), and it **writes hivedoctor's registry** as the durable record of what is deployed, creating a registration on install and updating it on install, update, and delete, per [`ADR-0002`](../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md).
 
 The registry contract itself (its schema and storage) is owned by hivedoctor's ADR-0002 and PRD-001; this sub-PRD is the installer-side writer of that contract.
 
@@ -52,9 +52,9 @@ The registry contract itself (its schema and storage) is owned by hivedoctor's A
 
 ## Related
 
-- [`ADR-0002`](../../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) - registration on every lifecycle transition; installer installs the selected set.
-- hivedoctor [`ADR-0002` Service registration, static registry plus runtime SQLite](../../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - the registry contract this sub-PRD writes.
-- hivedoctor [`PRD-001` Service registration and telemetry ingestion](../../../../../hivedoctor/library/requirements/backlog/prd-001-service-registration-and-telemetry-ingestion/prd-001-service-registration-and-telemetry-ingestion-index.md) - the registry contract this sub-PRD writes.
+- [`ADR-0002`](../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) - registration on every lifecycle transition; installer installs the selected set.
+- hivedoctor [`ADR-0002` Service registration, static registry plus runtime SQLite](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - the registry contract this sub-PRD writes.
+- hivedoctor [`PRD-001` Service registration and telemetry ingestion](../../../../doctor/library/requirements/backlog/prd-001-service-registration-and-telemetry-ingestion/prd-001-service-registration-and-telemetry-ingestion-index.md) - the registry contract this sub-PRD writes.
 - [PRD-001c](../prd-001-hive-release-manifest-and-ci/prd-001c-hive-release-manifest-and-ci-thehive-hivenectar-publish-pipelines.md) - makes the-hive and hivenectar installable.
 - [PRD-002a](./prd-002a-installer-product-loading-and-phone-home-product-loading.md) - supplies the resolved product selection.
 - [`honeycomb/scripts/install/install.sh`](../../../../../honeycomb/scripts/install/install.sh) and [`install.ps1`](../../../../../honeycomb/scripts/install/install.ps1) - gain the install-coverage and registry-write steps.

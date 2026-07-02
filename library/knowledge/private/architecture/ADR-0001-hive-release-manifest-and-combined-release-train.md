@@ -3,14 +3,14 @@
 > **Status:** Active · **Date:** 2026-07-01
 > **Supersedes:** none · **Refines:** none
 > **Owners:** platform, honeycomb, hivedoctor, thehive, hivenectar
-> **Related:** [`ADR-0002`](./ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md), [`../../../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md`](../../../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md), [`../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md)
+> **Related:** [`ADR-0002`](./ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md), [`../../../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md`](../../../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md), [`../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md)
 
 ## Context
 
 The Apiary is an umbrella git repository that aggregates four independently-versioned products as git submodules:
 
 - **honeycomb** (`@legioncodeinc/honeycomb`), published to npm today, with its own CI (`honeycomb/.github/workflows/ci.yaml`) and an OIDC Trusted Publishing release workflow (`honeycomb/.github/workflows/release.yaml`) that fires on `v*` tags. It also ships an install surface to Cloudflare Pages at `get.theapiary.sh` via `honeycomb/.github/workflows/deploy-install-site.yaml`.
-- **hivedoctor** (`@legioncodeinc/hivedoctor`), also published to npm with its own CI and its own OIDC release pipeline.
+- **hivedoctor** (`@legioncodeinc/doctor`), also published to npm with its own CI and its own OIDC release pipeline.
 - **the-hive**, the always-on portal daemon, NOT yet published to npm.
 - **hivenectar**, NOT yet published to npm.
 
@@ -85,5 +85,5 @@ Keep installing whatever the newest published version of each product is, with n
 - `honeycomb/.github/workflows/ci.yaml` - the per-submodule CI that stays as-is; the superproject CI sits above it, not in place of it.
 - `honeycomb/.github/workflows/deploy-install-site.yaml` - deploys the install surface to `get.theapiary.sh`; the surface the installer (and manifest) are served from.
 - `honeycomb/scripts/install/install.sh` - the one-line installer that will read the manifest to install a pinned set (its product-selection and telemetry model are [`ADR-0002`](./ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md)).
-- [`../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - hivedoctor's registry, which the installer writes when it installs a pinned set.
+- [`../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - hivedoctor's registry, which the installer writes when it installs a pinned set.
 - [`../../../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md`](../../../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md) - the forthcoming PRD that specifies the manifest format and the superproject release-train CI.

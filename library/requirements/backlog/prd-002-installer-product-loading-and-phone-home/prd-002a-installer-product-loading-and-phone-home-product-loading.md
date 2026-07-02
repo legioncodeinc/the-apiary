@@ -10,7 +10,7 @@
 
 ## Overview
 
-Today the installer always installs the same two products with no way to choose. This sub-PRD builds the product-selection seam required by [`ADR-0002`](../../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md): a flag-driven model where `--products=`, `--profile=`, `--license=`, and `--code=` are first-class inputs; where a product code resolves at the install site to a product set plus configuration; where combo/alias URLs are optional sugar over flag presets; and where environment variables and a config file let a repo administrator pin what to deploy without editing the pasted command. Flags, env, and config all resolve to the same internal selection.
+Today the installer always installs the same two products with no way to choose. This sub-PRD builds the product-selection seam required by [`ADR-0002`](../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md): a flag-driven model where `--products=`, `--profile=`, `--license=`, and `--code=` are first-class inputs; where a product code resolves at the install site to a product set plus configuration; where combo/alias URLs are optional sugar over flag presets; and where environment variables and a config file let a repo administrator pin what to deploy without editing the pasted command. Flags, env, and config all resolve to the same internal selection.
 
 This is the explicit seam a future licensing and product-code system plugs into, so it is designed for that now rather than retrofitted later.
 
@@ -24,7 +24,7 @@ This is the explicit seam a future licensing and product-code system plugs into,
 
 ## Non-Goals
 
-- Actually installing the-hive/hivenectar and writing the registry (that is 002b).
+- Actually installing hive/hivenectar and writing the registry (that is 002b).
 - Firing telemetry (that is 002c).
 - Building the entitlement backend behind `--license=` / `--code=`; this sub-PRD only makes them resolvable inputs.
 
@@ -54,7 +54,7 @@ This is the explicit seam a future licensing and product-code system plugs into,
 
 ## Related
 
-- [`ADR-0002`](../../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) - the flag-driven product-loading decision.
+- [`ADR-0002`](../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) - the flag-driven product-loading decision.
 - [PRD-001a](../prd-001-hive-release-manifest-and-ci/prd-001a-hive-release-manifest-and-ci-manifest-format-and-ownership.md) - the manifest keys these `--products=` tokens align with.
 - [PRD-002b](./prd-002b-installer-product-loading-and-phone-home-registration-and-install-coverage.md) - consumes the resolved selection to install and register the products.
 - [`honeycomb/scripts/install/install.sh`](../../../../../honeycomb/scripts/install/install.sh) and [`install.ps1`](../../../../../honeycomb/scripts/install/install.ps1) - gain the flag grammar.

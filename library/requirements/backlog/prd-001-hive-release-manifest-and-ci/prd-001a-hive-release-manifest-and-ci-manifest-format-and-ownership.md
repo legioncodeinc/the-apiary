@@ -10,7 +10,7 @@
 
 ## Overview
 
-This sub-PRD defines the hive release manifest itself: what it is, where it lives, what it contains, who owns it, and how it is versioned. The manifest is the single source of truth for "what ships together" per [`ADR-0001`](../../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md). It pins one compatible set of the four submodule versions and carries its own manifest version. Everything downstream (the release-train CI in 001b, the installer's version resolution) reads this file.
+This sub-PRD defines the hive release manifest itself: what it is, where it lives, what it contains, who owns it, and how it is versioned. The manifest is the single source of truth for "what ships together" per [`ADR-0001`](../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md). It pins one compatible set of the four submodule versions and carries its own manifest version. Everything downstream (the release-train CI in 001b, the installer's version resolution) reads this file.
 
 The manifest is a *pinning* artifact, not a build output. It names the exact `honeycomb`, `hivedoctor`, `the-hive`, and `hivenectar` versions that constitute a tested fleet release; it never rebuilds or repackages those products.
 
@@ -51,6 +51,6 @@ The manifest is a *pinning* artifact, not a build output. It names the exact `ho
 
 ## Related
 
-- [`ADR-0001`](../../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md) - the manifest decision.
+- [`ADR-0001`](../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md) - the manifest decision.
 - [PRD-001b](./prd-001b-hive-release-manifest-and-ci-superproject-release-ci.md) - the CI that validates and produces this manifest.
 - [PRD-002a](../prd-002-installer-product-loading-and-phone-home/prd-002a-installer-product-loading-and-phone-home-product-loading.md) - the `--products=` tokens this schema should align with.

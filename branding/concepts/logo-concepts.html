@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Apiary — Logo Concepts, Round 1</title>
+<style>
+  :root {
+    --bg-canvas: #0C0A07; --bg-surface: #15120B; --bg-elevated: #1E1A11;
+    --text-primary: #F7F3EC; --text-secondary: #ADA28F; --text-tertiary: #877E6C;
+    --border-subtle: #221E15; --border-default: #322B1E;
+    --honey: #F7A823; --ember: #E8722A; --gold: #FFD048; --teal: #3EC8A8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg-canvas); color: var(--text-primary);
+    font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 32px 96px; }
+  .eyebrow {
+    font-family: ui-monospace, 'JetBrains Mono', monospace; font-size: 12px;
+    text-transform: uppercase; letter-spacing: .14em; color: var(--text-tertiary);
+  }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.03em; margin: 8px 0 4px; }
+  .sub { color: var(--text-secondary); max-width: 68ch; line-height: 1.55; }
+  section { margin-top: 72px; }
+  .brand-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--border-default); padding-bottom: 14px; }
+  .brand-head h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; margin: 0; }
+  .hue { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text-tertiary); }
+  .swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .brand-note { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin: 14px 0 22px; max-width: 76ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .card {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle);
+    border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .card.anchor { border-color: rgba(247,168,35,.32); }
+  .tile {
+    background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; padding: 22px;
+  }
+  .tile img, .tile svg { width: 150px; height: 150px; }
+  .card h3 { margin: 0; font-size: 16px; font-weight: 600; }
+  .card h3 .dir { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-tertiary); margin-right: 8px; letter-spacing: .08em; }
+  .card p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); }
+  .lockup { font-weight: 700; letter-spacing: -0.03em; font-size: 20px; }
+  .tag {
+    align-self: flex-start; font-family: ui-monospace, monospace; font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: .12em; padding: 3px 9px; border-radius: 99px;
+    border: 1px solid var(--border-default); color: var(--text-tertiary);
+  }
+  .tag.locked { border-color: rgba(247,168,35,.32); color: var(--honey); }
+  footer { margin-top: 88px; border-top: 1px solid var(--border-subtle); padding-top: 20px; color: var(--text-tertiary); font-size: 13px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">the apiary · brand kit · round 1</div>
+  <h1>Logo concepts</h1>
+  <p class="sub">Every mark below is cut from the same cloth as the locked Honeycomb logo:
+  flat-top hexagons, 5px round-joined strokes, and exactly one gradient-filled focal element
+  per mark. Honey amber stays the family thread; each product owns one hue so you can tell
+  the daemons apart in a dashboard, a favicon strip, or a terminal at 3am.</p>
+
+  <!-- ============================ ANCHOR ============================ -->
+  <section>
+    <div class="brand-head">
+      <h2>honeycomb</h2>
+      <span class="hue"><span class="swatch" style="background:var(--honey)"></span>honey amber · #F7A823</span>
+    </div>
+    <p class="brand-note">The anchor. Already locked. Everything else in the family answers to this geometry.</p>
+    <div class="grid" style="grid-template-columns: minmax(280px, 340px);">
+      <div class="card anchor">
+        <span class="tag locked">locked</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Honeycomb"><defs><linearGradient id="bg-i1" x1="80" y1="56" x2="80" y2="104" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFC75A"/><stop offset="1" stop-color="#E0860C"/></linearGradient></defs><path d="M 146.77 80.0 L 134.77 100.78 L 110.77 100.78 L 98.77 80.0 L 110.77 59.22 L 134.77 59.22 Z" fill="none" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><path d="M 125.38 117.04 L 113.38 137.82 L 89.38 137.82 L 77.38 117.04 L 89.38 96.25 L 113.38 96.25 Z" fill="none" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><path d="M 82.62 117.04 L 70.62 137.82 L 46.62 137.82 L 34.62 117.04 L 46.62 96.25 L 70.62 96.25 Z" fill="none" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><path d="M 61.23 80.0 L 49.23 100.78 L 25.23 100.78 L 13.23 80.0 L 25.23 59.22 L 49.23 59.22 Z" fill="none" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><path d="M 82.62 42.96 L 70.62 63.75 L 46.62 63.75 L 34.62 42.96 L 46.62 22.18 L 70.62 22.18 Z" fill="none" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><path d="M 125.38 42.96 L 113.38 63.75 L 89.38 63.75 L 77.38 42.96 L 89.38 22.18 L 113.38 22.18 Z" fill="none" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><path d="M 104.0 80.0 L 92.0 100.78 L 68.0 100.78 L 56.0 80.0 L 68.0 59.22 L 92.0 59.22 Z" fill="url(#bg-i1)" stroke="#FFD27A" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h3>The Comb</h3>
+        <p>Seven cells, one lit. Memory with one hot recall. This is the DNA the rest of the family inherits.</p>
+        <div class="lockup" style="color:var(--text-primary)">honeycomb</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ APIARY ============================ -->
+  <section>
+    <div class="brand-head">
+      <h2>the apiary</h2>
+      <span class="hue"><span class="swatch" style="background:var(--honey)"></span>full family spectrum, amber leads</span>
+    </div>
+    <p class="brand-note">The parent doesn't compete with its products; it houses them. Amber leads, the product hues appear only here.</p>
+    <div class="grid">
+      <div class="card">
+        <span class="tag">direction A1</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Apiary — The Yard"><defs><linearGradient id="a1-i2" x1="80" y1="62" x2="80" y2="106" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFC75A"/><stop offset="1" stop-color="#E0860C"/></linearGradient></defs><path d="M 102.00 82.00 L 91.00 101.05 L 69.00 101.05 L 58.00 82.00 L 69.00 62.95 L 91.00 62.95 Z" fill="url(#a1-i2)" stroke="#FFD27A" stroke-width="1.6" stroke-linejoin="round"/><path d="M 95.00 32.00 L 87.50 44.99 L 72.50 44.99 L 65.00 32.00 L 72.50 19.01 L 87.50 19.01 Z" fill="none" stroke="#E8722A" stroke-width="5" stroke-linejoin="round"/><path d="M 57.00 108.00 L 49.50 120.99 L 34.50 120.99 L 27.00 108.00 L 34.50 95.01 L 49.50 95.01 Z" fill="none" stroke="#FFD048" stroke-width="5" stroke-linejoin="round"/><path d="M 133.00 108.00 L 125.50 120.99 L 110.50 120.99 L 103.00 108.00 L 110.50 95.01 L 125.50 95.01 Z" fill="none" stroke="#3EC8A8" stroke-width="5" stroke-linejoin="round"/></svg></div>
+        <h3><span class="dir">A1</span>The Yard</h3>
+        <p>One amber queen cell, three product cells stationed around it — ember, gold, teal. The only mark in the system allowed to wear every hue. Reads as "the thing that holds the products."</p>
+        <div class="lockup">the apiary</div>
+      </div>
+      <div class="card">
+        <span class="tag">direction A2</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Apiary — The Stack"><defs><linearGradient id="a2-i3" x1="80" y1="78" x2="80" y2="108" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFC75A"/><stop offset="1" stop-color="#E0860C"/></linearGradient></defs><rect x="36" y="24" width="88" height="14" rx="4" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><rect x="46" y="44" width="68" height="26" rx="4" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><rect x="46" y="76" width="68" height="28" rx="4" fill="url(#a2-i3)" stroke="#FFD27A" stroke-width="1.6"/><rect x="68" y="94" width="24" height="5" rx="2.5" fill="#1A1206"/><path d="M 40 114 L 120 114" stroke="#F7A823" stroke-width="5" stroke-linecap="round"/><path d="M 52 114 L 52 130 M 108 114 L 108 130" stroke="#F7A823" stroke-width="5" stroke-linecap="round"/></svg></div>
+        <h3><span class="dir">A2</span>The Stack</h3>
+        <p>A Langstroth hive: lid, super, glowing brood box, stand. The literal apiary object — and an accidental diagram of your architecture: supervisor on top, hot layer glowing underneath.</p>
+        <div class="lockup">the apiary</div>
+      </div>
+      <div class="card">
+        <span class="tag">direction A3</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Apiary — The A-Frame"><defs><linearGradient id="a3-i4" x1="80" y1="25" x2="80" y2="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFC75A"/><stop offset="1" stop-color="#E0860C"/></linearGradient></defs><path d="M 74.00 84.00 L 64.00 101.32 L 44.00 101.32 L 34.00 84.00 L 44.00 66.68 L 64.00 66.68 Z" fill="none" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><path d="M 126.00 84.00 L 116.00 101.32 L 96.00 101.32 L 86.00 84.00 L 96.00 66.68 L 116.00 66.68 Z" fill="none" stroke="#F7A823" stroke-width="5" stroke-linejoin="round"/><path d="M 100.00 42.00 L 90.00 59.32 L 70.00 59.32 L 60.00 42.00 L 70.00 24.68 L 90.00 24.68 Z" fill="url(#a3-i4)" stroke="#FFD27A" stroke-width="1.6" stroke-linejoin="round"/><path d="M 42 118 L 118 118" stroke="#F7A823" stroke-width="5" stroke-linecap="round" stroke-opacity="0.5"/></svg></div>
+        <h3><span class="dir">A3</span>The A-Frame</h3>
+        <p>Three cells stacked into a pyramid over a baseline — an "A" you read without being told. The most reduced of the three; survives a 16px favicon without flinching.</p>
+        <div class="lockup">the apiary</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= HIVE ============================= -->
+  <section>
+    <div class="brand-head">
+      <h2>hive</h2>
+      <span class="hue"><span class="swatch" style="background:var(--ember)"></span>ember · #E8722A</span>
+    </div>
+    <p class="brand-note">The always-on portal. Deeper, hotter amber — the room the fire lives in. Every concept is about containment and entry.</p>
+    <div class="grid">
+      <div class="card">
+        <span class="tag">direction H1</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hive — The Portal"><defs><linearGradient id="h1-i5" x1="80" y1="57" x2="80" y2="89" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FF9A52"/><stop offset="1" stop-color="#C6531A"/></linearGradient></defs><path d="M 70 123.30 L 55 123.30 L 30 80 L 55 36.70 L 105 36.70 L 130 80 L 105 123.30 L 90 123.30" fill="none" stroke="#E8722A" stroke-width="5" stroke-linejoin="round"/><path d="M 70 123.30 L 70 108 A 10 10 0 0 1 90 108 L 90 123.30" fill="none" stroke="#E8722A" stroke-width="5" stroke-linejoin="round"/><path d="M 97.00 73.00 L 88.50 87.72 L 71.50 87.72 L 63.00 73.00 L 71.50 58.28 L 88.50 58.28 Z" fill="url(#h1-i5)" stroke="#FFB489" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h3><span class="dir">H1</span>The Portal</h3>
+        <p>One big cell with an open entrance and a lit core. The bottom edge literally breaks for the doorway — hive is where you walk in. Strongest concept-to-product fit of the three.</p>
+        <div class="lockup" style="color:var(--ember)">hive</div>
+      </div>
+      <div class="card">
+        <span class="tag">direction H2</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hive — The Skep"><defs><linearGradient id="h2-i6" x1="80" y1="108" x2="80" y2="124" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FF9A52"/><stop offset="1" stop-color="#C6531A"/></linearGradient></defs><rect x="56" y="30" width="48" height="14" rx="7.0" stroke="#E8722A" stroke-width="5" stroke-linejoin="round"/><rect x="40" y="50" width="80" height="15" rx="7.5" stroke="#E8722A" stroke-width="5" stroke-linejoin="round"/><rect x="29" y="70" width="102" height="15" rx="7.5" stroke="#E8722A" stroke-width="5" stroke-linejoin="round"/><rect x="25" y="90" width="110" height="15" rx="7.5" stroke="#E8722A" stroke-width="5" stroke-linejoin="round"/><rect x="40" y="110" width="80" height="13" rx="6.5" stroke="#E8722A" stroke-width="5"/><path d="M 71 128 L 71 116 A 9 9 0 0 1 89 116 L 89 128 Z" fill="url(#h2-i6)" stroke="#FFB489" stroke-width="1.2"/></svg></div>
+        <h3><span class="dir">H2</span>The Skep</h3>
+        <p>The classic coiled-straw beehive, gradient glowing at the door. Most iconic silhouette in the set — instantly "hive" to anyone — but the least geometric, so it strains the family DNA.</p>
+        <div class="lockup" style="color:var(--ember)">hive</div>
+      </div>
+      <div class="card">
+        <span class="tag">direction H3</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hive — The Nest"><defs><linearGradient id="h3-i7" x1="80" y1="63" x2="80" y2="97" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FF9A52"/><stop offset="1" stop-color="#C6531A"/></linearGradient></defs><path d="M 130.00 80.00 L 105.00 123.30 L 55.00 123.30 L 30.00 80.00 L 55.00 36.70 L 105.00 36.70 Z" fill="none" stroke="#E8722A" stroke-width="5" stroke-linejoin="round"/><path d="M 115.00 80.00 L 97.50 110.31 L 62.50 110.31 L 45.00 80.00 L 62.50 49.69 L 97.50 49.69 Z" fill="none" stroke="#E8722A" stroke-width="4" stroke-linejoin="round" stroke-opacity="0.65"/><path d="M 100.00 80.00 L 90.00 97.32 L 70.00 97.32 L 60.00 80.00 L 70.00 62.68 L 90.00 62.68 Z" fill="url(#h3-i7)" stroke="#FFB489" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h3><span class="dir">H3</span>The Nest</h3>
+        <p>Rooms within rooms: three concentric cells, the innermost lit. The portal that contains everything else. Cleanest scaling behavior; pairs beautifully next to the Honeycomb comb.</p>
+        <div class="lockup" style="color:var(--ember)">hive</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ NECTAR ============================ -->
+  <section>
+    <div class="brand-head">
+      <h2>nectar</h2>
+      <span class="hue"><span class="swatch" style="background:var(--gold)"></span>gold · #FFD048</span>
+    </div>
+    <p class="brand-note">The semantic layer distilled from source. Lighter and brighter than honey — nectar is what arrives before it becomes comb.</p>
+    <div class="grid">
+      <div class="card">
+        <span class="tag">direction N1</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nectar — The Drop"><defs><linearGradient id="n1-i8" x1="80" y1="24" x2="80" y2="132" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFE08A"/><stop offset="1" stop-color="#E8A80C"/></linearGradient></defs><path d="M 80 24 C 80 24 44 70 44 100 A 36 36 0 0 0 116 100 C 116 70 80 24 80 24 Z" fill="url(#n1-i8)" stroke="#FFEBB0" stroke-width="1.6" stroke-linejoin="round"/><path d="M 96.00 98.00 L 88.00 111.86 L 72.00 111.86 L 64.00 98.00 L 72.00 84.14 L 88.00 84.14 Z" fill="none" stroke="#1A1206" stroke-width="4.5" stroke-linejoin="round" stroke-opacity="0.55"/></svg></div>
+        <h3><span class="dir">N1</span>The Drop</h3>
+        <p>One gradient drop carrying a comb cell inside it. The identity in one line: a drop of meaning with the memory structure already in it. Best standalone app icon of the three.</p>
+        <div class="lockup" style="color:var(--gold)">nectar</div>
+      </div>
+      <div class="card">
+        <span class="tag">direction N2</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nectar — The Drip"><defs><linearGradient id="n2-i9" x1="80" y1="96" x2="80" y2="138" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFE08A"/><stop offset="1" stop-color="#E8A80C"/></linearGradient></defs><path d="M 110.00 52.00 L 95.00 77.98 L 65.00 77.98 L 50.00 52.00 L 65.00 26.02 L 95.00 26.02 Z" fill="none" stroke="#FFD048" stroke-width="5" stroke-linejoin="round"/><path d="M 80 84 L 80 96" stroke="#FFD048" stroke-width="3.5" stroke-linecap="round"/><path d="M 80 100 C 80 100 65 116 65 126 A 15 15 0 0 0 95 126 C 95 116 80 100 80 100 Z" fill="url(#n2-i9)" stroke="#FFEBB0" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h3><span class="dir">N2</span>The Drip</h3>
+        <p>A cell releasing a single drop — extraction made literal. Strongest storytelling next to the Honeycomb mark (comb above, nectar below), slightly weaker as a solo favicon.</p>
+        <div class="lockup" style="color:var(--gold)">nectar</div>
+      </div>
+      <div class="card">
+        <span class="tag">direction N3</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nectar — The Facet"><defs><linearGradient id="n3-i10" x1="80" y1="22" x2="80" y2="128" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFE08A"/><stop offset="1" stop-color="#E8A80C"/></linearGradient></defs><path d="M 80 22 L 104 62 L 112 96 L 92 128 L 68 128 L 48 96 L 56 62 Z" fill="url(#n3-i10)" stroke="#FFEBB0" stroke-width="1.6" stroke-linejoin="round"/><path d="M 80 22 L 80 128 M 56 62 L 104 62 M 48 96 L 112 96" stroke="#1A1206" stroke-width="2" stroke-opacity="0.28"/></svg></div>
+        <h3><span class="dir">N3</span>The Facet</h3>
+        <p>A drop cut with comb geometry — crystalline, deterministic, ULID-precise. The most "engineered" read: nectar as a minted artifact, not a fluid.</p>
+        <div class="lockup" style="color:var(--gold)">nectar</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ DOCTOR ============================ -->
+  <section>
+    <div class="brand-head">
+      <h2>doctor</h2>
+      <span class="hue"><span class="swatch" style="background:var(--teal)"></span>teal · #3EC8A8</span>
+    </div>
+    <p class="brand-note">The supervisor. The one product that steps outside the warm spectrum on purpose — health has to be readable at a glance, and teal never collides with severity reds and ambers on a status board.</p>
+    <div class="grid">
+      <div class="card">
+        <span class="tag">direction D1</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Doctor — The Pulse"><defs><linearGradient id="d1-i11" x1="80" y1="56" x2="80" y2="104" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7FE6CC"/><stop offset="1" stop-color="#1FA184"/></linearGradient></defs><path d="M 126.00 80.00 L 103.00 119.84 L 57.00 119.84 L 34.00 80.00 L 57.00 40.16 L 103.00 40.16 Z" fill="none" stroke="#3EC8A8" stroke-width="5" stroke-linejoin="round"/><path d="M 40 80 L 62 80 L 72 56 L 86 104 L 96 80 L 120 80" fill="none" stroke="url(#d1-i11)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+        <h3><span class="dir">D1</span>The Pulse</h3>
+        <p>A comb cell with a heartbeat through it. Says "daemon health" without a word of copy. The obvious choice — which is not a criticism for a status product.</p>
+        <div class="lockup" style="color:var(--teal)">doctor</div>
+      </div>
+      <div class="card">
+        <span class="tag">direction D2</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Doctor — The Cross"><defs><linearGradient id="d2-i12" x1="80" y1="56" x2="80" y2="104" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7FE6CC"/><stop offset="1" stop-color="#1FA184"/></linearGradient></defs><path d="M 126.00 80.00 L 103.00 119.84 L 57.00 119.84 L 34.00 80.00 L 57.00 40.16 L 103.00 40.16 Z" fill="none" stroke="#3EC8A8" stroke-width="5" stroke-linejoin="round"/><path d="M 72 56 L 88 56 L 88 72 L 104 72 L 104 88 L 88 88 L 88 104 L 72 104 L 72 88 L 56 88 L 56 72 L 72 72 Z" fill="url(#d2-i12)" stroke="#A9F0DD" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h3><span class="dir">D2</span>The Cross</h3>
+        <p>Care, in comb geometry. Boldest and simplest silhouette; unbeatable at tiny sizes. Teal keeps it clear of any red-cross baggage.</p>
+        <div class="lockup" style="color:var(--teal)">doctor</div>
+      </div>
+      <div class="card">
+        <span class="tag">direction D3</span>
+        <div class="tile"><svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Doctor — The Beacon"><defs><linearGradient id="d3-i13" x1="80" y1="85" x2="80" y2="119" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7FE6CC"/><stop offset="1" stop-color="#1FA184"/></linearGradient></defs><path d="M 51.7 73.7 A 40 40 0 0 1 108.3 73.7" fill="none" stroke="#3EC8A8" stroke-width="5" stroke-linecap="round" stroke-opacity="0.75"/><path d="M 39 61 A 58 58 0 0 1 121 61" fill="none" stroke="#3EC8A8" stroke-width="5" stroke-linecap="round" stroke-opacity="0.4"/><path d="M 100.00 102.00 L 90.00 119.32 L 70.00 119.32 L 60.00 102.00 L 70.00 84.68 L 90.00 84.68 Z" fill="url(#d3-i13)" stroke="#A9F0DD" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h3><span class="dir">D3</span>The Beacon</h3>
+        <p>One healthy cell reporting in — telemetry rings over a lit cell. Maps directly to the check-in/registry model (PRD-017 energy). The most "fleet" of the three.</p>
+        <div class="lockup" style="color:var(--teal)">doctor</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Round 1 · geometry inherited from branding/honeycomb (flat-top hex, 5px stroke, one gradient element per mark) ·
+    source SVGs in branding/concepts/svg/ · pollinate violet #8B7CF0 stays reserved for the consolidation loop, untouched by any product mark.
+  </footer>
+
+</div>
+</body>
+</html>

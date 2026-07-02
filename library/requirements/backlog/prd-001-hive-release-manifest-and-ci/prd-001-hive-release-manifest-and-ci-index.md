@@ -9,11 +9,11 @@
 
 ## Overview
 
-The Apiary is an umbrella git repository that aggregates four independently versioned products as git submodules: `honeycomb` (`@legioncodeinc/honeycomb`, published), `hivedoctor` (`@legioncodeinc/hivedoctor`, published), `the-hive` (not published), and `hivenectar` (not published). Each published submodule releases on its own cadence through its own OIDC Trusted Publishing workflow, and that independence is deliberate: a honeycomb patch must not force a hivedoctor bump, and every product keeps its own tarball, changelog, and tag namespace.
+The Apiary is an umbrella git repository that aggregates four independently versioned products as git submodules: `honeycomb` (`@legioncodeinc/honeycomb`, published), `hivedoctor` (`@legioncodeinc/doctor`, published), `the-hive` (not published), and `hivenectar` (not published). Each published submodule releases on its own cadence through its own OIDC Trusted Publishing workflow, and that independence is deliberate: a honeycomb patch must not force a hivedoctor bump, and every product keeps its own tarball, changelog, and tag namespace.
 
 Independence alone gives the fleet no notion of a *compatible set*. A user who installs "the latest of everything" can land a combination of the four products that no one ever tested together, and the shared contracts between them (the loopback port map, hivedoctor's registry schema, the-hive's proxy routing, the embeddings runtime) make an untested combination a real correctness and support hazard. The superproject has, until now, carried no CI and no library, so it had no place to express or enforce fleet compatibility.
 
-This module implements [`ADR-0001`](../../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md). It defines a versioned **hive release manifest** that pins exactly one compatible set of submodule versions, gives the superproject **CI** that validates and produces that manifest as a combined release train, and adds **OIDC publish pipelines for the-hive and hivenectar** so the manifest can pin versions a registry can actually serve. The manifest sits above the products; it never merges them into a monolith.
+This module implements [`ADR-0001`](../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md). It defines a versioned **hive release manifest** that pins exactly one compatible set of submodule versions, gives the superproject **CI** that validates and produces that manifest as a combined release train, and adds **OIDC publish pipelines for the-hive and hivenectar** so the manifest can pin versions a registry can actually serve. The manifest sits above the products; it never merges them into a monolith.
 
 ---
 
@@ -27,7 +27,7 @@ This module implements [`ADR-0001`](../../../../knowledge/private/architecture/A
 
 ## Non-Goals
 
-- **Product selection, flags, licensing, and install-time telemetry.** How the installer chooses *which* products and applies configuration is [`PRD-002`](../prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md) / [`ADR-0002`](../../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md). This module owns *which versions are compatible*, not *which products are picked*.
+- **Product selection, flags, licensing, and install-time telemetry.** How the installer chooses *which* products and applies configuration is [`PRD-002`](../prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md) / [`ADR-0002`](../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md). This module owns *which versions are compatible*, not *which products are picked*.
 - **A monolithic combined artifact.** The superproject does not build the products together or produce one fleet tarball or image (explicitly rejected in ADR-0001). A "bundle" is the list of each submodule's own published tarball at the pinned version.
 - **Changing any submodule's existing CI or release workflow.** honeycomb and hivedoctor keep their per-repo `ci.yaml` and `release.yaml` verbatim; superproject CI sits above them.
 - **The hivedoctor registry contract.** How installed products are recorded on a machine is hivedoctor's ADR-0002 and PRD-001; this module only pins the versions the installer writes there.
@@ -65,7 +65,7 @@ No DeepLake catalog changes. The only new persistent artifact is the hive releas
 ## CI and release-artifact changes
 
 - **New superproject CI** (the umbrella repo gains workflows for the first time): manifest validation on pull requests that touch the manifest, and a release-train job that runs on a superproject fleet tag.
-- **New submodule workflows:** `the-hive/.github/workflows/release.yaml` and `hivenectar/.github/workflows/release.yaml`, each an OIDC Trusted Publishing release on `v*` tags, mirroring [`honeycomb/.github/workflows/release.yaml`](../../../../../honeycomb/.github/workflows/release.yaml).
+- **New submodule workflows:** `hive/.github/workflows/release.yaml` and `nectar/.github/workflows/release.yaml`, each an OIDC Trusted Publishing release on `v*` tags, mirroring [`honeycomb/.github/workflows/release.yaml`](../../../../../honeycomb/.github/workflows/release.yaml).
 - **Installer read path:** the installer gains a manifest-resolution step so a selected product maps to a pinned version before `npm i -g`.
 
 ---
@@ -82,11 +82,11 @@ No DeepLake catalog changes. The only new persistent artifact is the hive releas
 
 ## Related
 
-- [`ADR-0001` Hive release manifest and combined release train](../../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md) - the decision this module implements.
-- [`ADR-0002` One-line installer product loading and install-time telemetry](../../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) - consumes the pinned versions this manifest supplies; implemented by PRD-002.
+- [`ADR-0001` Hive release manifest and combined release train](../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md) - the decision this module implements.
+- [`ADR-0002` One-line installer product loading and install-time telemetry](../../../knowledge/private/architecture/ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md) - consumes the pinned versions this manifest supplies; implemented by PRD-002.
 - [`PRD-002` One-Line Installer Product Loading and Install-Time Telemetry](../prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md) - the sibling installer PRD that selects products and resolves each to a manifest-pinned version.
-- hivedoctor [`ADR-0002` Service registration, static registry plus runtime SQLite](../../../../../hivedoctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - the registry the installer writes when it installs a pinned set.
-- hivedoctor [`PRD-001` Service registration and telemetry ingestion](../../../../../hivedoctor/library/requirements/backlog/prd-001-service-registration-and-telemetry-ingestion/prd-001-service-registration-and-telemetry-ingestion-index.md) - the registry/installer PRD the manifest's installed set is recorded against.
+- hivedoctor [`ADR-0002` Service registration, static registry plus runtime SQLite](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - the registry the installer writes when it installs a pinned set.
+- hivedoctor [`PRD-001` Service registration and telemetry ingestion](../../../../doctor/library/requirements/backlog/prd-001-service-registration-and-telemetry-ingestion/prd-001-service-registration-and-telemetry-ingestion-index.md) - the registry/installer PRD the manifest's installed set is recorded against.
 - honeycomb install assets that this manifest and its installer read path build on:
   - [`honeycomb/scripts/install/install.sh`](../../../../../honeycomb/scripts/install/install.sh) and [`install.ps1`](../../../../../honeycomb/scripts/install/install.ps1) - the one-line installer that gains manifest resolution.
   - [`honeycomb/site/install/`](../../../../../honeycomb/site/install/) - the install surface served at `get.theapiary.sh` from which the manifest is fetched.

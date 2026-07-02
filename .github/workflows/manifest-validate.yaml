@@ -8,11 +8,11 @@ name: Manifest Validate
 # product the manifest marks as already published, confirms the pinned
 # version resolves on the public npm registry. It never checks out any
 # submodule, never runs `npm ci`/build/test inside a submodule, and never
-# triggers or alters honeycomb's, hivedoctor's, the-hive's, or hivenectar's
+# triggers or alters honeycomb's, doctor's, hive's, or nectar's
 # own workflows (PRD-001b b-AC-4 / parent AC-5).
 #
-# For a product the manifest marks `published: false` (the-hive and
-# hivenectar today — see hive-release.schema.md), registry resolution is
+# For a product the manifest marks `published: false` (hive and
+# nectar today — see hive-release.schema.md), registry resolution is
 # deliberately SKIPPED and a clear, distinguishable "not yet published" note
 # is logged instead of the job crashing on an expected 404. Internal
 # consistency (required fields present, valid semver) is still enforced for

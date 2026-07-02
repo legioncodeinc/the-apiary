@@ -18,13 +18,13 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const REQUIRED_SLUGS = ['honeycomb', 'hivedoctor', 'thehive', 'hivenectar'];
+const REQUIRED_SLUGS = ['honeycomb', 'doctor', 'hive', 'nectar'];
 const SEMVER_RE = /^\d+\.\d+\.\d+$/;
 const FALLBACK_PACKAGE_NAMES = {
   honeycomb: '@legioncodeinc/honeycomb',
-  hivedoctor: '@legioncodeinc/hivedoctor',
-  thehive: '@legioncodeinc/thehive',
-  hivenectar: '@legioncodeinc/hivenectar',
+  doctor: '@legioncodeinc/doctor',
+  hive: '@legioncodeinc/hive',
+  nectar: '@legioncodeinc/nectar',
 };
 
 const manifestPath = resolve(process.cwd(), process.argv[2] ?? 'hive-release.json');
