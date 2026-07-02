@@ -24,7 +24,7 @@ This is the explicit seam a future licensing and product-code system plugs into,
 
 ## Non-Goals
 
-- Actually installing hive/hivenectar and writing the registry (that is 002b).
+- Actually installing hive/nectar and writing the registry (that is 002b).
 - Firing telemetry (that is 002c).
 - Building the entitlement backend behind `--license=` / `--code=`; this sub-PRD only makes them resolvable inputs.
 
@@ -32,7 +32,7 @@ This is the explicit seam a future licensing and product-code system plugs into,
 
 | ID | Criterion |
 |---|---|
-| a-AC-1 | `--products=honeycomb,thehive` yields an internal selection of exactly those products, and drives installation of that set (supports parent AC-1, AC-5). |
+| a-AC-1 | `--products=honeycomb,hive` yields an internal selection of exactly those products, and drives installation of that set (supports parent AC-1, AC-5). |
 | a-AC-2 | A `--code=<code>` resolves at the install site to a product set plus configuration that equals the equivalent explicit flags (parent AC-3). |
 | a-AC-3 | Flags, environment variables, and a config file resolve to the same internal selection, with a documented precedence order (parent AC-4). |
 | a-AC-4 | A combo/alias URL expands to a flag preset and produces the same selection as passing those flags directly; it is documented as sugar, not the primary path. |
@@ -41,7 +41,7 @@ This is the explicit seam a future licensing and product-code system plugs into,
 
 ## Implementation notes
 
-- **Product slugs align with the manifest.** The `--products=` tokens must match the manifest product keys (PRD-001a) so a selected product maps directly to a pinned version with no translation table. Use `honeycomb`, `hivedoctor`, `thehive`, `hivenectar` consistently.
+- **Product slugs align with the manifest.** The `--products=` tokens must match the manifest product keys (PRD-001a) so a selected product maps directly to a pinned version with no translation table. Use `honeycomb`, `doctor`, `hive`, `nectar` consistently.
 - **Code resolution lives at the install site.** The install site already ships an edge `functions/` handler and an `index.template.html` build ([`honeycomb/site/install/`](../../../../../honeycomb/site/install/)); resolve codes and combo URLs there so the pasted shell command stays short.
 - **Precedence is documented, not implicit.** State the flag / env / config order once (for example: explicit flag beats env beats config file beats built-in default) and implement it identically in both shells.
 - **Design for licensing.** Keep `--license=` / `--code=` as opaque strings passed to a resolver so the entitlement service is a fill-in later, per ADR-0002's "designing them in from the start makes licensing a fill-in."

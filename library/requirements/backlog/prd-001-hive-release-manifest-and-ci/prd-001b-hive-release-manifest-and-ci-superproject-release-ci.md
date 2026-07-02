@@ -12,7 +12,7 @@
 
 The superproject has carried no CI until now. This sub-PRD gives it two responsibilities, both scoped to the hive release manifest defined in 001a and required by [`ADR-0001`](../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md): **validate** the manifest, and **run the combined release train** that promotes a set of individually published submodule versions into a named, reproducible fleet release.
 
-CI here sits *above* the per-submodule pipelines. It never rebuilds a product and never replaces honeycomb's or hivedoctor's own `ci.yaml` / `release.yaml`. Its job is to prove the pinned set is real and installable, then to stamp it as a fleet release.
+CI here sits *above* the per-submodule pipelines. It never rebuilds a product and never replaces honeycomb's or doctor's own `ci.yaml` / `release.yaml`. Its job is to prove the pinned set is real and installable, then to stamp it as a fleet release.
 
 ## Goals
 
@@ -24,7 +24,7 @@ CI here sits *above* the per-submodule pipelines. It never rebuilds a product an
 ## Non-Goals
 
 - Defining the manifest schema (that is 001a).
-- Creating the-hive and hivenectar publish pipelines (that is 001c), though this train depends on them existing so their versions are resolvable.
+- Creating hive and nectar publish pipelines (that is 001c), though this train depends on them existing so their versions are resolvable.
 - Building any product from source or producing a combined tarball or image (explicitly rejected in ADR-0001).
 
 ## Acceptance criteria
@@ -54,6 +54,6 @@ CI here sits *above* the per-submodule pipelines. It never rebuilds a product an
 
 - [`ADR-0001`](../../../knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md) - the release-train decision.
 - [PRD-001a](./prd-001a-hive-release-manifest-and-ci-manifest-format-and-ownership.md) - the manifest this CI validates and produces.
-- [PRD-001c](./prd-001c-hive-release-manifest-and-ci-thehive-hivenectar-publish-pipelines.md) - the new publish pipelines whose versions this train must be able to resolve.
+- [PRD-001c](./prd-001c-hive-release-manifest-and-ci-hive-nectar-publish-pipelines.md) - the new publish pipelines whose versions this train must be able to resolve.
 - [`honeycomb/.github/workflows/ci.yaml`](../../../../../honeycomb/.github/workflows/ci.yaml) and [`release.yaml`](../../../../../honeycomb/.github/workflows/release.yaml) - the per-submodule pipelines this train sits above and does not replace.
 - [`honeycomb/.github/workflows/deploy-install-site.yaml`](../../../../../honeycomb/.github/workflows/deploy-install-site.yaml) - deploys the install surface the released manifest may be served from.

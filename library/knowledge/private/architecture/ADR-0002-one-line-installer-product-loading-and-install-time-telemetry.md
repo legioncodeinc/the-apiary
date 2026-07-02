@@ -2,14 +2,14 @@
 
 > **Status:** Active · **Date:** 2026-07-01
 > **Supersedes:** none · **Refines:** [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md) (this ADR consumes the manifest that ADR-0001 pins)
-> **Owners:** platform, honeycomb, hivedoctor
+> **Owners:** platform, honeycomb, doctor
 > **Related:** [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md), [`../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md`](../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md), [`../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md)
 
 ## Context
 
-The Apiary has one front door: `curl -fsSL https://get.theapiary.sh | sh` (and the PowerShell twin `install.ps1`). Today that installer (`honeycomb/scripts/install/install.sh`) is deliberately thin: it provisions Node, installs `@legioncodeinc/honeycomb` and `@legioncodeinc/doctor`, and hands off to the `honeycomb install` CLI verb, which opens the-hive's URL. Two structural weaknesses have emerged.
+The Apiary has one front door: `curl -fsSL https://get.theapiary.sh | sh` (and the PowerShell twin `install.ps1`). Today that installer (`honeycomb/scripts/install/install.sh`) is deliberately thin: it provisions Node, installs `@legioncodeinc/honeycomb` and `@legioncodeinc/doctor`, and hands off to the `honeycomb install` CLI verb, which opens hive's URL. Two structural weaknesses have emerged.
 
-First, **the installer has no product-selection model.** It always installs the same two products. There is no way for a user or a repo administrator to say "install honeycomb and the-hive but not hivenectar," "install with this profile," or "install against this license." As [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md) makes the-hive and hivenectar installable and pins a compatible set, the installer needs a real seam for choosing *which* products from that set to load and *how* to configure them. That seam is also the natural place a future licensing and product-code system would plug in, so it should be designed for that now rather than retrofitted later.
+First, **the installer has no product-selection model.** It always installs the same two products. There is no way for a user or a repo administrator to say "install honeycomb and hive but not nectar," "install with this profile," or "install against this license." As [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md) makes hive and nectar installable and pins a compatible set, the installer needs a real seam for choosing *which* products from that set to load and *how* to configure them. That seam is also the natural place a future licensing and product-code system would plug in, so it should be designed for that now rather than retrofitted later.
 
 Second, **install-time telemetry does not work well today.** The `honeycomb_installed` event is fired from the Node CLI (`honeycomb/src/commands/install.ts`) after a successful install. That has three problems rolled into one: it depends on a build-time PostHog key baked into the Node package (so a keyless build sends nothing), it is fire-and-forget with no retry (a slow or failed hop is silently lost, intentionally not awaited so it never delays the installer), and it never fires at all when the install fails before the Node CLI runs or when hive/nectar are not installed. The result is that the single most important business event, "someone installed," is the least reliable one. A separate event, `honeycomb_first_link`, fires from the daemon on Deep Lake login (`honeycomb/src/daemon/runtime/auth/deeplake-issuer.ts`); that one is well-placed and is not in question here.
 
@@ -22,7 +22,7 @@ PostHog project API keys are safe to expose in client-side surfaces by design, w
 ### Product loading is flag-driven
 
 - The single installer entry takes **flags** as its primary interface:
-  - `--products=` selects the product set, e.g. `--products=honeycomb,thehive,hivenectar`.
+  - `--products=` selects the product set, e.g. `--products=honeycomb,hive,nectar`.
   - `--profile=` selects a named configuration preset.
   - `--license=` / `--code=` pass a license key or a product code.
 - A **product code** resolves at the install site to a product set plus configuration, so a short code can stand in for a longer flag combination.
@@ -34,7 +34,7 @@ The versions the installer loads for the selected products come from the hive re
 
 ### Registration is written on every lifecycle transition
 
-- The installer **creates** a registration entry when it installs a product or service, and **updates** it on install, update, and deletion of a service or product. The installer writes hivedoctor's registry as the durable record of what is deployed on the machine. See hivedoctor [`ADR-0002`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) for the registry contract this cross-references.
+- The installer **creates** a registration entry when it installs a product or service, and **updates** it on install, update, and deletion of a service or product. The installer writes doctor's registry as the durable record of what is deployed on the machine. See doctor [`ADR-0002`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) for the registry contract this cross-references.
 
 ### Install telemetry is fired from the shell script
 
@@ -49,7 +49,7 @@ sequenceDiagram
     participant S as Install shell script
     participant PH as PostHog public project key
     participant CLI as honeycomb CLI verb
-    participant REG as hivedoctor registry
+    participant REG as doctor registry
     U->>S: curl get.theapiary.sh with flags, code, license
     S->>PH: install_started, anonymous install id
     S->>S: resolve products from flags, env, or config
@@ -69,7 +69,7 @@ sequenceDiagram
 - **Reliable install analytics.** Firing from the shell with a public key that is always present, at both start and terminal state, means the "installed" signal survives keyless Node builds and early failures, the exact cases where it is lost today. Start plus completion/failure also yields an install funnel and a real failure rate.
 - **A clean path to licensing.** `--code=` and `--license=` exist from day one as resolvable inputs, so product codes, entitlement, and serialization can be layered on without reworking the installer interface.
 - **Admin-configurable deployments.** Environment variables and a config file let an administrator standardize what and where the fleet installs across many machines, without handing each user a bespoke command line.
-- **A single, honest deployment record.** Because registration is created and updated on every install, update, and deletion, hivedoctor's registry stays an accurate picture of the machine's fleet rather than a create-once snapshot.
+- **A single, honest deployment record.** Because registration is created and updated on every install, update, and deletion, doctor's registry stays an accurate picture of the machine's fleet rather than a create-once snapshot.
 
 **Negative.**
 
@@ -101,6 +101,6 @@ Leave `honeycomb_installed` firing from `honeycomb/src/commands/install.ts` and 
 - `honeycomb/.github/workflows/deploy-install-site.yaml` - deploys the install site to `get.theapiary.sh` (Cloudflare Pages).
 - `honeycomb/src/commands/install.ts` - the Node CLI that fires `honeycomb_installed` today (the transport this ADR moves to the shell).
 - `honeycomb/src/daemon/runtime/auth/deeplake-issuer.ts` - fires `honeycomb_first_link` on Deep Lake login; unchanged by this ADR.
-- [`../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - the hivedoctor registry the installer creates and updates on every product and service lifecycle transition.
+- [`../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md) - the doctor registry the installer creates and updates on every product and service lifecycle transition.
 - [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md) - the manifest that supplies the pinned versions this installer loads for the selected products.
 - [`../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md`](../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md) - the forthcoming PRD specifying the flag grammar, code/license resolution, and the phone-home payloads.

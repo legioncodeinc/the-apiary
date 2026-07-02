@@ -36,10 +36,10 @@ The four keys below are **required**. A manifest missing any one of them, or wit
 |---|---|---|
 | `honeycomb` | Honeycomb daemon + clients | `@legioncodeinc/honeycomb` |
 | `doctor` | Doctor watchdog | `@legioncodeinc/doctor` |
-| `hive` | The Hive portal daemon | `@legioncodeinc/hive` |
+| `hive` | Hive portal daemon | `@legioncodeinc/hive` |
 | `nectar` | Nectar semantic memory layer | `@legioncodeinc/nectar` |
 
-Slugs deliberately match the installer's `--products=` tokens in PRD-002a, so product selection maps to a manifest pin with no translation table. The slugs were renamed together with the July 2026 repository renames (`hivedoctor` to `doctor`, `thehive` to `hive`, `hivenectar` to `nectar`); the installer accepts the pre-rename tokens as aliases and normalizes them to these slugs, so older invocations keep working.
+Slugs deliberately match the installer's `--products=` tokens in PRD-002a, so product selection maps to a manifest pin with no translation table. The slugs were renamed together with the July 2026 repository renames (`doctor` to `doctor`, `hive` to `hive`, `nectar` to `nectar`); the installer accepts the pre-rename tokens as aliases and normalizes them to these slugs, so older invocations keep working.
 
 ## Per-product entry shape
 
@@ -88,12 +88,12 @@ These are explicitly anticipated by a-AC-4 and MAY be added later without a sche
 
 ## Current pinned set (Wave 1)
 
-As of this manifest's creation, `honeycomb` and `doctor` are already published and independently verified against the registry. `hive` and `nectar` are pinned at their current `package.json` versions with `published: false`, because [PRD-001c](./library/requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001c-hive-release-manifest-and-ci-thehive-hivenectar-publish-pipelines.md)'s release pipelines were only just added in this same change and neither product has cut a first real tag yet. The first maintainer action after this change lands is: register each as an npm Trusted Publisher, cut each product's first real `v*` tag, confirm the publish, then flip `published: true` (or drop the field) here.
+As of this manifest's creation, `honeycomb` and `doctor` are already published and independently verified against the registry. `hive` and `nectar` are pinned at their current `package.json` versions with `published: false`, because [PRD-001c](./library/requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001c-hive-release-manifest-and-ci-hive-nectar-publish-pipelines.md)'s release pipelines were only just added in this same change and neither product has cut a first real tag yet. The first maintainer action after this change lands is: register each as an npm Trusted Publisher, cut each product's first real `v*` tag, confirm the publish, then flip `published: true` (or drop the field) here.
 
 ## Related
 
 - [ADR-0001](./library/knowledge/private/architecture/ADR-0001-hive-release-manifest-and-combined-release-train.md)
 - [PRD-001a](./library/requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001a-hive-release-manifest-and-ci-manifest-format-and-ownership.md)
 - [PRD-001b](./library/requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001b-hive-release-manifest-and-ci-superproject-release-ci.md) — the CI that validates and produces this manifest.
-- [PRD-001c](./library/requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001c-hive-release-manifest-and-ci-thehive-hivenectar-publish-pipelines.md) — the publish pipelines whose output this manifest pins.
+- [PRD-001c](./library/requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001c-hive-release-manifest-and-ci-hive-nectar-publish-pipelines.md) — the publish pipelines whose output this manifest pins.
 - `.github/workflows/manifest-validate.yaml`, `.github/workflows/release-train.yaml`, `.github/scripts/validate-hive-release-manifest.mjs`
