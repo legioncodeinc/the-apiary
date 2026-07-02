@@ -1,0 +1,10 @@
+{
+  "name": "the-apiary",
+  "version": "0.1.0",
+  "description": "The Bee Army: 111 Stinger skills, 86 Worker Bee agents, and the Beekeeper/Smoker orchestrators, ported from the-apiary's .cursor toolkit for Claude Cowork.",
+  "author": {
+    "name": "Mario Aldayuz"
+  },
+  "keywords": ["apiary", "hivenectar", "bee-army", "orchestration", "stingers"],
+  "license": "MIT"
+}

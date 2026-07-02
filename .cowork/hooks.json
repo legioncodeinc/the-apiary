@@ -1,0 +1,14 @@
+{
+  "Stop": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Check the assistant's response for em dashes (U+2014) or en dashes (U+2013) in prose written for the user. This applies to chat responses, documentation, commit messages, PR descriptions, code comments, and any content authored on the user's behalf. Regular hyphens are fine, and dashes inside quoted source material or code that already existed are fine. If violating dashes are present, block and instruct: rewrite using a regular hyphen, a comma, a colon, parentheses, or two sentences, whichever fits the clause relationship.",
+          "timeout": 30
+        }
+      ]
+    }
+  ]
+}
