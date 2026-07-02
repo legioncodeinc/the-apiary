@@ -9,7 +9,7 @@
     "doctor": {
       "version": "0.1.10",
       "packageName": "@legioncodeinc/doctor",
-      "published": true
+      "published": false
     },
     "hive": {
       "version": "0.1.0",
