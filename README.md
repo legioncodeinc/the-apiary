@@ -14,12 +14,12 @@
 
 <p align="center">
   <a href="https://github.com/legioncodeinc"><img src="https://img.shields.io/badge/by-Legion%20Code-F7A823?style=flat-square" alt="Legion Code"></a>
-  <a href="https://deeplake.ai"><img src="https://img.shields.io/badge/powered%20by-Deep%20Lake-ff5a1f?style=flat-square" alt="Powered by Deep Lake"></a>
+  <a href="https://deeplake.ai"><img src="https://img.shields.io/badge/powered%20by-Deeplake-ff5a1f?style=flat-square" alt="Powered by Deeplake"></a>
   <img src="https://img.shields.io/badge/structure-git%20submodules-339933?style=flat-square" alt="Git submodules">
   <a href="https://theapiary.sh"><img src="https://img.shields.io/badge/docs-theapiary.sh-blue?style=flat-square" alt="theapiary.sh"></a>
 </p>
 
-<p align="center"><sub>A <a href="https://github.com/legioncodeinc"><strong>Legion Code</strong></a> &times; <a href="https://activeloop.ai"><strong>Activeloop</strong></a> collaboration, built on <a href="https://github.com/activeloopai/hivemind">Hivemind</a> &amp; <a href="https://deeplake.ai">Deep Lake</a>.</sub></p>
+<p align="center"><sub>A <a href="https://github.com/legioncodeinc"><strong>Legion Code</strong></a> &times; <a href="https://activeloop.ai"><strong>Activeloop</strong></a> collaboration, built on <a href="https://github.com/activeloopai/hivemind">Hivemind</a> &amp; <a href="https://deeplake.ai">Deeplake</a>.</sub></p>
 
 ---
 
@@ -49,7 +49,7 @@ Four product submodules, plus the local AI development tooling that builds them.
 
 ## How the pieces fit together
 
-Honeycomb is the product. The Hive shows it to you. Doctor keeps it all running. Hivenectar extends what it can remember. They form a **four-role, four-process topology**: two workload daemons (Honeycomb, Hivenectar) that do the memory work, one always-on portal (The Hive) that presents it, and one supervisor (Doctor) that watches the set. All of it sits on the same foundation: Activeloop's [Deep Lake](https://deeplake.ai) (the versioned, columnar-plus-vector database for AI) and [Hivemind](https://github.com/activeloopai/hivemind) (Activeloop's open-source agent-memory project).
+Honeycomb is the product. The Hive shows it to you. Doctor keeps it all running. Hivenectar extends what it can remember. They form a **four-role, four-process topology**: two workload daemons (Honeycomb, Hivenectar) that do the memory work, one always-on portal (The Hive) that presents it, and one supervisor (Doctor) that watches the set. All of it sits on the same foundation: Activeloop's [Deeplake](https://deeplake.ai) (the versioned, columnar-plus-vector database for AI) and [Hivemind](https://github.com/activeloopai/hivemind) (Activeloop's open-source agent-memory project).
 
 ```mermaid
 flowchart TD
@@ -59,7 +59,7 @@ flowchart TD
     doctor -->|supervises| nectar["Hivenectar<br/>semantic-memory workload daemon"]
     hive -->|aggregates API| comb
     hive -->|aggregates API| nectar
-    comb -->|storage client| deeplake["Activeloop Deep Lake<br/>versioned, columnar + vector, built on Hivemind"]
+    comb -->|storage client| deeplake["Activeloop Deeplake<br/>versioned, columnar + vector, built on Hivemind"]
     nectar -->|storage client| deeplake
 ```
 
@@ -135,11 +135,11 @@ Always defer to the `LICENSE` file inside each submodule for that project's exac
 
 ## Credits
 
-The Apiary exists because two halves fit together. **[Activeloop](https://activeloop.ai)** brings **[Deep Lake](https://deeplake.ai)** and **[Hivemind](https://github.com/activeloopai/hivemind)**, the durable, queryable foundation the memories live on. **[Legion Code Inc](https://github.com/legioncodeinc)** brings the multi-tier memory system, session priming, skill propagation, the pollinating loop, the knowledge and codebase graphs, and the daemon architecture that turns Deep Lake into a shared brain your coding agents read and write on every turn.
+The Apiary exists because two halves fit together. **[Activeloop](https://activeloop.ai)** brings **[Deeplake](https://deeplake.ai)** and **[Hivemind](https://github.com/activeloopai/hivemind)**, the durable, queryable foundation the memories live on. **[Legion Code Inc](https://github.com/legioncodeinc)** brings the multi-tier memory system, session priming, skill propagation, the pollinating loop, the knowledge and codebase graphs, and the daemon architecture that turns Deeplake into a shared brain your coding agents read and write on every turn.
 
 ---
 
 <p align="center">
-  <sub><strong>Built by <a href="https://github.com/legioncodeinc">Legion Code Inc</a></strong> · <strong>Powered by <a href="https://deeplake.ai">Activeloop Deep Lake</a></strong> · <strong>Built on <a href="https://github.com/activeloopai/hivemind">Hivemind</a></strong></sub><br>
+  <sub><strong>Built by <a href="https://github.com/legioncodeinc">Legion Code Inc</a></strong> · <strong>Powered by <a href="https://deeplake.ai">Activeloop Deeplake</a></strong> · <strong>Built on <a href="https://github.com/activeloopai/hivemind">Hivemind</a></strong></sub><br>
   <sub><a href="https://theapiary.sh">theapiary.sh</a></sub>
 </p>
