@@ -38,25 +38,25 @@ Four product submodules, plus the local AI development tooling that builds them.
 | Project | What it is | Repository | Package | Stage |
 |---|---|---|---|---|
 | **[honeycomb](honeycomb/README.md)** | The flagship product. A cross-harness AI coding **memory system**: a long-lived local daemon plus thin clients (per-harness hooks, a unified CLI, an MCP server, a TypeScript SDK) that give six coding assistants one shared, persistent memory. | [legioncodeinc/honeycomb](https://github.com/legioncodeinc/honeycomb) | [`@legioncodeinc/honeycomb`](https://www.npmjs.com/package/@legioncodeinc/honeycomb) `v0.1.x` | Pre-release |
-| **[hive](hive/README.md)** | **The Hive**: the always-on **portal daemon**. Boots with the device (supervised by Doctor), and serves the unified dashboard by aggregating each workload daemon's API rather than touching storage itself, so the dashboard is up even when a workload daemon is not. | [legioncodeinc/hive](https://github.com/legioncodeinc/hive) | not yet published | Early development |
+| **[hive](hive/README.md)** | **Hive**: the always-on **portal daemon**. Boots with the device (supervised by Doctor), and serves the unified dashboard by aggregating each workload daemon's API rather than touching storage itself, so the dashboard is up even when a workload daemon is not. | [legioncodeinc/hive](https://github.com/legioncodeinc/hive) | not yet published | Early development |
 | **[doctor](doctor/README.md)** | The **self-healing supervisor** for the daemon family. Deliberately tiny (zero runtime dependencies, Node built-ins only), OS-supervised, it keeps a small registry of the daemons it watches, probes their health, and runs an escalating repair ladder. Now its own repository. | [legioncodeinc/doctor](https://github.com/legioncodeinc/doctor) | [`@legioncodeinc/doctor`](https://www.npmjs.com/package/@legioncodeinc/doctor) `v0.1.x` | Pre-release |
 | **[nectar](nectar/README.md)** | A **semantic memory layer over a source tree**: gives every file a stable, daemon-minted identity (a "nectar") and an LLM-minted description, served through the same hybrid recall Honeycomb already uses. | [legioncodeinc/nectar](https://github.com/legioncodeinc/nectar) | not yet published | Design and specification |
 | **[.cursor](.cursor/)** | The **Bee Army**: the local AI development team (specialist subagents, skills, orchestration commands, rules, and a model-routing matrix) that Legion Code uses to build the Apiary. Tracked directly in this repo, not a submodule. | this repo | not applicable | Active tooling |
 
-> **New here?** Honeycomb installs in one command, and The Hive gives you an always-on dashboard the moment your device boots. See the [Honeycomb README](honeycomb/README.md#-install-one-command). Everything else lives at **[theapiary.sh](https://theapiary.sh)**.
+> **New here?** Honeycomb installs in one command, and Hive gives you an always-on dashboard the moment your device boots. See the [Honeycomb README](honeycomb/README.md#-install-one-command). Everything else lives at **[theapiary.sh](https://theapiary.sh)**.
 
 ---
 
 ## How the pieces fit together
 
-Honeycomb is the product. The Hive shows it to you. Doctor keeps it all running. Hivenectar extends what it can remember. They form a **four-role, four-process topology**: two workload daemons (Honeycomb, Hivenectar) that do the memory work, one always-on portal (The Hive) that presents it, and one supervisor (Doctor) that watches the set. All of it sits on the same foundation: Activeloop's [Deeplake](https://deeplake.ai) (the versioned, columnar-plus-vector database for AI) and [Hivemind](https://github.com/activeloopai/hivemind) (Activeloop's open-source agent-memory project).
+Honeycomb is the product. Hive shows it to you. Doctor keeps it all running. Nectar extends what it can remember. They form a **four-role, four-process topology**: two workload daemons (Honeycomb, Nectar) that do the memory work, one always-on portal (Hive) that presents it, and one supervisor (Doctor) that watches the set. All of it sits on the same foundation: Activeloop's [Deeplake](https://deeplake.ai) (the versioned, columnar-plus-vector database for AI) and [Hivemind](https://github.com/activeloopai/hivemind) (Activeloop's open-source agent-memory project).
 
 ```mermaid
 flowchart TD
     os["OS service manager"] --> doctor["Doctor<br/>supervisor watchdog"]
-    doctor -->|supervises| hive["The Hive<br/>always-on portal (dashboard)"]
+    doctor -->|supervises| hive["Hive<br/>always-on portal (dashboard)"]
     doctor -->|supervises| comb["Honeycomb<br/>memory workload daemon"]
-    doctor -->|supervises| nectar["Hivenectar<br/>semantic-memory workload daemon"]
+    doctor -->|supervises| nectar["Nectar<br/>semantic-memory workload daemon"]
     hive -->|aggregates API| comb
     hive -->|aggregates API| nectar
     comb -->|storage client| deeplake["Activeloop Deeplake<br/>versioned, columnar + vector, built on Hivemind"]
@@ -64,9 +64,9 @@ flowchart TD
 ```
 
 - **Honeycomb** captures what happens on every agent turn, distills it into a three-tier memory (key, summary, raw), and serves it back to any harness that asks, across sessions, tools, devices, and teammates.
-- **The Hive** is the always-on portal. It boots with the device under Doctor's supervision and binds its socket before any workload is confirmed healthy, so the unified dashboard is up the moment you power on. It renders that dashboard by aggregating each daemon's HTTP API and holds no storage client of its own, so it stays a thin portal that degrades one panel, not the whole page, when a workload is down.
-- **Doctor** runs beside the daemons under OS supervision. It keeps a small registry of the daemons it watches (Honeycomb, The Hive, Hivenectar), probes each one's health, heals common failures on the spot, and escalates loudly when it cannot, so a wedged daemon never becomes a silent, lost morning.
-- **Hivenectar** (design stage) adds a semantic layer so an agent can ask "where is the login logic" and get files that are not named `login-*`, complementing the structural codebase graph Honeycomb already builds.
+- **Hive** is the always-on portal. It boots with the device under Doctor's supervision and binds its socket before any workload is confirmed healthy, so the unified dashboard is up the moment you power on. It renders that dashboard by aggregating each daemon's HTTP API and holds no storage client of its own, so it stays a thin portal that degrades one panel, not the whole page, when a workload is down.
+- **Doctor** runs beside the daemons under OS supervision. It keeps a small registry of the daemons it watches (Honeycomb, Hive, Nectar), probes each one's health, heals common failures on the spot, and escalates loudly when it cannot, so a wedged daemon never becomes a silent, lost morning.
+- **Nectar** (design stage) adds a semantic layer so an agent can ask "where is the login logic" and get files that are not named `login-*`, complementing the structural codebase graph Honeycomb already builds.
 
 ---
 
@@ -102,8 +102,8 @@ git submodule update --remote --merge
 Then pick your entry point:
 
 - **Try the product**: follow the one-command install in the [Honeycomb README](honeycomb/README.md#-install-one-command).
-- **Build from source**: each submodule is self-contained. `cd honeycomb && npm install && npm run build`, and see its README for the quality gate. The Hive, Doctor, and Hivenectar each carry their own build and docs.
-- **Read the design**: Hivenectar is written README-first; its specification lives under [`nectar/library/knowledge/private/`](nectar/library/knowledge/private/).
+- **Build from source**: each submodule is self-contained. `cd honeycomb && npm install && npm run build`, and see its README for the quality gate. Hive, Doctor, and Nectar each carry their own build and docs.
+- **Read the design**: Nectar is written README-first; its specification lives under [`nectar/library/knowledge/private/`](nectar/library/knowledge/private/).
 
 ---
 
@@ -127,7 +127,7 @@ Each submodule has its own `library/` documentation tree (PRDs, IRDs, and knowle
 
 ## Licensing
 
-Every project in the hive shares one license: the **GNU Affero General Public License v3.0 or later** ([AGPL-3.0-or-later](LICENSE.md)). Honeycomb, The Hive, Doctor, and Hivenectar all carry it. Use any of them commercially or privately, free of charge; keep the copyright and license notices intact, and if you run a modified version as a network service you owe its source to its users.
+Every project in the hive shares one license: the **GNU Affero General Public License v3.0 or later** ([AGPL-3.0-or-later](LICENSE.md)). Honeycomb, Hive, Doctor, and Nectar all carry it. Use any of them commercially or privately, free of charge; keep the copyright and license notices intact, and if you run a modified version as a network service you owe its source to its users.
 
 Always defer to the `LICENSE` file inside each submodule for that project's exact terms and copyright holder.
 
