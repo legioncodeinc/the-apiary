@@ -56,7 +56,11 @@ async function registryHasVersion(packageName, version) {
   const url = `https://registry.npmjs.org/${encodeURIComponent(packageName).replace('%40', '@')}/${encodeURIComponent(version)}`;
   let response;
   try {
-    response = await fetch(url, { headers: { Accept: 'application/json' } });
+    // Bounded: a hung registry must not stall the PR-blocking validate job or a release train.
+    response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(10_000),
+    });
   } catch (networkError) {
     return { ok: false, reason: `network error contacting the npm registry: ${networkError.message}` };
   }

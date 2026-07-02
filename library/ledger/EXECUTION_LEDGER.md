@@ -1,6 +1,6 @@
 # Execution Ledger: Portal and Telemetry Realignment
 
-> Driven by `/the-smoker` against `library/initiatives/portal-and-telemetry-realignment.md` and its 9 constituent PRDs (5 repos). This ledger is the single source of truth for every acceptance criterion in scope. Status values: `OPEN`, `IN PROGRESS`, `DONE`, `VERIFIED`, `BLOCKED`.
+> Driven by `/the-smoker` against `library/initiatives/portal-and-telemetry-realignment.md` and its 9 constituent PRDs (5 repos). This ledger is the single source of truth for every acceptance criterion in scope. Status values: `OPEN`, `IN PROGRESS`, `PARTIAL`, `DONE`, `VERIFIED`, `BLOCKED`.
 
 **Branches:** `feature/portal-realignment-impl` in the-apiary, the-hive, hivedoctor, honeycomb, hivenectar (all created off latest `main`).
 
