@@ -1,12 +1,12 @@
-[submodule "hivenectar"]
-	path = hivenectar
-	url = git@github.com:legioncodeinc/hivenectar.git
-[submodule "hivedoctor"]
-	path = hivedoctor
-	url = git@github.com:legioncodeinc/hivedoctor.git
+[submodule "nectar"]
+	path = nectar
+	url = git@github.com:legioncodeinc/nectar.git
+[submodule "doctor"]
+	path = doctor
+	url = git@github.com:legioncodeinc/doctor.git
 [submodule "honeycomb"]
 	path = honeycomb
 	url = git@github.com:legioncodeinc/honeycomb.git
-[submodule "the-hive"]
-	path = the-hive
-	url = git@github.com:legioncodeinc/the-hive.git
+[submodule "hive"]
+	path = hive
+	url = git@github.com:legioncodeinc/hive.git
