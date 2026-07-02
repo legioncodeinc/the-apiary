@@ -13,3 +13,6 @@
 [submodule "website"]
 	path = website
 	url = git@github.com:legioncodeinc/apiary-website.git
+[submodule "queen"]
+	path = queen
+	url = git@github.com:legioncodeinc/queen.git
