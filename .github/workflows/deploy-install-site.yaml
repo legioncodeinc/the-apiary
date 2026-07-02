@@ -62,6 +62,15 @@ jobs:
           # Fetch enough history to verify the tag is reachable from main (next step).
           fetch-depth: 0
 
+      # SECURITY: A manual dispatch skips the tag-ancestry guard below, so pin it to main
+      # explicitly. Without this, an operator (or anyone who can run workflows) could deploy
+      # installer bytes from an unreviewed branch.
+      - name: Guard - manual dispatch must run from main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Manual production deploys must be run from main (got '$GITHUB_REF')."
+          exit 1
+
       # SECURITY: Verify the triggering tag is reachable from the protected main branch, so the
       # tag's tree has passed through main's required PR reviews + status checks. An attacker who
       # pushes a v* tag pointing to an arbitrary commit NOT on main fails this check before any
@@ -69,18 +78,22 @@ jobs:
       # verify; manual deploys from main are operator-initiated).
       - name: Guard - verify tag is on protected main branch
         if: github.event_name == 'push' && github.ref_type == 'tag'
+        # The tag name travels via env, never template-interpolated into the script body, so a
+        # crafted tag name cannot inject shell syntax (zizmor template-injection).
+        env:
+          TAG_NAME: ${{ github.ref_name }}
         run: |
           TAG_SHA="$(git rev-parse HEAD)"
           MAIN_SHA="$(git rev-parse origin/main)"
-          echo "Triggered by tag: ${{ github.ref_name }} (commit $TAG_SHA)"
-          echo "Protected main:   origin/main (commit $MAIN_SHA)"
+          printf 'Triggered by tag: %s (commit %s)\n' "$TAG_NAME" "$TAG_SHA"
+          printf 'Protected main:   origin/main (commit %s)\n' "$MAIN_SHA"
 
           if ! git merge-base --is-ancestor "$TAG_SHA" "$MAIN_SHA"; then
-            echo "::error::SECURITY: Tag ${{ github.ref_name }} (commit $TAG_SHA) is NOT reachable from the protected main branch (commit $MAIN_SHA). Only tags that exist on main (and have therefore passed PR reviews + CI) may deploy to production."
+            printf '::error::SECURITY: Tag %s (commit %s) is NOT reachable from the protected main branch (commit %s). Only tags that exist on main (and have therefore passed PR reviews + CI) may deploy to production.\n' "$TAG_NAME" "$TAG_SHA" "$MAIN_SHA"
             exit 1
           fi
 
-          echo "OK: tag ${{ github.ref_name }} is reachable from protected main, proceeding with deploy."
+          printf 'OK: tag %s is reachable from protected main, proceeding with deploy.\n' "$TAG_NAME"
 
       # The superproject pins honeycomb (like every submodule) to an exact commit. Read that
       # pointer so the second checkout below fetches the installer source at EXACTLY the commit
