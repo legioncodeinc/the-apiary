@@ -1,0 +1,144 @@
+# Deploy the get.theapiary.sh install surface to Cloudflare Pages, FROM THE SUPERPROJECT.
+#
+# MASTER CONTROL (moved here from honeycomb): the-apiary owns fleet releases (hive-release.json +
+# release-train.yaml), so it also owns publishing the installer surface. A fleet tag (`v*`) on THIS
+# repo is the one "go live" signal: it validates the manifest (release-train.yaml), mints the fleet
+# Release, and deploys the install site, all from the same commit. The site SOURCE stays in
+# honeycomb (site/install/: build.mjs, index.template.html, the canonical install.sh/install.ps1);
+# this workflow builds it at exactly the honeycomb commit the superproject pins, so the deployed
+# script always matches the fleet the manifest describes.
+#
+# HOW THE SOURCE IS FETCHED (no submodule auth games): honeycomb is a PUBLIC repo, so instead of a
+# recursive submodule checkout (which would need SSH/token rewrites for the PRIVATE siblings this
+# job never touches), the job reads the honeycomb submodule pointer committed at this tag
+# (`git ls-tree HEAD honeycomb`) and does a second, plain checkout of legioncodeinc/honeycomb at
+# that exact SHA. Reproducible: the same superproject tag always deploys the same installer bytes.
+#
+# Model A, Direct Upload via Wrangler. The Pages project `honeycomb-install` (production branch
+# `production`) + the custom domain get.theapiary.sh are pre-provisioned in the Legion Code Inc.
+# Cloudflare account. Deploys are intentionally NOT on every push to main, so the script served at
+# get.theapiary.sh (and its published SHA-256) stay stable between fleet releases.
+#
+# Required repo secret: CLOUDFLARE_API_TOKEN (Account -> Cloudflare Pages -> Edit). This is the ONE
+# long-lived secret in the fleet's release story; every package repo publishes via tokenless OIDC,
+# and the-apiary is the deliberate exception (Cloudflare Pages has no GitHub OIDC path here).
+# Required repo variable: HONEYCOMB_INSTALL_POSTHOG_KEY (a PostHog PROJECT key, safe to expose
+# client-side by design; absent leaves install-time telemetry disabled, never fails the build).
+
+name: Deploy install site (get.theapiary.sh)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch: {}
+
+# Don't pile up concurrent deploys to the same Pages project.
+concurrency:
+  group: deploy-install-site
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # SECURITY: Require manual approval via a protected environment before deploying installer
+    # scripts to production. This mitigates the risk of an attacker with tag-creation permissions
+    # deploying malicious installer bytes to get.theapiary.sh by pushing an arbitrary v* tag.
+    # The environment must be configured in repo Settings -> Environments -> production with
+    # required reviewers (trusted maintainers only).
+    environment:
+      name: production
+      url: https://get.theapiary.sh
+    steps:
+      - name: Checkout superproject
+        uses: actions/checkout@v4.2.2
+        with:
+          # This job only builds + deploys to Cloudflare; it never pushes back to the repo,
+          # so don't persist the GITHUB_TOKEN into the checkout (artipacked hardening).
+          persist-credentials: false
+          # Fetch enough history to verify the tag is reachable from main (next step).
+          fetch-depth: 0
+
+      # SECURITY: A manual dispatch skips the tag-ancestry guard below, so pin it to main
+      # explicitly. Without this, an operator (or anyone who can run workflows) could deploy
+      # installer bytes from an unreviewed branch.
+      - name: Guard - manual dispatch must run from main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Manual production deploys must be run from main (got '$GITHUB_REF')."
+          exit 1
+
+      # SECURITY: Verify the triggering tag is reachable from the protected main branch, so the
+      # tag's tree has passed through main's required PR reviews + status checks. An attacker who
+      # pushes a v* tag pointing to an arbitrary commit NOT on main fails this check before any
+      # installer bytes reach the build or Cloudflare. Skipped on workflow_dispatch (no tag to
+      # verify; manual deploys from main are operator-initiated).
+      - name: Guard - verify tag is on protected main branch
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        # The tag name travels via env, never template-interpolated into the script body, so a
+        # crafted tag name cannot inject shell syntax (zizmor template-injection).
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          TAG_SHA="$(git rev-parse HEAD)"
+          MAIN_SHA="$(git rev-parse origin/main)"
+          printf 'Triggered by tag: %s (commit %s)\n' "$TAG_NAME" "$TAG_SHA"
+          printf 'Protected main:   origin/main (commit %s)\n' "$MAIN_SHA"
+
+          if ! git merge-base --is-ancestor "$TAG_SHA" "$MAIN_SHA"; then
+            printf '::error::SECURITY: Tag %s (commit %s) is NOT reachable from the protected main branch (commit %s). Only tags that exist on main (and have therefore passed PR reviews + CI) may deploy to production.\n' "$TAG_NAME" "$TAG_SHA" "$MAIN_SHA"
+            exit 1
+          fi
+
+          printf 'OK: tag %s is reachable from protected main, proceeding with deploy.\n' "$TAG_NAME"
+
+      # The superproject pins honeycomb (like every submodule) to an exact commit. Read that
+      # pointer so the second checkout below fetches the installer source at EXACTLY the commit
+      # this fleet tag describes; never "whatever honeycomb main is today".
+      - name: Resolve pinned honeycomb commit from the submodule pointer
+        id: pin
+        run: |
+          HONEYCOMB_SHA="$(git ls-tree HEAD honeycomb | awk '{print $3}')"
+          if [ -z "$HONEYCOMB_SHA" ]; then
+            echo "::error::Could not resolve the honeycomb submodule pointer from this commit."
+            exit 1
+          fi
+          echo "honeycomb pinned at: $HONEYCOMB_SHA"
+          echo "sha=$HONEYCOMB_SHA" >> "$GITHUB_OUTPUT"
+
+      # honeycomb is PUBLIC, so this needs no extra token or SSH configuration. Checked out into
+      # honeycomb/ (the same path the submodule occupies) so build.mjs's relative paths hold.
+      - name: Checkout honeycomb (install-site source) at the pinned commit
+        uses: actions/checkout@v4.2.2
+        with:
+          repository: legioncodeinc/honeycomb
+          ref: ${{ steps.pin.outputs.sha }}
+          path: honeycomb
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: "22"
+
+      - name: Build the install surface (copies scripts, hashes them, renders the page)
+        # HONEYCOMB_INSTALL_POSTHOG_KEY is a PostHog PROJECT key, safe to expose client-side by
+        # design (honeycomb ADR-0002); it is a plain repository VARIABLE, never a secret. Absent
+        # leaves install-time telemetry disabled (build.mjs's documented no-op default); nothing
+        # gates the build or the deploy on it being configured.
+        env:
+          HONEYCOMB_INSTALL_POSTHOG_KEY: ${{ vars.HONEYCOMB_INSTALL_POSTHOG_KEY }}
+        run: node honeycomb/site/install/build.mjs
+
+      - name: Deploy to Cloudflare Pages (production)
+        uses: cloudflare/wrangler-action@v3.15.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 893c7bdc0782f11d23ebd2da8926c132
+          command: >-
+            pages deploy honeycomb/site/install/dist
+            --project-name=honeycomb-install
+            --branch=production
