@@ -1,0 +1,17 @@
+---
+description: The product name is spelled "Deeplake" (one word), never "Deep Lake" (two words).
+alwaysApply: true
+---
+
+# Deeplake spelling
+
+The correct spelling is **"Deeplake"** (one word, capital D only). Never write "Deep Lake" (two words) in any newly authored content: chat responses, documentation, PRDs, QA reports, commit messages, PR titles and descriptions, code comments, and user-facing strings.
+
+- BAD: `Deep Lake`, `deep lake`, `DeepLake` (in prose)
+- GOOD: `Deeplake`
+
+## Exceptions
+
+- Do not rename existing code identifiers, file names, or APIs (e.g. `PgDeepLakeTransport`, `deeplake-hibernation.ts`, `USING deeplake`); follow the existing symbol when referencing code.
+- Preserve verbatim quotes, package names (`@deeplake/hivemind`), and URLs (`api.deeplake.ai`) exactly as they are.
+- Do not mass-rewrite pre-existing file content outside the scope of the current edit; apply the correct spelling in anything you newly write or touch.
