@@ -130,6 +130,14 @@ async function main() {
   // 2c) Copy the canonical favicon from the shared branding set.
   await copyFile(join(REPO_ROOT, 'branding', 'honeycomb', 'logos', 'favicon.svg'), join(DIST_DIR, 'favicon.svg'));
 
+  // 2c-bis) Copy the Pages ADVANCED-MODE worker into the publish dir root. A Direct-Upload deploy
+  //     (`wrangler pages deploy site/install/dist`) uploads only this directory and does NOT
+  //     compile a sibling `functions/` directory, so the bare "/" content negotiation (script for a
+  //     pipe, page for a browser) MUST ship as a `_worker.js` at the root of the deployed output.
+  //     Without it, "/" falls back to Pages' default static serving of index.html, and
+  //     `curl -fsSL https://get.theapiary.sh | sh` pipes HTML into sh ("newline unexpected").
+  await copyFile(join(__dirname, '_worker.js'), join(DIST_DIR, '_worker.js'));
+
   // 2d) Publish the fleet release manifest itself (PRD-009d). the-apiary is a PRIVATE repo, so
   //     the raw.githubusercontent.com URL the installers historically fetched returns 404 for
   //     anonymous users. The install site is the public distribution point, so the manifest
@@ -171,6 +179,7 @@ async function main() {
   console.log('  hive-release.json copied (fleet manifest, manifestVersion', `${manifest.manifestVersion})`);
   console.log('  blessed-version.json', honeycombVersion);
   console.log('  _headers     copied');
+  console.log('  _worker.js   copied (Pages advanced-mode content negotiation for "/")');
   console.log('  favicon.svg  copied');
   console.log('  index.html   rendered');
   console.log(
