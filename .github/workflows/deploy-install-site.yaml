@@ -3,16 +3,9 @@
 # MASTER CONTROL (moved here from honeycomb): the-apiary owns fleet releases (hive-release.json +
 # release-train.yaml), so it also owns publishing the installer surface. A fleet tag (`v*`) on THIS
 # repo is the one "go live" signal: it validates the manifest (release-train.yaml), mints the fleet
-# Release, and deploys the install site, all from the same commit. The site SOURCE stays in
-# honeycomb (site/install/: build.mjs, index.template.html, the canonical install.sh/install.ps1);
-# this workflow builds it at exactly the honeycomb commit the superproject pins, so the deployed
-# script always matches the fleet the manifest describes.
-#
-# HOW THE SOURCE IS FETCHED (no submodule auth games): honeycomb is a PUBLIC repo, so instead of a
-# recursive submodule checkout (which would need SSH/token rewrites for the PRIVATE siblings this
-# job never touches), the job reads the honeycomb submodule pointer committed at this tag
-# (`git ls-tree HEAD honeycomb`) and does a second, plain checkout of legioncodeinc/honeycomb at
-# that exact SHA. Reproducible: the same superproject tag always deploys the same installer bytes.
+# Release, and deploys the install site, all from the same commit. The installer source now also
+# lives in this repo (`site/install/` + `scripts/install/`), so the build and deploy run directly
+# from the single superproject checkout.
 #
 # Model A, Direct Upload via Wrangler. The Pages project `honeycomb-install` (production branch
 # `production`) + the custom domain get.theapiary.sh are pre-provisioned in the Legion Code Inc.
@@ -95,30 +88,6 @@ jobs:
 
           printf 'OK: tag %s is reachable from protected main, proceeding with deploy.\n' "$TAG_NAME"
 
-      # The superproject pins honeycomb (like every submodule) to an exact commit. Read that
-      # pointer so the second checkout below fetches the installer source at EXACTLY the commit
-      # this fleet tag describes; never "whatever honeycomb main is today".
-      - name: Resolve pinned honeycomb commit from the submodule pointer
-        id: pin
-        run: |
-          HONEYCOMB_SHA="$(git ls-tree HEAD honeycomb | awk '{print $3}')"
-          if [ -z "$HONEYCOMB_SHA" ]; then
-            echo "::error::Could not resolve the honeycomb submodule pointer from this commit."
-            exit 1
-          fi
-          echo "honeycomb pinned at: $HONEYCOMB_SHA"
-          echo "sha=$HONEYCOMB_SHA" >> "$GITHUB_OUTPUT"
-
-      # honeycomb is PUBLIC, so this needs no extra token or SSH configuration. Checked out into
-      # honeycomb/ (the same path the submodule occupies) so build.mjs's relative paths hold.
-      - name: Checkout honeycomb (install-site source) at the pinned commit
-        uses: actions/checkout@v4.2.2
-        with:
-          repository: legioncodeinc/honeycomb
-          ref: ${{ steps.pin.outputs.sha }}
-          path: honeycomb
-          persist-credentials: false
-
       - name: Set up Node
         uses: actions/setup-node@v6.4.0
         with:
@@ -131,7 +100,7 @@ jobs:
         # gates the build or the deploy on it being configured.
         env:
           HONEYCOMB_INSTALL_POSTHOG_KEY: ${{ vars.HONEYCOMB_INSTALL_POSTHOG_KEY }}
-        run: node honeycomb/site/install/build.mjs
+        run: node site/install/build.mjs
 
       - name: Deploy to Cloudflare Pages (production)
         uses: cloudflare/wrangler-action@v3.15.0
@@ -139,6 +108,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 893c7bdc0782f11d23ebd2da8926c132
           command: >-
-            pages deploy honeycomb/site/install/dist
+            pages deploy site/install/dist
             --project-name=honeycomb-install
             --branch=production
