@@ -5,6 +5,8 @@
 > **Owners:** platform, honeycomb, doctor, hive, nectar
 > **Related:** [`ADR-0002`](./ADR-0002-one-line-installer-product-loading-and-install-time-telemetry.md), [`../../../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md`](../../../requirements/backlog/prd-001-hive-release-manifest-and-ci/prd-001-hive-release-manifest-and-ci-index.md), [`../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md)
 
+> **Status note (July 2026):** All four products this manifest coordinates are published npm packages and production ready: honeycomb (`@legioncodeinc/honeycomb`), doctor (`@legioncodeinc/doctor`), hive (`@legioncodeinc/hive`), and nectar (`@legioncodeinc/nectar`), each validated in live scenarios. The Context below records the fleet state at the time the decision was made; hive and nectar have gained the publish pipelines this ADR called for and ship as production-ready daemons. Queen remains at design and specification and is out of scope for this manifest.
+
 ## Context
 
 The Apiary is an umbrella git repository that aggregates four independently-versioned products as git submodules:

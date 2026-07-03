@@ -37,10 +37,10 @@ Five product submodules, plus the local AI development tooling that builds them.
 
 | Project | What it is | Repository | Package | Stage |
 |---|---|---|---|---|
-| **[honeycomb](honeycomb/README.md)** | The flagship product. A cross-harness AI coding **memory system**: a long-lived local daemon plus thin clients (per-harness hooks, a unified CLI, an MCP server, a TypeScript SDK) that give six coding assistants one shared, persistent memory. | [legioncodeinc/honeycomb](https://github.com/legioncodeinc/honeycomb) | [`@legioncodeinc/honeycomb`](https://www.npmjs.com/package/@legioncodeinc/honeycomb) `v0.1.x` | Pre-release |
-| **[hive](hive/README.md)** | **Hive**: the always-on **portal daemon**. Boots with the device (supervised by Doctor), and serves the unified dashboard by aggregating each workload daemon's API rather than touching storage itself, so the dashboard is up even when a workload daemon is not. | [legioncodeinc/hive](https://github.com/legioncodeinc/hive) | not yet published | Early development |
-| **[doctor](doctor/README.md)** | The **self-healing supervisor** for the daemon family. Deliberately tiny (zero runtime dependencies, Node built-ins only), OS-supervised, it keeps a small registry of the daemons it watches, probes their health, and runs an escalating repair ladder. Now its own repository. | [legioncodeinc/doctor](https://github.com/legioncodeinc/doctor) | [`@legioncodeinc/doctor`](https://www.npmjs.com/package/@legioncodeinc/doctor) `v0.1.x` | Pre-release |
-| **[nectar](nectar/README.md)** | A **semantic memory layer over a source tree**: gives every file a stable, daemon-minted identity (a "nectar") and an LLM-minted description, served through the same hybrid recall Honeycomb already uses. | [legioncodeinc/nectar](https://github.com/legioncodeinc/nectar) | not yet published | Design and specification |
+| **[honeycomb](honeycomb/README.md)** | The flagship product. A cross-harness AI coding **memory system**: a long-lived local daemon plus thin clients (per-harness hooks, a unified CLI, an MCP server, a TypeScript SDK) that give coding assistants one shared, persistent memory (three harnesses supported: Claude Code, Cursor, Codex; three more in progress: Hermes, pi, OpenClaw). | [legioncodeinc/honeycomb](https://github.com/legioncodeinc/honeycomb) | [`@legioncodeinc/honeycomb`](https://www.npmjs.com/package/@legioncodeinc/honeycomb) `v0.2.x` | Production ready |
+| **[hive](hive/README.md)** | **Hive**: the always-on **portal daemon**. Boots with the device (supervised by Doctor), and serves the unified dashboard by aggregating each workload daemon's API rather than touching storage itself, so the dashboard is up even when a workload daemon is not. | [legioncodeinc/hive](https://github.com/legioncodeinc/hive) | [`@legioncodeinc/hive`](https://www.npmjs.com/package/@legioncodeinc/hive) `v0.2.x` | Production ready |
+| **[doctor](doctor/README.md)** | The **self-healing supervisor** for the daemon family. Deliberately tiny (zero runtime dependencies, Node built-ins only), OS-supervised, it keeps a small registry of the daemons it watches, probes their health, and runs an escalating repair ladder. Now its own repository. | [legioncodeinc/doctor](https://github.com/legioncodeinc/doctor) | [`@legioncodeinc/doctor`](https://www.npmjs.com/package/@legioncodeinc/doctor) `v0.2.x` | Production ready |
+| **[nectar](nectar/README.md)** | A **semantic memory layer over a source tree**: gives every file a stable, daemon-minted identity (a "nectar") and an LLM-minted description, served through the same hybrid recall Honeycomb already uses. | [legioncodeinc/nectar](https://github.com/legioncodeinc/nectar) | [`@legioncodeinc/nectar`](https://www.npmjs.com/package/@legioncodeinc/nectar) `v0.1.x` | Production ready |
 | **[queen](queen/README.md)** | The **cloud fleet orchestrator**. The control plane above every machine running the stack: fleet-wide presence and observation (heartbeats, a read-only fleet dashboard), trusted-device enrollment with a guarded mint/sign identity authority, a signed command channel, and a hosted ROI admin surface. Observation ships before control, by design. | [legioncodeinc/queen](https://github.com/legioncodeinc/queen) | not yet published | Design and specification |
 | **[.cursor](.cursor/)** | The **Bee Army**: the local AI development team (specialist subagents, skills, orchestration commands, rules, and a model-routing matrix) that Legion Code uses to build the Apiary. Tracked directly in this repo, not a submodule. | this repo | not applicable | Active tooling |
 
@@ -71,7 +71,7 @@ flowchart TD
 - **Honeycomb** captures what happens on every agent turn, distills it into a three-tier memory (key, summary, raw), and serves it back to any harness that asks, across sessions, tools, devices, and teammates.
 - **Hive** is the always-on portal. It boots with the device under Doctor's supervision and binds its socket before any workload is confirmed healthy, so the unified dashboard is up the moment you power on. It renders that dashboard by aggregating each daemon's HTTP API and holds no storage client of its own, so it stays a thin portal that degrades one panel, not the whole page, when a workload is down.
 - **Doctor** runs beside the daemons under OS supervision. It keeps a small registry of the daemons it watches (Honeycomb, Hive, Nectar), probes each one's health, heals common failures on the spot, and escalates loudly when it cannot, so a wedged daemon never becomes a silent, lost morning.
-- **Nectar** (design stage) adds a semantic layer so an agent can ask "where is the login logic" and get files that are not named `login-*`, complementing the structural codebase graph Honeycomb already builds.
+- **Nectar** is the shipped, production-ready semantic-memory workload daemon. It adds a semantic layer so an agent can ask "where is the login logic" and get files that are not named `login-*`, complementing the structural codebase graph Honeycomb already builds.
 - **Queen** (design stage) is the cloud control plane above every machine running the stack. Daemons report presence upward via heartbeats; admins get a read-only fleet dashboard, a guarded mint/sign authority for enrolling trusted devices, a signed command channel, and a hosted ROI admin surface, with recovery, revocation, and escrow specified from day one. Observation ships before control.
 
 ---
@@ -108,8 +108,8 @@ git submodule update --remote --merge
 Then pick your entry point:
 
 - **Try the product**: follow the one-command install in the [Honeycomb README](honeycomb/README.md#-install-one-command).
-- **Build from source**: each submodule is self-contained. `cd honeycomb && npm install && npm run build`, and see its README for the quality gate. Hive, Doctor, and Nectar each carry their own build and docs.
-- **Read the design**: Nectar is written README-first; its specification lives under [`nectar/library/knowledge/private/`](nectar/library/knowledge/private/).
+- **Build from source**: each submodule is self-contained. `cd honeycomb && npm install && npm run build`, and see its README for the quality gate. Hive, Doctor, and Nectar are production ready and each carry their own build and docs.
+- **Read the design**: Queen is written README-first; its specification lives under [`queen/library/knowledge/private/`](queen/library/knowledge/private/).
 
 ---
 
@@ -120,7 +120,7 @@ the-apiary/
 ├── honeycomb/        submodule · the memory system (daemon, CLI, MCP, SDK, harnesses)
 ├── hive/             submodule · the always-on portal daemon (unified dashboard)
 ├── doctor/           submodule · the self-healing supervisor watchdog
-├── nectar/           submodule · semantic file-memory layer (design and spec)
+├── nectar/           submodule · semantic file-memory layer (production ready)
 ├── queen/            submodule · cloud fleet orchestrator (design and spec)
 ├── .cursor/          the Bee Army: agents, skills, commands, rules, model matrix
 ├── .gitmodules       submodule wiring (repository URLs and paths)

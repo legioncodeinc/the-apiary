@@ -5,6 +5,8 @@
 > **Owners:** platform, honeycomb, doctor
 > **Related:** [`ADR-0001`](./ADR-0001-hive-release-manifest-and-combined-release-train.md), [`../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md`](../../../requirements/backlog/prd-002-installer-product-loading-and-phone-home/prd-002-installer-product-loading-and-phone-home-index.md), [`../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md`](../../../../doctor/library/knowledge/private/architecture/ADR-0002-service-registration-static-registry-plus-runtime-sqlite.md)
 
+> **Status note (July 2026):** honeycomb, doctor, hive, and nectar are all published npm packages and production ready, validated in live scenarios, so the installer can select and load any of the four as a compatible set. The Context below records the installer state at the time the decision was made, when only honeycomb and doctor were installed by default. Queen remains at design and specification.
+
 ## Context
 
 The Apiary has one front door: `curl -fsSL https://get.theapiary.sh | sh` (and the PowerShell twin `install.ps1`). Today that installer (`honeycomb/scripts/install/install.sh`) is deliberately thin: it provisions Node, installs `@legioncodeinc/honeycomb` and `@legioncodeinc/doctor`, and hands off to the `honeycomb install` CLI verb, which opens hive's URL. Two structural weaknesses have emerged.
