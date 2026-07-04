@@ -6,7 +6,7 @@
 
 ## Foreword
 
-Honeycomb is daemon-centric: write the memory logic once inside a daemon, then wrap it per assistant with thin shims. This manual is the complete technical account. It covers the four-plane architecture, how memory is captured and compacted, how it is stored in Deep Lake, the knowledge graph, the hybrid recall pipeline, harness integrations, and the security model, followed by the full CLI, HTTP API, and MCP tool reference. It is written for practitioners who need the real shape of the system.
+Honeycomb is daemon-centric: write the memory logic once inside a daemon, then wrap it per assistant with thin shims. This manual is the complete technical account. It covers the four-plane architecture, how memory is captured and compacted, how it is stored in Deeplake, the knowledge graph, the hybrid recall pipeline, harness integrations, and the security model, followed by the full CLI, HTTP API, and MCP tool reference. It is written for practitioners who need the real shape of the system.
 
 ## Honeycomb: Overview & Quickstart
 

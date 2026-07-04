@@ -38,7 +38,7 @@ Think of it as a shared brain your assistants read from and write to on every tu
 
 ### Where it comes from
 
-Honeycomb is a collaboration. **Activeloop** provides [Deep Lake](https://deeplake.ai), the database for AI that Honeycomb's memory lives in, and [Hivemind](https://github.com/activeloopai/hivemind), the open-source agent-memory project Honeycomb is built on. **Legion Code** adds the multi-tier memory system, the skill sharing, the self-tidying loop, and the local daemon that ties it all together. Neither half stands alone: Deep Lake gives the memories somewhere durable to live, and Legion Code gives every assistant one consistent way to use them.
+Honeycomb is a collaboration. **Activeloop** provides [Deeplake](https://deeplake.ai), the database for AI that Honeycomb's memory lives in, and [Hivemind](https://github.com/activeloopai/hivemind), the open-source agent-memory project Honeycomb is built on. **Legion Code** adds the multi-tier memory system, the skill sharing, the self-tidying loop, and the local daemon that ties it all together. Neither half stands alone: Deeplake gives the memories somewhere durable to live, and Legion Code gives every assistant one consistent way to use them.
 
 ### Next steps
 
@@ -85,7 +85,7 @@ Most note piles get messier as they grow. Honeycomb does the opposite. Every so 
 
 ### Your data stays yours
 
-Honeycomb keeps your memories in a store you control (powered by [Deep Lake](https://deeplake.ai)), separated cleanly so different teams and projects never see each other's notes. The local helper is the only thing that connects to it, and on a single machine it only listens to your own computer. Secrets like API keys are handled separately and are never shown to the assistant.
+Honeycomb keeps your memories in a store you control (powered by [Deeplake](https://deeplake.ai)), separated cleanly so different teams and projects never see each other's notes. The local helper is the only thing that connects to it, and on a single machine it only listens to your own computer. Secrets like API keys are handled separately and are never shown to the assistant.
 
 ### In one sentence
 
@@ -123,7 +123,7 @@ Plain-language definitions of the words you will see around Honeycomb. Each entr
 
 **Codebase graph**: A map of your actual code: its files, functions, and how they call and import each other. It lets an assistant answer questions like "what would changing this break?" grounded in your real project.
 
-**Deep Lake**: The database for AI, made by Activeloop, where Honeycomb's memories are stored. It is good at both exact lookups and meaning-based search, it keeps a full version history, and it can live in your own cloud. See [deeplake.ai](https://deeplake.ai).
+**Deeplake**: The database for AI, made by Activeloop, where Honeycomb's memories are stored. It is good at both exact lookups and meaning-based search, it keeps a full version history, and it can live in your own cloud. See [deeplake.ai](https://deeplake.ai).
 
 **Hivemind**: Activeloop's open-source agent-memory project that Honeycomb is built on. See [the Hivemind repository](https://github.com/activeloopai/hivemind).
 
@@ -167,7 +167,7 @@ The terminal shows a short progress log, and when it finishes it **opens a dashb
 
 ### 2. Click "First time setup"
 
-On the dashboard you will see a **First time setup** button. Click it. Honeycomb runs the sign-in for you: it shows a short code right on the page and opens a tab where you approve it (and create a free Deep Lake account if you do not have one). No copying codes out of a terminal.
+On the dashboard you will see a **First time setup** button. Click it. Honeycomb runs the sign-in for you: it shows a short code right on the page and opens a tab where you approve it (and create a free Deeplake account if you do not have one). No copying codes out of a terminal.
 
 When you approve, the same dashboard lights up its connected views. You are ready. Nothing to restart.
 
@@ -330,7 +330,7 @@ The dashboard offers the same switches in a menu, showing only the orgs, workspa
 
 ### Your data, your store
 
-A team's memory lives in your own Deep Lake store, with each team and project separated at the storage layer. You can even keep that storage in your own cloud account. Sensitive credentials (like API keys) are never stored alongside memory and are never shown to an assistant. For decision-makers: memory is versioned and inspectable, sharing is opt-in by design, and nothing leaves your store except the sign-in traffic and, only if you allow it, anonymous product-usage counts.
+A team's memory lives in your own Deeplake store, with each team and project separated at the storage layer. You can even keep that storage in your own cloud account. Sensitive credentials (like API keys) are never stored alongside memory and are never shown to an assistant. For decision-makers: memory is versioned and inspectable, sharing is opt-in by design, and nothing leaves your store except the sign-in traffic and, only if you allow it, anonymous product-usage counts.
 
 ### What next
 
@@ -389,7 +389,7 @@ Open your Honeycomb dashboard and choose **ROI** from the left navigation. The p
 
 ## Self-hosting the storage backend
 
-Run Honeycomb against your own storage backend instead of Activeloop's hosted Deep Lake. The backend is Activeloop's open-source `pg_deeplake` Postgres extension, and Honeycomb can point at it either through an HTTP gateway or directly over a Postgres connection.
+Run Honeycomb against your own storage backend instead of Activeloop's hosted Deeplake. The backend is Activeloop's open-source `pg_deeplake` Postgres extension, and Honeycomb can point at it either through an HTTP gateway or directly over a Postgres connection.
 
 ### What you get, and the one limitation
 
@@ -430,7 +430,7 @@ When the endpoint starts with `postgres://` (or `postgresql://`), Honeycomb sele
 
 #### HTTP gateway
 
-If you front `pg_deeplake` with an HTTP gateway that exposes the Deep Lake query API, point at that URL instead.
+If you front `pg_deeplake` with an HTTP gateway that exposes the Deeplake query API, point at that URL instead.
 
 ```bash
 honeycomb login --endpoint "https://deeplake.internal.example.com"
@@ -497,12 +497,12 @@ No. You install with one command, click a button, and use plain commands like `r
 Three are supported today: Claude Code, Cursor, and Codex. Three more, Hermes, pi, and OpenClaw, are in progress. Honeycomb plugs underneath whichever supported ones you have installed, and a memory written from one is recalled by the others.
 
 **Who makes Honeycomb?**
-It is a collaboration between Legion Code and Activeloop. Activeloop provides [Deep Lake](https://deeplake.ai) (the database for AI it stores memory in) and [Hivemind](https://github.com/activeloopai/hivemind) (the open-source project it builds on). Legion Code adds the multi-tier memory, skill sharing, the self-tidying loop, and the local helper that ties it together.
+It is a collaboration between Legion Code and Activeloop. Activeloop provides [Deeplake](https://deeplake.ai) (the database for AI it stores memory in) and [Hivemind](https://github.com/activeloopai/hivemind) (the open-source project it builds on). Legion Code adds the multi-tier memory, skill sharing, the self-tidying loop, and the local helper that ties it together.
 
 ### Privacy and data
 
 **Where does my data live?**
-In your own Deep Lake store, which you control and can even host in your own cloud account. The small helper on your machine is the only thing that connects to it.
+In your own Deeplake store, which you control and can even host in your own cloud account. The small helper on your machine is the only thing that connects to it.
 
 **Can other people or teams see my memories?**
 No, unless you choose to share. Different companies, teams, and projects are kept separate at the storage layer, and within a team the default leans private. You widen sharing on purpose, never by accident.
@@ -511,7 +511,7 @@ No, unless you choose to share. Different companies, teams, and projects are kep
 Yes. Secrets are stored separately from memory, encrypted, tied to your machine, and they are never shown to an assistant. An assistant can *use* a secret (for example to call a service) without ever seeing its value.
 
 **Does Honeycomb send my code or prompts anywhere?**
-The only outbound traffic is the sign-in with Deep Lake and, optionally, anonymous product-usage counts to help the makers understand adoption. That usage signal never includes your code, prompts, memories, file paths, or names, and you can turn it off entirely. Your actual memories go only to the store you control.
+The only outbound traffic is the sign-in with Deeplake and, optionally, anonymous product-usage counts to help the makers understand adoption. That usage signal never includes your code, prompts, memories, file paths, or names, and you can turn it off entirely. Your actual memories go only to the store you control.
 
 **Can I stop it from recording?**
 Yes. You can put Honeycomb in read-only mode for a session (recall still works, nothing new is written), which is handy when you are working with sensitive material.
@@ -533,7 +533,7 @@ You need to be signed in to reach your store. The optional "search by meaning" f
 ### How it compares
 
 **How is this different from a regular vector database or "RAG"?**
-A plain vector database can store text and hand back similar text. Honeycomb does that and more: it keeps memory at three levels of detail so an assistant can skim then zoom, it tidies itself over time so it gets sharper instead of noisier, it turns lessons into shareable skills, and it works across many tools and your whole team. The storage underneath (Deep Lake) is built for both exact lookups and meaning-based search in one place, with full version history.
+A plain vector database can store text and hand back similar text. Honeycomb does that and more: it keeps memory at three levels of detail so an assistant can skim then zoom, it tidies itself over time so it gets sharper instead of noisier, it turns lessons into shareable skills, and it works across many tools and your whole team. The storage underneath (Deeplake) is built for both exact lookups and meaning-based search in one place, with full version history.
 
 **What is "search by meaning" (semantic search) and do I need it?**
 It is the ability to find a memory by what it *means*, even if you used different words. It is optional. With it on, Honeycomb catches more of the "I didn't know the exact term to search for" cases. With it off, recall still works by matching words.

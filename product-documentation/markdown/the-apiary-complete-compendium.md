@@ -576,7 +576,7 @@ export interface ProbeHealthReasons {
 }
 ```
 
-`parseReasons` extracts these three fields and nothing else. It is deliberately paranoid: a `null` parse, a non-object body, a missing `reasons` key, or a non-object `reasons` value all resolve to `{}` rather than throwing. Only string-typed subsystem values survive; anything else becomes `undefined`. The three subsystems are the daemon's `storage` (Deep Lake reachability), `embeddings` (the embed seam state), and `schema` (required-table presence). These are the same three subsystems the status page and incident records surface, and they are what a `degraded` incident carries in its `healthReasons` field so an operator reading `doctor logs` sees which subsystem opened the episode.
+`parseReasons` extracts these three fields and nothing else. It is deliberately paranoid: a `null` parse, a non-object body, a missing `reasons` key, or a non-object `reasons` value all resolve to `{}` rather than throwing. Only string-typed subsystem values survive; anything else becomes `undefined`. The three subsystems are the daemon's `storage` (Deeplake reachability), `embeddings` (the embed seam state), and `schema` (required-table presence). These are the same three subsystems the status page and incident records surface, and they are what a `degraded` incident carries in its `healthReasons` field so an operator reading `doctor logs` sees which subsystem opened the episode.
 
 #### How the two loops consume a classification
 
@@ -1123,7 +1123,7 @@ The Apiary runs a four-process fleet: honeycomb (workload daemon, `:3850`), nect
 
 Two forces converge:
 
-1. The portal needs far more than coarse health: it needs live metrics (actions taken, files processed, memories created since last restart), live logs at selectable verbosity, and Deep Lake connection/stats, rendered in near real time.
+1. The portal needs far more than coarse health: it needs live metrics (actions taken, files processed, memories created since last restart), live logs at selectable verbosity, and Deeplake connection/stats, rendered in near real time.
 2. doctor is deliberately a "can't-crash", ZERO-runtime-dependency watchdog (Node built-ins only). Any telemetry mechanism it gains must not add an external dependency or a failure mode that can wedge it.
 
 The question this ADR settles: how does telemetry flow from each service to doctor, and from doctor to the portal?
@@ -1190,7 +1190,7 @@ Rejected because it requires each service to keep serving while degraded, does n
 
 #### Relationship to the corpus ADRs
 
-- nectar `ADR-0004` decision #2 (hive holds no Deep Lake client; it aggregates from daemon APIs) is unchanged: the portal still holds no data plane. This ADR routes fleet health/telemetry through doctor as SoT rather than through per-daemon API aggregation, which is complementary (workload data via hive's BFF proxy per hive ADR-0002; fleet health/telemetry via doctor's SSE per this ADR).
+- nectar `ADR-0004` decision #2 (hive holds no Deeplake client; it aggregates from daemon APIs) is unchanged: the portal still holds no data plane. This ADR routes fleet health/telemetry through doctor as SoT rather than through per-daemon API aggregation, which is complementary (workload data via hive's BFF proxy per hive ADR-0002; fleet health/telemetry via doctor's SSE per this ADR).
 - hive `ADR-0003`: this ADR makes its Proposed SSE real, but only for the doctor to hive health/telemetry feed.
 
 #### References
@@ -1283,7 +1283,7 @@ Hive was designed by Mario Aldayuz around a simple observation: the old dashboar
 
 #### What you see when you open it
 
-**On a normal day: the dashboard.** The root page is the full Apiary dashboard: your memories, projects, the memory graph, the hive graph, sync activity, logs, ROI, and settings, all in one place. A health rail sits at the top of every page with a live pill per service, so you always know the state of the fleet without leaving what you are doing. Click through to the Health page for per-service metrics, Deep Lake connection status, and a live log tail with adjustable verbosity.
+**On a normal day: the dashboard.** The root page is the full Apiary dashboard: your memories, projects, the memory graph, the hive graph, sync activity, logs, ROI, and settings, all in one place. A health rail sits at the top of every page with a live pill per service, so you always know the state of the fleet without leaving what you are doing. Click through to the Health page for per-service metrics, Deeplake connection status, and a live log tail with adjustable verbosity.
 
 **On a cold boot: the buzzing screen.** If you open the portal while the services are still waking up, you get an honest readiness screen at `/buzzing`: one tile per service, each with a little bee icon showing its state, from an empty honeycomb cell (starting) to a bee in full flight (active). The moment the fleet is ready, you land on the dashboard automatically. You will never see a broken page or a false "first time setup" screen just because something was still booting.
 
@@ -1313,7 +1313,7 @@ Every service tile on the buzzing screen and every pill in the health rail uses 
 
 **The whole page went to the buzzing screen. Now what?** Wait a moment. The buzzing screen means the fleet is not fully healthy, and it dismisses itself the moment it is. If a tile stays on the error bee, that service needs attention; the Health page's live logs are the first place to look.
 
-**Does hive store my credentials?** No. Hive passes your session through to the services that own your data and stores nothing itself. Signing in (the device flow at `/login`) creates your Deep Lake credential on your machine, managed by Honeycomb, not by the portal.
+**Does hive store my credentials?** No. Hive passes your session through to the services that own your data and stores nothing itself. Signing in (the device flow at `/login`) creates your Deeplake credential on your machine, managed by Honeycomb, not by the portal.
 
 #### You should rarely need the terminal
 
@@ -1506,11 +1506,11 @@ flowchart TD
     hive -->|"BFF proxy over loopback"| honeycomb
     hive -->|"BFF proxy over loopback"| nectar
     hive -->|"GET /status.json + GET /events (SSE)"| doctor
-    honeycomb --> deeplake[("Deep Lake")]
+    honeycomb --> deeplake[("Deeplake")]
     nectar --> deeplake
 ```
 
-Hive holds no Deep Lake client and persists nothing of its own beyond a PID/lock pair and a telemetry dedupe ledger. Every row the dashboard renders comes from a workload daemon's API (proxied server-side) or from doctor's status page and SSE stream. `tests/wire/*` and the PRD-001 QA audit both verify the no-Deep-Lake constraint.
+Hive holds no Deeplake client and persists nothing of its own beyond a PID/lock pair and a telemetry dedupe ledger. Every row the dashboard renders comes from a workload daemon's API (proxied server-side) or from doctor's status page and SSE stream. `tests/wire/*` and the PRD-001 QA audit both verify the no-Deep-Lake constraint.
 
 #### The four decisions that shape the codebase
 
@@ -2068,11 +2068,11 @@ ls ../honeycomb/src/dashboard/web
 # Honeycomb kept its TUI layer and data plane (expect: dashboard.ts, views.ts, html.ts, ...):
 ls ../honeycomb/src/dashboard
 
-# Hive holds no Deep Lake client (expect: no matches):
+# Hive holds no Deeplake client (expect: no matches):
 grep -ri "deeplake" src --include="*.ts" -l | grep -v "shared/fleet-telemetry"
 ```
 
-The last check has one legitimate near-miss: `fleet-telemetry.ts` mentions Deep Lake because doctor's telemetry carries per-service Deep Lake connection stats that the health page renders. Rendering another daemon's stats is not holding a client.
+The last check has one legitimate near-miss: `fleet-telemetry.ts` mentions Deeplake because doctor's telemetry carries per-service Deeplake connection stats that the health page renders. Rendering another daemon's stats is not holding a client.
 
 #### The divergence policy going forward
 
@@ -2294,7 +2294,7 @@ This is the fork ADR-0004 already rejected, and it is rejected again for a stron
 #### Relationship to the corpus ADRs
 
 - **nectar `ADR-0003` (three-daemon topology):** unchanged. This ADR does not alter the topology, the four roles, or the process boundaries. hive is still the always-on portal, honeycomb and nectar are still workload daemons, doctor is still the supervisor.
-- **nectar `ADR-0004` (hive role + boundaries):** decision #1 (always-on + boot order), decision #2 (API aggregation, not Deep Lake), and decision #4 (independent update cadence) are unchanged and still binding. This ADR **refines only the mechanism half of decision #3**: "hive owns the unified dashboard" stands; "gets there by reusing honeycomb's code via runtime import" is replaced by copy-and-own, because hive now lives in its own repository and honeycomb's dashboard is retired. ADR-0004 has been annotated with `Refined by:` pointers at the relevant anchors.
+- **nectar `ADR-0004` (hive role + boundaries):** decision #1 (always-on + boot order), decision #2 (API aggregation, not Deeplake), and decision #4 (independent update cadence) are unchanged and still binding. This ADR **refines only the mechanism half of decision #3**: "hive owns the unified dashboard" stands; "gets there by reusing honeycomb's code via runtime import" is replaced by copy-and-own, because hive now lives in its own repository and honeycomb's dashboard is retired. ADR-0004 has been annotated with `Refined by:` pointers at the relevant anchors.
 
 #### References
 
@@ -2378,7 +2378,7 @@ Rejected outright: a wildcard CORS allowance on a daemon that serves captured se
 
 #### Relationship to the corpus ADRs
 
-- **nectar `ADR-0004` decision #2 (API aggregation, not Deep Lake):** unchanged as a BOUNDARY. hive still holds no Deep Lake client and still fetches every row from the owning daemon's `/api/*`. This ADR refines only the MECHANISM: the aggregation happens on hive's server (a proxy) rather than in the browser.
+- **nectar `ADR-0004` decision #2 (API aggregation, not Deeplake):** unchanged as a BOUNDARY. hive still holds no Deeplake client and still fetches every row from the owning daemon's `/api/*`. This ADR refines only the MECHANISM: the aggregation happens on hive's server (a proxy) rather than in the browser.
 - **`ADR-0001` Decision B (copy-and-own):** unchanged. hive still owns the copied dashboard. This ADR only changes how the copied `wire` reaches data: same-origin to hive, which proxies, instead of cross-origin to each daemon.
 
 #### References
@@ -2447,7 +2447,7 @@ Near-real-time health on the dashboard and on `/buzzing` now arrives via the doc
 
 - **Root-is-dashboard.** A blank `/` is unacceptable for an always-on portal. The dashboard is the product, so it owns the root; `/buzzing` and `/login` are transient waystations the operator only sees when the fleet or the credential is not ready.
 - **Health-before-auth.** An unhealthy fleet shows `/buzzing` even to a logged-out operator, because when nothing behind the portal will answer, prompting for login is pointless and misleading. Health is the precondition for auth to be meaningful, so it is checked first.
-- **Reuse the Deep Lake credential, do not invent a portal session.** "Logged in" is already defined, shared, and observable through the proxied honeycomb `/setup/state` `authenticated` bit. Introducing a portal-specific session would create a second, divergent notion of authentication for hive to store and keep in sync, which contradicts the credential-free pass-through posture ADR-0002 established.
+- **Reuse the Deeplake credential, do not invent a portal session.** "Logged in" is already defined, shared, and observable through the proxied honeycomb `/setup/state` `authenticated` bit. Introducing a portal-specific session would create a second, divergent notion of authentication for hive to store and keep in sync, which contradicts the credential-free pass-through posture ADR-0002 established.
 - **Server-side gate over a client hash-gate.** A server redirect is authoritative and cannot flash the wrong screen; a client gate necessarily loads the shell first and decides afterward. Putting the decision on hive's server (the tier that already owns the proxy and the doctor registry) keeps the trust and routing decision where the other authoritative decisions already live.
 
 #### Consequences
@@ -2456,7 +2456,7 @@ Near-real-time health on the dashboard and on `/buzzing` now arrives via the doc
 
 - No wrong-screen flash. The operator's first paint is already the correct screen (`/buzzing`, `/login`, or the dashboard) because the server chose it before render.
 - Deep links and refreshes are authoritative and refresh-safe against real paths, and the gate re-evaluates identically on every entry.
-- One notion of "logged in" across the corpus: the Deep Lake credential, surfaced through the existing `/setup/state` bit. hive stays credential-free.
+- One notion of "logged in" across the corpus: the Deeplake credential, surfaced through the existing `/setup/state` bit. hive stays credential-free.
 - The health view-model gets live freshness for free by consuming doctor's SSE stream, proving out the ADR-0003 direction on the screen that needs it most.
 
 **Negative.**
@@ -2473,7 +2473,7 @@ Near-real-time health on the dashboard and on `/buzzing` now arrives via the doc
 
 Leave `useHashRoute` as the router and let `ReadinessSplash` / `SetupGate` (or their successors) keep deciding health and auth in React. Rejected because a client gate loads the shell first and decides afterward, so it can flash the wrong screen, and it is not authoritative: nothing at the server tier enforces that an unhealthy or logged-out visitor cannot request a data screen. Server redirects are cleaner and cannot flash.
 
-##### Introduce a new portal session distinct from the Deep Lake credential (REJECTED)
+##### Introduce a new portal session distinct from the Deeplake credential (REJECTED)
 
 Give hive its own session or cookie that represents "logged into the portal", separate from `~/.deeplake/credentials.json`. Rejected because it duplicates authentication: credential presence is the existing, shared source of truth that honeycomb already exposes via `/setup/state`, and a second notion would have to be stored by hive and kept in sync, breaking the credential-free pass-through posture of ADR-0002 for no gain.
 
@@ -2534,7 +2534,7 @@ Think of it as a shared brain your assistants read from and write to on every tu
 
 #### Where it comes from
 
-Honeycomb is a collaboration. **Activeloop** provides [Deep Lake](https://deeplake.ai), the database for AI that Honeycomb's memory lives in, and [Hivemind](https://github.com/activeloopai/hivemind), the open-source agent-memory project Honeycomb is built on. **Legion Code** adds the multi-tier memory system, the skill sharing, the self-tidying loop, and the local daemon that ties it all together. Neither half stands alone: Deep Lake gives the memories somewhere durable to live, and Legion Code gives every assistant one consistent way to use them.
+Honeycomb is a collaboration. **Activeloop** provides [Deeplake](https://deeplake.ai), the database for AI that Honeycomb's memory lives in, and [Hivemind](https://github.com/activeloopai/hivemind), the open-source agent-memory project Honeycomb is built on. **Legion Code** adds the multi-tier memory system, the skill sharing, the self-tidying loop, and the local daemon that ties it all together. Neither half stands alone: Deeplake gives the memories somewhere durable to live, and Legion Code gives every assistant one consistent way to use them.
 
 #### Next steps
 
@@ -2581,7 +2581,7 @@ Most note piles get messier as they grow. Honeycomb does the opposite. Every so 
 
 #### Your data stays yours
 
-Honeycomb keeps your memories in a store you control (powered by [Deep Lake](https://deeplake.ai)), separated cleanly so different teams and projects never see each other's notes. The local helper is the only thing that connects to it, and on a single machine it only listens to your own computer. Secrets like API keys are handled separately and are never shown to the assistant.
+Honeycomb keeps your memories in a store you control (powered by [Deeplake](https://deeplake.ai)), separated cleanly so different teams and projects never see each other's notes. The local helper is the only thing that connects to it, and on a single machine it only listens to your own computer. Secrets like API keys are handled separately and are never shown to the assistant.
 
 #### In one sentence
 
@@ -2619,7 +2619,7 @@ Plain-language definitions of the words you will see around Honeycomb. Each entr
 
 **Codebase graph**: A map of your actual code: its files, functions, and how they call and import each other. It lets an assistant answer questions like "what would changing this break?" grounded in your real project.
 
-**Deep Lake**: The database for AI, made by Activeloop, where Honeycomb's memories are stored. It is good at both exact lookups and meaning-based search, it keeps a full version history, and it can live in your own cloud. See [deeplake.ai](https://deeplake.ai).
+**Deeplake**: The database for AI, made by Activeloop, where Honeycomb's memories are stored. It is good at both exact lookups and meaning-based search, it keeps a full version history, and it can live in your own cloud. See [deeplake.ai](https://deeplake.ai).
 
 **Hivemind**: Activeloop's open-source agent-memory project that Honeycomb is built on. See [the Hivemind repository](https://github.com/activeloopai/hivemind).
 
@@ -2663,7 +2663,7 @@ The terminal shows a short progress log, and when it finishes it **opens a dashb
 
 #### 2. Click "First time setup"
 
-On the dashboard you will see a **First time setup** button. Click it. Honeycomb runs the sign-in for you: it shows a short code right on the page and opens a tab where you approve it (and create a free Deep Lake account if you do not have one). No copying codes out of a terminal.
+On the dashboard you will see a **First time setup** button. Click it. Honeycomb runs the sign-in for you: it shows a short code right on the page and opens a tab where you approve it (and create a free Deeplake account if you do not have one). No copying codes out of a terminal.
 
 When you approve, the same dashboard lights up its connected views. You are ready. Nothing to restart.
 
@@ -2826,7 +2826,7 @@ The dashboard offers the same switches in a menu, showing only the orgs, workspa
 
 #### Your data, your store
 
-A team's memory lives in your own Deep Lake store, with each team and project separated at the storage layer. You can even keep that storage in your own cloud account. Sensitive credentials (like API keys) are never stored alongside memory and are never shown to an assistant. For decision-makers: memory is versioned and inspectable, sharing is opt-in by design, and nothing leaves your store except the sign-in traffic and, only if you allow it, anonymous product-usage counts.
+A team's memory lives in your own Deeplake store, with each team and project separated at the storage layer. You can even keep that storage in your own cloud account. Sensitive credentials (like API keys) are never stored alongside memory and are never shown to an assistant. For decision-makers: memory is versioned and inspectable, sharing is opt-in by design, and nothing leaves your store except the sign-in traffic and, only if you allow it, anonymous product-usage counts.
 
 #### What next
 
@@ -2885,7 +2885,7 @@ Open your Honeycomb dashboard and choose **ROI** from the left navigation. The p
 
 ### Self-hosting the storage backend
 
-Run Honeycomb against your own storage backend instead of Activeloop's hosted Deep Lake. The backend is Activeloop's open-source `pg_deeplake` Postgres extension, and Honeycomb can point at it either through an HTTP gateway or directly over a Postgres connection.
+Run Honeycomb against your own storage backend instead of Activeloop's hosted Deeplake. The backend is Activeloop's open-source `pg_deeplake` Postgres extension, and Honeycomb can point at it either through an HTTP gateway or directly over a Postgres connection.
 
 #### What you get, and the one limitation
 
@@ -2926,7 +2926,7 @@ When the endpoint starts with `postgres://` (or `postgresql://`), Honeycomb sele
 
 ##### HTTP gateway
 
-If you front `pg_deeplake` with an HTTP gateway that exposes the Deep Lake query API, point at that URL instead.
+If you front `pg_deeplake` with an HTTP gateway that exposes the Deeplake query API, point at that URL instead.
 
 ```bash
 honeycomb login --endpoint "https://deeplake.internal.example.com"
@@ -2993,12 +2993,12 @@ No. You install with one command, click a button, and use plain commands like `r
 Three are supported today: Claude Code, Cursor, and Codex. Three more, Hermes, pi, and OpenClaw, are in progress. Honeycomb plugs underneath whichever supported ones you have installed, and a memory written from one is recalled by the others.
 
 **Who makes Honeycomb?**
-It is a collaboration between Legion Code and Activeloop. Activeloop provides [Deep Lake](https://deeplake.ai) (the database for AI it stores memory in) and [Hivemind](https://github.com/activeloopai/hivemind) (the open-source project it builds on). Legion Code adds the multi-tier memory, skill sharing, the self-tidying loop, and the local helper that ties it together.
+It is a collaboration between Legion Code and Activeloop. Activeloop provides [Deeplake](https://deeplake.ai) (the database for AI it stores memory in) and [Hivemind](https://github.com/activeloopai/hivemind) (the open-source project it builds on). Legion Code adds the multi-tier memory, skill sharing, the self-tidying loop, and the local helper that ties it together.
 
 #### Privacy and data
 
 **Where does my data live?**
-In your own Deep Lake store, which you control and can even host in your own cloud account. The small helper on your machine is the only thing that connects to it.
+In your own Deeplake store, which you control and can even host in your own cloud account. The small helper on your machine is the only thing that connects to it.
 
 **Can other people or teams see my memories?**
 No, unless you choose to share. Different companies, teams, and projects are kept separate at the storage layer, and within a team the default leans private. You widen sharing on purpose, never by accident.
@@ -3007,7 +3007,7 @@ No, unless you choose to share. Different companies, teams, and projects are kep
 Yes. Secrets are stored separately from memory, encrypted, tied to your machine, and they are never shown to an assistant. An assistant can *use* a secret (for example to call a service) without ever seeing its value.
 
 **Does Honeycomb send my code or prompts anywhere?**
-The only outbound traffic is the sign-in with Deep Lake and, optionally, anonymous product-usage counts to help the makers understand adoption. That usage signal never includes your code, prompts, memories, file paths, or names, and you can turn it off entirely. Your actual memories go only to the store you control.
+The only outbound traffic is the sign-in with Deeplake and, optionally, anonymous product-usage counts to help the makers understand adoption. That usage signal never includes your code, prompts, memories, file paths, or names, and you can turn it off entirely. Your actual memories go only to the store you control.
 
 **Can I stop it from recording?**
 Yes. You can put Honeycomb in read-only mode for a session (recall still works, nothing new is written), which is handy when you are working with sensitive material.
@@ -3029,7 +3029,7 @@ You need to be signed in to reach your store. The optional "search by meaning" f
 #### How it compares
 
 **How is this different from a regular vector database or "RAG"?**
-A plain vector database can store text and hand back similar text. Honeycomb does that and more: it keeps memory at three levels of detail so an assistant can skim then zoom, it tidies itself over time so it gets sharper instead of noisier, it turns lessons into shareable skills, and it works across many tools and your whole team. The storage underneath (Deep Lake) is built for both exact lookups and meaning-based search in one place, with full version history.
+A plain vector database can store text and hand back similar text. Honeycomb does that and more: it keeps memory at three levels of detail so an assistant can skim then zoom, it tidies itself over time so it gets sharper instead of noisier, it turns lessons into shareable skills, and it works across many tools and your whole team. The storage underneath (Deeplake) is built for both exact lookups and meaning-based search in one place, with full version history.
 
 **What is "search by meaning" (semantic search) and do I need it?**
 It is the ability to find a memory by what it *means*, even if you used different words. It is optional. With it on, Honeycomb catches more of the "I didn't know the exact term to search for" cases. With it off, recall still works by matching words.
@@ -3054,7 +3054,7 @@ A tiny built-in watchdog called **Doctor**. The one-command installer sets it up
 
 ### Foreword
 
-Honeycomb is daemon-centric: write the memory logic once inside a daemon, then wrap it per assistant with thin shims. This manual is the complete technical account. It covers the four-plane architecture, how memory is captured and compacted, how it is stored in Deep Lake, the knowledge graph, the hybrid recall pipeline, harness integrations, and the security model, followed by the full CLI, HTTP API, and MCP tool reference. It is written for practitioners who need the real shape of the system.
+Honeycomb is daemon-centric: write the memory logic once inside a daemon, then wrap it per assistant with thin shims. This manual is the complete technical account. It covers the four-plane architecture, how memory is captured and compacted, how it is stored in Deeplake, the knowledge graph, the hybrid recall pipeline, harness integrations, and the security model, followed by the full CLI, HTTP API, and MCP tool reference. It is written for practitioners who need the real shape of the system.
 
 ### Honeycomb: Overview & Quickstart
 
@@ -6324,14 +6324,14 @@ The full design detail for **hive**, the always-on portal daemon of the Nectar t
 
 #### What hive is, in one paragraph
 
-hive is a TypeScript/Node + Hono daemon that serves the unified dashboard for the Nectar ecosystem. It is one of three daemon roles in the topology decided by ADR-0003: doctor supervises, hive portals, and the workload daemons (honeycomb, nectar) do the work. hive boots on OS start as a supervised daemon in its own right (sibling to the workloads, not a child of any of them), renders the dashboard shell the moment its socket binds — before any workload daemon is confirmed healthy — and populates that shell by fetching data from each registered daemon's HTTP API. It holds no Deep Lake client, runs no queries, and resolves no tenancy scope. It is a thin portal: presentation plus an aggregation seam.
+hive is a TypeScript/Node + Hono daemon that serves the unified dashboard for the Nectar ecosystem. It is one of three daemon roles in the topology decided by ADR-0003: doctor supervises, hive portals, and the workload daemons (honeycomb, nectar) do the work. hive boots on OS start as a supervised daemon in its own right (sibling to the workloads, not a child of any of them), renders the dashboard shell the moment its socket binds — before any workload daemon is confirmed healthy — and populates that shell by fetching data from each registered daemon's HTTP API. It holds no Deeplake client, runs no queries, and resolves no tenancy scope. It is a thin portal: presentation plus an aggregation seam.
 
 #### The four binding properties (from ADR-0004)
 
 These are the load-bearing decisions; this doc expands each into design detail.
 
 1. **Always-on + boot-order contract** — hive serves the shell before any workload is healthy.
-2. **API aggregation, not direct Deep Lake access** — hive fetches from daemon APIs; it is not a data-plane consumer.
+2. **API aggregation, not direct Deeplake access** — hive fetches from daemon APIs; it is not a data-plane consumer.
 3. **Dashboard ownership**: hive owns the unified dashboard. (Originally framed as runtime reuse of honeycomb's `registry.tsx` / `pages/*`; shipped as copy-and-own per hive ADR-0001, see the implementation update above.)
 4. **Update-cadence boundary** — hive ships independently of doctor and the workloads.
 
@@ -6467,7 +6467,7 @@ hive is a **separate release train** from doctor, honeycomb, and nectar. A dashb
 
 #### What hive explicitly is NOT
 
-- **Not a Deep Lake client.** No storage client, no tenancy scope, no queries. (ADR-0004 decision 2.)
+- **Not a Deeplake client.** No storage client, no tenancy scope, no queries. (ADR-0004 decision 2.)
 - **Not a supervisor.** It does not probe `/health`, restart daemons, or own incident state — that's doctor.
 - **Not a workload.** It does not brood, enrich, recall, or run any Nectar/honeycomb logic. It presents + aggregates.
 - **Not a child of a workload.** It is a top-level supervised daemon, sibling to the workloads, so a workload outage does not take it down.
@@ -6486,7 +6486,7 @@ hive is a **separate release train** from doctor, honeycomb, and nectar. A dashb
 
 ### Hive Graph Schema
 
-The canonical Deep Lake table catalog for Nectar: two tables (`hive_graph` for logical identity, `hive_graph_versions` for the append-only content+description chain), the column-by-column rationale, indexing strategy, tenancy model, and the lazy-schema-heal contract.
+The canonical Deeplake table catalog for Nectar: two tables (`hive_graph` for logical identity, `hive_graph_versions` for the append-only content+description chain), the column-by-column rationale, indexing strategy, tenancy model, and the lazy-schema-heal contract.
 
 #### Why two tables
 
@@ -6526,7 +6526,7 @@ CREATE TABLE IF NOT EXISTS "hive_graph" (
 | `fork_content_hash` | TEXT | The content hash at the fork point. Lets the enricher render "this file was copied from X when X looked like Y" — useful for the Obsidian-style interlink view. |
 | `org_id` | TEXT | Tenancy. Explicit because identity is cross-cutting (mirrors the `codebase` table's tenancy columns). |
 | `workspace_id` | TEXT | Tenancy. Same rationale. |
-| `project_id` | TEXT | Project isolation within a workspace. Soft column filter, not a Deep Lake partition or provisioning boundary. |
+| `project_id` | TEXT | Project isolation within a workspace. Soft column filter, not a Deeplake partition or provisioning boundary. |
 | `last_update_date` | TEXT | Denormalized "last observed change" timestamp. Updated whenever a new version row is appended. Lets the projection sync and the dashboard render "recently touched" without scanning the versions table. |
 
 The `nectar` column is the only column that is truly immutable. `derived_from_nectar` and `fork_content_hash` are write-once (set at minting, never updated). Everything else is mutable but rarely changes after the row's first write.
@@ -6607,11 +6607,11 @@ The allocator prevents new duplicates; an idempotent repair heals any that alrea
 
 #### Indexing strategy
 
-Deep Lake indexing is additive and configured through the catalog helpers, not hand-rolled `CREATE INDEX`. The indexes Nectar relies on:
+Deeplake indexing is additive and configured through the catalog helpers, not hand-rolled `CREATE INDEX`. The indexes Nectar relies on:
 
 | Index | Table | Columns | Why |
 |---|---|---|---|
-| `deeplake_index` (BM25) | `hive_graph_versions` | `title`, `description` | Lexical recall over descriptions. Same operator Deep Lake applies to `memory.summary`. |
+| `deeplake_index` (BM25) | `hive_graph_versions` | `title`, `description` | Lexical recall over descriptions. Same operator Deeplake applies to `memory.summary`. |
 | Vector (`` cosine) | `hive_graph_versions` | `embedding` | Semantic recall over descriptions. Falls back silently to BM25 if embeddings are off — same as the rest of Honeycomb, no quality cliff. |
 | `deeplake_hybrid_record` | `hive_graph_versions` | BM25 + vector | The fused path recall prefers; documented in the main corpus's `ai/hybrid-sql-vector-rationale.md`. |
 | Scope filter | `hive_graph_versions` | `org_id`, `workspace_id`, `project_id` | Every recall query scopes by tenancy before applying BM25/vector. |
@@ -6622,9 +6622,9 @@ The `path` and `filename` columns are covered by the standard ILIKE fallback (th
 
 #### Tenancy and isolation
 
-Decision update from `library/requirements/MASTER-PRD-INDEX.md:13`: `project_id` is a soft column-level filter within Honeycomb's org/workspace Deep Lake scope. Nectar does not create per-project tables, per-project partitions, or a provisioning event when a project appears; catalog registration plus `withHeal` handles table creation and additive schema convergence on first write.
+Decision update from `library/requirements/MASTER-PRD-INDEX.md:13`: `project_id` is a soft column-level filter within Honeycomb's org/workspace Deeplake scope. Nectar does not create per-project tables, per-project partitions, or a provisioning event when a project appears; catalog registration plus `withHeal` handles table creation and additive schema convergence on first write.
 
-`hive_graph` and `hive_graph_versions` carry explicit `org_id`, `workspace_id`, and `project_id` columns. This mirrors the `codebase` table (the CodeGraph's cloud-sync target) and diverges from `sessions`/`memory`, which lean on partition isolation plus `agent_id`/`visibility`. The reason is that file identity is **cross-agent by nature** — every agent and every harness working in the same project should see the same file descriptions, so there is no `agent_id` column and no `visibility` column. Isolation is org→workspace at the Deep Lake scope plus a required `project_id` predicate for project-level filtering.
+`hive_graph` and `hive_graph_versions` carry explicit `org_id`, `workspace_id`, and `project_id` columns. This mirrors the `codebase` table (the CodeGraph's cloud-sync target) and diverges from `sessions`/`memory`, which lean on partition isolation plus `agent_id`/`visibility`. The reason is that file identity is **cross-agent by nature** — every agent and every harness working in the same project should see the same file descriptions, so there is no `agent_id` column and no `visibility` column. Isolation is org→workspace at the Deeplake scope plus a required `project_id` predicate for project-level filtering.
 
 A team sharing a workspace (the normal Honeycomb collaboration model) therefore shares a single Nectar graph per project by filtering on `project_id`. A new teammate's `git clone` + `nectar daemon` boot (registered with doctor per ADR-0003) pulls the cloud-synced `hive_graph_versions` rows for the workspace and re-derives the local projection from them, the same way the CodeGraph's `pullSnapshot` works.
 
@@ -6642,7 +6642,7 @@ Never hand-roll an `ALTER` against these tables. Define the `ColumnDef` array on
 
 #### The projection contract
 
-`hive_graph_versions` is the source of truth. `.honeycomb/nectars.json` (documented in `portable-registry.md`) is a **regenerable projection** - a denormalized, content-hash-keyed map of `{ content_hash: { nectar, title, description, concepts } }` for the *latest* version of each nectar in the project. If `nectars.json` is deleted, lost, or corrupted, `nectar project --rebuild-projection` regenerates it from Deep Lake in a single scan. The projection is committed for portability across fresh clones, never because Deep Lake is insufficient.
+`hive_graph_versions` is the source of truth. `.honeycomb/nectars.json` (documented in `portable-registry.md`) is a **regenerable projection** - a denormalized, content-hash-keyed map of `{ content_hash: { nectar, title, description, concepts } }` for the *latest* version of each nectar in the project. If `nectars.json` is deleted, lost, or corrupted, `nectar project --rebuild-projection` regenerates it from Deeplake in a single scan. The projection is committed for portability across fresh clones, never because Deeplake is insufficient.
 
 ---
 
@@ -6656,20 +6656,20 @@ The schema deliberately omits three things that the original design sketch menti
 
 ### Portable Registry (nectars.json)
 
-The committed, reviewable, regenerable projection of the Deep Lake `hive_graph` table that gives a fresh `git clone` its identity map before the daemon ever runs: what it contains, what it deliberately omits, how it differs from a sidecar, how it is generated and validated, and how it interacts with team sharing.
+The committed, reviewable, regenerable projection of the Deeplake `hive_graph` table that gives a fresh `git clone` its identity map before the daemon ever runs: what it contains, what it deliberately omits, how it differs from a sidecar, how it is generated and validated, and how it interacts with team sharing.
 
 #### What the portable registry is for
 
-Deep Lake is the source of truth for Nectar, but Deep Lake is not in the git repo. A fresh `git clone` has the source files and no nectars — until either (a) the daemon boots and pulls the workspace's rows from Deep Lake cloud sync, or (b) the daemon boots and broods from scratch, re-paying the LLM cost. Option (a) requires network and auth; option (b) wastes money and time.
+Deeplake is the source of truth for Nectar, but Deeplake is not in the git repo. A fresh `git clone` has the source files and no nectars — until either (a) the daemon boots and pulls the workspace's rows from Deeplake cloud sync, or (b) the daemon boots and broods from scratch, re-paying the LLM cost. Option (a) requires network and auth; option (b) wastes money and time.
 
-The portable registry is a third option. `.honeycomb/nectars.json` is a single committed file at the project root that carries enough of the Deep Lake state to re-derive identity on a fresh clone *without* network, auth, or LLM calls. It is the bridge between "the source of truth is in the cloud" and "a clone should work offline immediately."
+The portable registry is a third option. `.honeycomb/nectars.json` is a single committed file at the project root that carries enough of the Deeplake state to re-derive identity on a fresh clone *without* network, auth, or LLM calls. It is the bridge between "the source of truth is in the cloud" and "a clone should work offline immediately."
 
 The registry is a **projection**, not a sidecar. The distinction matters and is enforced:
 
 - A **sidecar** is a parallel source of truth that the system reads from and writes to during normal operation. Sidecars drift, get out of sync, and become liabilities. FR-8 in the main Honeycomb PRD substrate explicitly forbids them.
 - A **projection** is a denormalized, regenerable view of the source of truth. It is written from the source of truth on a defined schedule, never edited directly, and can be deleted and regenerated without loss. A lockfile (`package-lock.json`, `Cargo.lock`) is a projection; an `.env` is a sidecar.
 
-`.honeycomb/nectars.json` is generated from Deep Lake at the end of every brood and every enricher cycle that produced new descriptions. It is committed for portability. It is never the system of record.
+`.honeycomb/nectars.json` is generated from Deeplake at the end of every brood and every enricher cycle that produced new descriptions. It is committed for portability. It is never the system of record.
 
 ---
 
@@ -6717,7 +6717,7 @@ The registry is a **projection**, not a sidecar. The distinction matters and is 
 ##### What it contains
 
 - **`version`** — schema version of the projection format. Bumped on incompatible changes; old daemon versions refuse to load a higher version and fall back to full brooding.
-- **`generated_at`** — when the projection was last regenerated. Lets a clone detect staleness ("this projection is 3 weeks old; the daemon should verify against Deep Lake when it gets network").
+- **`generated_at`** — when the projection was last regenerated. Lets a clone detect staleness ("this projection is 3 weeks old; the daemon should verify against Deeplake when it gets network").
 - **`generator`** — the daemon version that produced the file. Auditable.
 - **`project`** — the tenancy triple. A clone in a different project context refuses to load a mismatched projection.
 - **`files`** — the main payload. Keyed by nectar (ULID). Each entry carries the latest described version's content hash, path, title, description, concepts, and provenance metadata. This is exactly the data recall needs.
@@ -6725,10 +6725,10 @@ The registry is a **projection**, not a sidecar. The distinction matters and is 
 
 ##### What it deliberately omits
 
-- **The full version chain.** Only the latest described version per nectar is included. Historical versions stay in Deep Lake. Including them would bloat the file and serve no recall purpose.
+- **The full version chain.** Only the latest described version per nectar is included. Historical versions stay in Deeplake. Including them would bloat the file and serve no recall purpose.
 - **Embeddings.** The 768-dim vectors are not in the projection. They are regenerable from `title + description` via the configured embedding provider, and including them would make the file megabytes instead of kilobytes. A fresh clone recomputes embeddings on first daemon boot when a provider is available (or skips them when embeddings are unavailable).
 - **Undescribed files.** A nectar minted but never described (brooding was interrupted, or the file was skipped as binary) appears with a minimal entry (`path`, `content_hash`, but empty `title`/`description`) so identity is preserved, but recall will not surface it until described.
-- **Internal IDs.** No Deep Lake row IDs, no internal indices. The projection is portable across Deep Lake instances.
+- **Internal IDs.** No Deeplake row IDs, no internal indices. The projection is portable across Deeplake instances.
 
 ---
 
@@ -6744,15 +6744,15 @@ flowchart TD
     validate -->|yes| index["build content_hash -> nectar index"]
     index --> scan["scan disk, hash each file"]
     scan --> match{"content_hash in index?"}
-    match -->|yes| inherit["inherit nectar + description, write to Deep Lake"]
+    match -->|yes| inherit["inherit nectar + description, write to Deeplake"]
     match -->|no| ladder["run re-association ladder, possibly mint new nectar"]
     inherit --> ready["recall is live immediately"]
     ladder --> ready
 ```
 
-A fresh clone with a current projection typically achieves **zero LLM calls and zero fuzzy matches**: every file's content hash matches the projection, every nectar is inherited, every description is carried over. The daemon writes the inherited rows to Deep Lake (the local Deep Lake instance, which is the substrate for this clone's recall) and is immediately ready to serve semantic queries. The brooding cost was paid by whoever first brooded the project; the clone pays nothing.
+A fresh clone with a current projection typically achieves **zero LLM calls and zero fuzzy matches**: every file's content hash matches the projection, every nectar is inherited, every description is carried over. The daemon writes the inherited rows to Deeplake (the local Deeplake instance, which is the substrate for this clone's recall) and is immediately ready to serve semantic queries. The brooding cost was paid by whoever first brooded the project; the clone pays nothing.
 
-When the projection is stale (files on disk have content hashes not in the projection), those files enter the re-association ladder (`../ai/identity-and-reassociation.md`). The projection's content-hash index is the "known nectars" map that step 3 of the ladder consults; a content-hash match against a projection entry inherits that nectar directly without needing Deep Lake cloud sync.
+When the projection is stale (files on disk have content hashes not in the projection), those files enter the re-association ladder (`../ai/identity-and-reassociation.md`). The projection's content-hash index is the "known nectars" map that step 3 of the ladder consults; a content-hash match against a projection entry inherits that nectar directly without needing Deeplake cloud sync.
 
 ---
 
@@ -6762,7 +6762,7 @@ The projection is regenerated by the daemon at three points:
 
 1. **End of brooding.** A full brood produces a complete projection.
 2. **End of an enricher cycle that wrote new descriptions.** An incremental update — the projection is rewritten with the newly-described versions substituted in.
-3. **Explicitly, via `nectar rebuild-projection`.** A full regeneration from Deep Lake, used when the projection is corrupt, lost, or suspected stale.
+3. **Explicitly, via `nectar rebuild-projection`.** A full regeneration from Deeplake, used when the projection is corrupt, lost, or suspected stale.
 
 Regeneration is a single scan of `hive_graph_versions` (latest described version per nectar, scoped to the project), denormalized into the projection format, written atomically (temp file + rename, same pattern the CodeGraph uses for snapshot writes). The write is atomic so a crashed regeneration leaves the old projection, not a partial one.
 
@@ -6803,11 +6803,11 @@ Some teams may prefer not to commit the projection (concerns about diff noise, o
 
 The line between "projection" and "sidecar" is enforcement, not format. The same JSON file is a projection if the system treats it as regenerable, and a sidecar if the system reads from it as a source of truth. Nectar enforces the projection invariant through three rules:
 
-1. **Deep Lake writes happen first.** Every nectar mint, version append, and description write goes to Deep Lake before the projection is regenerated. The projection is never the target of a write; it is always derived.
+1. **Deeplake writes happen first.** Every nectar mint, version append, and description write goes to Deeplake before the projection is regenerated. The projection is never the target of a write; it is always derived.
 2. **The projection is never edited by hand or by external tools.** A hand-edit to `.honeycomb/nectars.json` is overwritten on the next regeneration. The file is read-only from the system's perspective except for the regeneration write.
-3. **The projection is regenerable from Deep Lake alone.** `nectar rebuild-projection` produces a byte-identical file (modulo `generated_at`) from a Deep Lake scan, with no other inputs. If it did not, the projection would be carrying state Deep Lake does not have, which would make it a sidecar.
+3. **The projection is regenerable from Deeplake alone.** `nectar rebuild-projection` produces a byte-identical file (modulo `generated_at`) from a Deeplake scan, with no other inputs. If it did not, the projection would be carrying state Deeplake does not have, which would make it a sidecar.
 
-These rules are what keep `.honeycomb/nectars.json` on the right side of FR-8. The file exists for portability and reviewability; it does not exist because Deep Lake is insufficient.
+These rules are what keep `.honeycomb/nectars.json` on the right side of FR-8. The file exists for portability and reviewability; it does not exist because Deeplake is insufficient.
 
 ---
 
@@ -6816,8 +6816,8 @@ These rules are what keep `.honeycomb/nectars.json` on the right side of FR-8. T
 - **It does not carry embeddings.** Regenerated locally on boot from `title + description`.
 - **It does not carry the version chain.** Only the latest described version per nectar.
 - **It does not carry tenancy for every row.** The project triple is at the top level; individual entries do not repeat it.
-- **It does not sync bidirectionally with Deep Lake.** Sync is one-directional: Deep Lake → projection. The reverse (projection → Deep Lake) happens only on a fresh clone, as an inheritance write, and only for nectars the local Deep Lake does not already have.
-- **It does not replace Deep Lake cloud sync.** A team that commits the projection gets offline-fresh-clone support; a team that also uses Deep Lake cloud sync gets live description updates as teammates describe new files. The two are complementary, not alternative.
+- **It does not sync bidirectionally with Deeplake.** Sync is one-directional: Deeplake → projection. The reverse (projection → Deeplake) happens only on a fresh clone, as an inheritance write, and only for nectars the local Deeplake does not already have.
+- **It does not replace Deeplake cloud sync.** A team that commits the projection gets offline-fresh-clone support; a team that also uses Deeplake cloud sync gets live description updates as teammates describe new files. The two are complementary, not alternative.
 
 ### Recall Integration
 
@@ -6947,23 +6947,23 @@ The two are not redundant. The CodeGraph cannot find `session-refresh.ts` becaus
 - **It does not return undescribed rows.** The `describe_status = 'described'` filter excludes pending, failed, and skipped rows. A file that was never described (brooding not yet reached it, or it was skipped as binary/too-large) does not appear in semantic recall. It may still appear in the structural CodeGraph's `find/` results, keyed by symbol name.
 - **It does not deduplicate against CodeGraph hits.** If `src/auth/login.ts` appears in both a Nectar recall hit and a CodeGraph `find/login` hit, both are returned. The agent (or the harness prompt assembler) is responsible for recognizing them as the same file. Dedup at the recall layer would lose the structural context the CodeGraph hit carries (symbol names, line numbers).
 - **It does not return historical versions.** Only the latest described version per nectar participates in recall. A prior version of a file (before a major refactor) is in the version chain as history but not in recall. This is deliberate: recall serves the current question, not archaeology.
-- **It does not run during brooding's LLM calls.** Recall reads Deep Lake; brooding writes Deep Lake; the two proceed concurrently with no coordination. A query mid-brood sees whatever has been described so far.
+- **It does not run during brooding's LLM calls.** Recall reads Deeplake; brooding writes Deeplake; the two proceed concurrently with no coordination. A query mid-brood sees whatever has been described so far.
 
 ---
 
 #### The fresh-clone and team-share path
 
-Because `hive_graph_versions` is a Deep Lake table with tenancy columns, it cloud-syncs the same way every other Honeycomb table does. A teammate who clones the repo and runs `nectar daemon` (registered with doctor, per ADR-0003) for the first time:
+Because `hive_graph_versions` is a Deeplake table with tenancy columns, it cloud-syncs the same way every other Honeycomb table does. A teammate who clones the repo and runs `nectar daemon` (registered with doctor, per ADR-0003) for the first time:
 
-1. Pulls the workspace's `hive_graph_versions` rows from Deep Lake (the team-share path documented in the main corpus's `collaboration/` domain).
+1. Pulls the workspace's `hive_graph_versions` rows from Deeplake (the team-share path documented in the main corpus's `collaboration/` domain).
 2. Re-derives the local `.honeycomb/nectars.json` projection from the pulled rows (or inherits the committed projection if present — see `portable-registry.md`).
 3. Immediately has working semantic recall over the codebase, without brooding, because every file's content hash matches a pulled version row.
 
-This is the property that makes Nectar a team asset, not a per-developer index. The brooding cost is paid once by whoever broods first; every teammate thereafter inherits the descriptions through Deep Lake sync plus the projection lockfile.
+This is the property that makes Nectar a team asset, not a per-developer index. The brooding cost is paid once by whoever broods first; every teammate thereafter inherits the descriptions through Deeplake sync plus the projection lockfile.
 
 ### Hive Graph: Technical Specification
 
-The column-level reference for the two Nectar Deep Lake tables: full DDL carried verbatim, a column-by-column mutability table for each table, the indexing strategy, the tenancy/isolation contract, the lazy-schema-heal rule, the projection contract, and the v1 non-goals.
+The column-level reference for the two Nectar Deeplake tables: full DDL carried verbatim, a column-by-column mutability table for each table, the indexing strategy, the tenancy/isolation contract, the lazy-schema-heal rule, the projection contract, and the v1 non-goals.
 
 #### The two tables at a glance
 
@@ -6998,7 +6998,7 @@ CREATE TABLE IF NOT EXISTS "hive_graph" (
 | `fork_content_hash` | TEXT | The content hash at the fork point. Lets the enricher render "this file was copied from X when X looked like Y" for the Obsidian-style interlink view. | Write-once at minting; never updated |
 | `org_id` | TEXT | Tenancy. Explicit because identity is cross-cutting (mirrors the `codebase` table's tenancy columns). | Set at minting; not updated on edit |
 | `workspace_id` | TEXT | Tenancy. Same rationale as `org_id`. | Set at minting; not updated on edit |
-| `project_id` | TEXT | Project isolation within a workspace. Soft column filter, not a Deep Lake partition or provisioning boundary. | Set at minting; not updated on edit |
+| `project_id` | TEXT | Project isolation within a workspace. Soft column filter, not a Deeplake partition or provisioning boundary. | Set at minting; not updated on edit |
 | `last_update_date` | TEXT | Denormalized "last observed change" timestamp. Updated whenever a new version row is appended. Lets the projection sync and the dashboard render "recently touched" without scanning the versions table. | Mutable — the only column that moves on a routine edit |
 
 The `nectar` column is the only truly immutable column. `derived_from_nectar` and `fork_content_hash` are write-once (set at minting, never updated). `kind`, `created_at`, and the tenancy triple are set at minting and never subsequently change. Only `last_update_date` moves on a routine edit, and it moves in lockstep with a version-row append on the versions table.
@@ -7093,11 +7093,11 @@ An existing duplicate is healed idempotently by the crash-repair sweep. Because 
 
 #### Indexing strategy
 
-Deep Lake indexing is additive and configured through the catalog helpers, not hand-rolled `CREATE INDEX` statements. The indexes Nectar relies on all live on `hive_graph_versions`, because that is the table recall queries.
+Deeplake indexing is additive and configured through the catalog helpers, not hand-rolled `CREATE INDEX` statements. The indexes Nectar relies on all live on `hive_graph_versions`, because that is the table recall queries.
 
 | Index | Table | Columns | Why |
 |---|---|---|---|
-| `deeplake_index` (BM25) | `hive_graph_versions` | `title`, `description` | Lexical recall over descriptions. Same operator Deep Lake applies to `memory.summary`. |
+| `deeplake_index` (BM25) | `hive_graph_versions` | `title`, `description` | Lexical recall over descriptions. Same operator Deeplake applies to `memory.summary`. |
 | Vector (`` cosine) | `hive_graph_versions` | `embedding` | Semantic recall over descriptions. Falls back silently to BM25 if embeddings are off — same as the rest of Honeycomb, no quality cliff. |
 | `deeplake_hybrid_record` | `hive_graph_versions` | BM25 + vector | The fused path recall prefers; documented in the main corpus's `ai/hybrid-sql-vector-rationale.md`. |
 | Scope filter | `hive_graph_versions` | `org_id`, `workspace_id`, `project_id` | Every recall query scopes by tenancy before applying BM25/vector. |
@@ -7110,7 +7110,7 @@ All indexing is additive and lazy. The BM25 index is present from initial table 
 
 #### Tenancy and isolation contract
 
-`hive_graph` and `hive_graph_versions` carry explicit `org_id`, `workspace_id`, and `project_id` columns. `project_id` is a soft column-level filter inside Honeycomb's org/workspace Deep Lake scope, not a per-project table or provisioning boundary. This mirrors the `codebase` table (the CodeGraph's cloud-sync target) and diverges from `sessions` and `memory`, which lean on partition isolation plus `agent_id` and `visibility`.
+`hive_graph` and `hive_graph_versions` carry explicit `org_id`, `workspace_id`, and `project_id` columns. `project_id` is a soft column-level filter inside Honeycomb's org/workspace Deeplake scope, not a per-project table or provisioning boundary. This mirrors the `codebase` table (the CodeGraph's cloud-sync target) and diverges from `sessions` and `memory`, which lean on partition isolation plus `agent_id` and `visibility`.
 
 The divergence is structural, not stylistic. File identity is **cross-agent by nature** — every agent and every harness working in the same project reads the same source tree, so they must see the same file descriptions. There is therefore no `agent_id` column and no `visibility` column on either Nectar table. A team sharing a workspace shares a single Nectar graph per project through the required `project_id` predicate.
 
@@ -7134,11 +7134,11 @@ Heals are additive only. The heal pass adds columns that are missing; it never d
 
 The contract has three parts, each enforceable:
 
-1. **Deep Lake writes happen first.** Every nectar mint, version append, and description write goes to Deep Lake before the projection is regenerated. The projection is never the target of a write; it is always derived.
-2. **The projection is regenerable from Deep Lake alone.** `nectar project --rebuild-projection` regenerates it from a single scan of `hive_graph_versions`, with no other inputs. If it did not, the projection would be carrying state Deep Lake does not have, which would make it a sidecar - and sidecars are forbidden by FR-8.
+1. **Deeplake writes happen first.** Every nectar mint, version append, and description write goes to Deeplake before the projection is regenerated. The projection is never the target of a write; it is always derived.
+2. **The projection is regenerable from Deeplake alone.** `nectar project --rebuild-projection` regenerates it from a single scan of `hive_graph_versions`, with no other inputs. If it did not, the projection would be carrying state Deeplake does not have, which would make it a sidecar - and sidecars are forbidden by FR-8.
 3. **The projection is never edited by hand.** A hand-edit is overwritten on the next regeneration. The file is read-only from the system's perspective except for the regeneration write.
 
-If `nectars.json` is deleted, lost, or corrupted, the rebuild command regenerates it from Deep Lake in a single scan. The projection is committed for portability across fresh clones (so a new checkout inherits descriptions without re-paying the brooding cost), never because Deep Lake is insufficient. The distinction between a projection and a sidecar, and the enforcement rules, are documented in full in `../portable-registry.md`.
+If `nectars.json` is deleted, lost, or corrupted, the rebuild command regenerates it from Deeplake in a single scan. The projection is committed for portability across fresh clones (so a new checkout inherits descriptions without re-paying the brooding cost), never because Deeplake is insufficient. The distinction between a projection and a sidecar, and the enforcement rules, are documented in full in `../portable-registry.md`.
 
 ---
 
@@ -7214,7 +7214,7 @@ Each top-level key has a defined role. The projection is denormalized specifical
 | Key | Purpose |
 |---|---|
 | `version` | Schema version of the projection format. Bumped on incompatible changes; old daemon versions refuse to load a higher version and fall back to full brooding. |
-| `generated_at` | When the projection was last regenerated. Lets a clone detect staleness — a projection weeks old should be verified against Deep Lake once network is available. |
+| `generated_at` | When the projection was last regenerated. Lets a clone detect staleness — a projection weeks old should be verified against Deeplake once network is available. |
 | `generator` | The daemon version that produced the file. Auditable. |
 | `project` | The tenancy triple (`org_id`, `workspace_id`, `project_id`). A clone in a different project context refuses to load a mismatched projection. |
 | `files` | The main payload. Keyed by nectar (ULID). Each entry carries the latest described version's content hash, path, title, description, concepts, and provenance metadata. This is exactly the data recall needs. |
@@ -7224,12 +7224,12 @@ Each top-level key has a defined role. The projection is denormalized specifical
 
 #### What it deliberately omits
 
-The projection is a denormalized view, not a dump. Four categories of Deep Lake state are intentionally absent.
+The projection is a denormalized view, not a dump. Four categories of Deeplake state are intentionally absent.
 
-- **The full version chain.** Only the latest described version per nectar is included. Historical versions stay in Deep Lake. Including them would bloat the file and serve no recall purpose — recall serves the current question, not archaeology.
+- **The full version chain.** Only the latest described version per nectar is included. Historical versions stay in Deeplake. Including them would bloat the file and serve no recall purpose — recall serves the current question, not archaeology.
 - **Embeddings.** The 768-dim vectors are not in the projection. They are regenerable from `title + description` via the configured embedding provider, and including them would make the file megabytes instead of kilobytes. A fresh clone recomputes embeddings on first daemon boot when a provider is available, or skips them if embeddings are unavailable.
 - **Undescribed files beyond a minimal entry.** A nectar minted but never described (brooding interrupted, or the file skipped as binary) appears with a minimal entry — `path` and `content_hash`, but empty `title`/`description` — so identity is preserved, but recall will not surface it until described.
-- **Internal IDs.** No Deep Lake row IDs, no internal indices. The projection is portable across Deep Lake instances.
+- **Internal IDs.** No Deeplake row IDs, no internal indices. The projection is portable across Deeplake instances.
 
 ---
 
@@ -7239,9 +7239,9 @@ The projection is regenerated by the daemon at three defined points. There is no
 
 1. **End of brooding.** A full brood produces a complete projection. This is the only mode that writes the initial `nectars.json`, making the brood durable and shareable (see `../../ai/brooding-pipeline.md`).
 2. **End of an enricher cycle that wrote new descriptions.** An incremental update — the projection is rewritten with the newly-described versions substituted in. A cycle that wrote no descriptions produces no projection write.
-3. **Explicitly, via `nectar rebuild-projection`.** A full regeneration from Deep Lake, used when the projection is corrupt, lost, or suspected stale.
+3. **Explicitly, via `nectar rebuild-projection`.** A full regeneration from Deeplake, used when the projection is corrupt, lost, or suspected stale.
 
-Regeneration is a single scan of `hive_graph_versions` — the latest described version per nectar, scoped to the project — denormalized into the projection format and written atomically. The scan reads only Deep Lake; no other input is permitted, or the projection would be carrying state Deep Lake does not have.
+Regeneration is a single scan of `hive_graph_versions` — the latest described version per nectar, scoped to the project — denormalized into the projection format and written atomically. The scan reads only Deeplake; no other input is permitted, or the projection would be carrying state Deeplake does not have.
 
 ---
 
@@ -7276,19 +7276,19 @@ flowchart TD
 
 #### The three projection-invariant enforcement rules
 
-The line between a projection and a sidecar is enforcement, not format. The same JSON file is a projection if the system treats it as regenerable, and a sidecar if the system reads from it as a source of truth. Nectar enforces the projection invariant through three rules, grounded in FR-8 (no sidecars — durable state goes in Deep Lake).
+The line between a projection and a sidecar is enforcement, not format. The same JSON file is a projection if the system treats it as regenerable, and a sidecar if the system reads from it as a source of truth. Nectar enforces the projection invariant through three rules, grounded in FR-8 (no sidecars — durable state goes in Deeplake).
 
-##### Rule 1 — Deep Lake writes happen first
+##### Rule 1 — Deeplake writes happen first
 
-Every nectar mint, version append, and description write goes to Deep Lake *before* the projection is regenerated. The projection is never the target of a write; it is always derived. This ordering guarantees the projection reflects committed Deep Lake state at the moment of regeneration.
+Every nectar mint, version append, and description write goes to Deeplake *before* the projection is regenerated. The projection is never the target of a write; it is always derived. This ordering guarantees the projection reflects committed Deeplake state at the moment of regeneration.
 
 ##### Rule 2 — The projection is never edited by hand or by external tools
 
 A hand-edit to `.honeycomb/nectars.json` is overwritten on the next regeneration. The file is read-only from the system's perspective except for the regeneration write. No external tool or human edit is respected as state.
 
-##### Rule 3 — The projection is regenerable from Deep Lake alone
+##### Rule 3 — The projection is regenerable from Deeplake alone
 
-`nectar rebuild-projection` produces a byte-identical file (modulo `generated_at`) from a Deep Lake scan, with no other inputs. If it did not, the projection would be carrying state Deep Lake does not have, which would make it a sidecar. This rule is what keeps the file on the right side of FR-8: it exists for portability and reviewability, not because Deep Lake is insufficient.
+`nectar rebuild-projection` produces a byte-identical file (modulo `generated_at`) from a Deeplake scan, with no other inputs. If it did not, the projection would be carrying state Deeplake does not have, which would make it a sidecar. This rule is what keeps the file on the right side of FR-8: it exists for portability and reviewability, not because Deeplake is insufficient.
 
 ---
 
@@ -7301,7 +7301,7 @@ sequenceDiagram
     participant Gen as Regeneration
     participant Tmp as Temp file
     participant Disk as nectars.json
-    participant DL as Deep Lake
+    participant DL as Deeplake
 
     Gen->>DL: scan hive_graph_versions (latest described per nectar)
     Gen->>Tmp: write projection to temp file
@@ -7510,7 +7510,7 @@ The technical contract of Nectar's chosen identity model (Option C: daemon-minte
 
 #### The decision, as a contract
 
-ADR-0001 adopts **Option C**: a daemon-minted ULID nectar, persisted in Deep Lake as the primary key of `hive_graph`, re-associated to files on disk by the exact-then-fuzzy ladder, with a committed regenerable projection for fresh-clone inheritance. This document specifies that decision as an engineering contract — the invariants an implementation must satisfy to be compliant. The ADR is the authoritative source for *why*; this doc is the authoritative reference for *what*.
+ADR-0001 adopts **Option C**: a daemon-minted ULID nectar, persisted in Deeplake as the primary key of `hive_graph`, re-associated to files on disk by the exact-then-fuzzy ladder, with a committed regenerable projection for fresh-clone inheritance. This document specifies that decision as an engineering contract — the invariants an implementation must satisfy to be compliant. The ADR is the authoritative source for *why*; this doc is the authoritative reference for *what*.
 
 The contract has seven clauses, each derived from a decision driver in the ADR. An implementation that violates any clause is non-compliant with the identity model, regardless of whether its re-association ladder works or its recall returns results.
 
@@ -7557,7 +7557,7 @@ Minting does **not** happen on edits (that appends a version row, keeping the ne
 
 #### Clause 3: The `hive_graph.nectar` primary-key contract
 
-The nectar is persisted as the **primary key of `hive_graph`** in Deep Lake. The contract:
+The nectar is persisted as the **primary key of `hive_graph`** in Deeplake. The contract:
 
 - `nectar` is TEXT, NOT NULL, and is the row identity. One row per logical file.
 - `nectar` is **immutable**. It is written once at minting and never updated, never reused, and never re-derived.
@@ -7569,7 +7569,7 @@ The full DDL is documented in `../../data/hive-graph-schema.md`. The `hive_graph
 
 #### Clause 4: The no-source-mutation invariant
 
-The hiveantennae daemon **never writes to source files**. This is a hard invariant, not a preference. The only file hiveantennae writes is `.honeycomb/nectars.json`, a regenerable projection at the project root — and even that is reviewable, committed, and regenerable from Deep Lake alone.
+The hiveantennae daemon **never writes to source files**. This is a hard invariant, not a preference. The only file hiveantennae writes is `.honeycomb/nectars.json`, a regenerable projection at the project root — and even that is reviewable, committed, and regenerable from Deeplake alone.
 
 The invariant protects the AGPL license header convention. `AGENTS.md` in the main Honeycomb corpus is explicit: every new source file gets the AGPL header from `docs/license-header.txt`, and that header occupies line 1. A tool that mutates source on a git hook — as Candidate A requires — collides with this rule and produces an invasive "brooding mega-commit" that touches every file on first run, which code reviewers reject.
 
@@ -7589,19 +7589,19 @@ This is the rule Candidate A cannot satisfy. Source-embedded serials require a c
 
 ---
 
-#### Clause 6: Deep Lake as the only durable store (FR-8)
+#### Clause 6: Deeplake as the only durable store (FR-8)
 
-The nectar table is a **Deep Lake table**. There is no SQLite sidecar, no JSONL log, no parallel store. This satisfies FR-8 from the main Honeycomb PRD substrate: *"Durable state goes in Deep Lake, not JSON/JSONL sidecars."*
+The nectar table is a **Deeplake table**. There is no SQLite sidecar, no JSONL log, no parallel store. This satisfies FR-8 from the main Honeycomb PRD substrate: *"Durable state goes in Deeplake, not JSON/JSONL sidecars."*
 
-A parallel SQLite store (Option D in the ADR) is rejected independently of the identity-key choice because it would drift from Deep Lake, get out of sync with the daemon, and become a second source of truth that the daemon's consistency checks cannot see. A *cache* — the regenerable `(path → mtime → last_hash)` map the daemon keeps to avoid re-hashing on poll — is acceptable because it is not a source of truth and can be deleted without loss.
+A parallel SQLite store (Option D in the ADR) is rejected independently of the identity-key choice because it would drift from Deeplake, get out of sync with the daemon, and become a second source of truth that the daemon's consistency checks cannot see. A *cache* — the regenerable `(path → mtime → last_hash)` map the daemon keeps to avoid re-hashing on poll — is acceptable because it is not a source of truth and can be deleted without loss.
 
-The committed `.honeycomb/nectars.json` projection is not a violation of FR-8 because it is a **projection, not a sidecar**. The distinction is enforcement: a projection is a denormalized, regenerable view written from the source of truth on a defined schedule, never edited directly, and deletable without loss. `nectar rebuild-projection` regenerates it from a Deep Lake scan with no other inputs. The three enforcement rules are documented in `../../data/portable-registry.md`: Deep Lake writes happen first, the projection is never hand-edited, and the projection is regenerable from Deep Lake alone.
+The committed `.honeycomb/nectars.json` projection is not a violation of FR-8 because it is a **projection, not a sidecar**. The distinction is enforcement: a projection is a denormalized, regenerable view written from the source of truth on a defined schedule, never edited directly, and deletable without loss. `nectar rebuild-projection` regenerates it from a Deeplake scan with no other inputs. The three enforcement rules are documented in `../../data/portable-registry.md`: Deeplake writes happen first, the projection is never hand-edited, and the projection is regenerable from Deeplake alone.
 
 ---
 
 #### Clause 7: Fresh-clone portability
 
-A new `git clone` **inherits identity without re-paying the brooding cost or requiring network access** to Deep Lake. The mechanism is the committed `.honeycomb/nectars.json` projection, which carries a content-hash → nectar map. On boot, the daemon matches on-disk content hashes into the projection before falling back to the re-association ladder.
+A new `git clone` **inherits identity without re-paying the brooding cost or requiring network access** to Deeplake. The mechanism is the committed `.honeycomb/nectars.json` projection, which carries a content-hash → nectar map. On boot, the daemon matches on-disk content hashes into the projection before falling back to the re-association ladder.
 
 A current projection typically achieves **zero LLM calls and zero fuzzy matches** on a fresh clone: every file's content hash matches the projection, every nectar is inherited, every description is carried over. The projection is committed by default precisely because without it, a fresh clone must brood from scratch — minting new nectars with no connection to the originals, breaking the team-share story.
 
@@ -7618,7 +7618,7 @@ The seven clauses above are deductions from the ADR's decision drivers. The matr
 | **Copy-paste as provenance** |  duplicate-serial ambiguity |  indistinguishable, link lost on edit |  fresh nectar + `derived_from_nectar` |
 | **No source mutation** |  collides with AGPL header, line-1 conflict |  never touches source |  never touches source |
 | **Universal applicability** |  JSON/`.env`/binary have no comment |  hashes anything |  nectars anything; binary `skipped-binary` |
-| **Deep Lake only (FR-8)** |  in-file, but needs sidecar for non-source |  hashable anywhere |  Deep Lake table, projection not sidecar |
+| **Deeplake only (FR-8)** |  in-file, but needs sidecar for non-source |  hashable anywhere |  Deeplake table, projection not sidecar |
 | **Fresh-clone portability** |  serial in-file, zero bootstrap |  must re-hash everything |  committed projection carries map |
 
 The same matrix as a flowchart, showing how rejecting A and B leaves only C:
@@ -7826,7 +7826,7 @@ Use it commercially or privately, free of charge. In return: keep the copyright 
 
 ### Foreword
 
-Queen is the control plane that sits beside the Deep Lake memory data plane and carries what that plane was never meant to carry: liveness, identity, enrollment, signed commands, usage observation, and fleet reporting. This manual documents the two-application topology, the local agent and cloud application architectures, the control-plane schema, cloud binding and license enforcement, and the trust boundaries. It is written for engineers building or auditing the orchestrator.
+Queen is the control plane that sits beside the Deeplake memory data plane and carries what that plane was never meant to carry: liveness, identity, enrollment, signed commands, usage observation, and fleet reporting. This manual documents the two-application topology, the local agent and cloud application architectures, the control-plane schema, cloud binding and license enforcement, and the trust boundaries. It is written for engineers building or auditing the orchestrator.
 
 ### Queen System Overview
 

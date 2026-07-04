@@ -6,7 +6,7 @@
 
 ## Foreword
 
-Queen is the control plane that sits beside the Deep Lake memory data plane and carries what that plane was never meant to carry: liveness, identity, enrollment, signed commands, usage observation, and fleet reporting. This manual documents the two-application topology, the local agent and cloud application architectures, the control-plane schema, cloud binding and license enforcement, and the trust boundaries. It is written for engineers building or auditing the orchestrator.
+Queen is the control plane that sits beside the Deeplake memory data plane and carries what that plane was never meant to carry: liveness, identity, enrollment, signed commands, usage observation, and fleet reporting. This manual documents the two-application topology, the local agent and cloud application architectures, the control-plane schema, cloud binding and license enforcement, and the trust boundaries. It is written for engineers building or auditing the orchestrator.
 
 ## Queen System Overview
 
