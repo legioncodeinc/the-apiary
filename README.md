@@ -2,55 +2,77 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/legioncodeinc/honeycomb/main/assets/logos/honeycomb-memory-cluster-wordmark-on-dark.svg">
-    <img src="https://raw.githubusercontent.com/legioncodeinc/honeycomb/main/assets/logos/honeycomb-memory-cluster-wordmark.svg" alt="The Apiary" height="84">
+    <source media="(prefers-color-scheme: dark)" srcset="branding/apiary/logos/apiary-wordmark.svg">
+    <img src="branding/apiary/logos/apiary-wordmark-on-light.svg" alt="The Apiary" height="88">
   </picture>
 </p>
 
+<h3 align="center">One memory. A whole hive around it.</h3>
+
 <p align="center">
-  <strong>The Apiary is the home of Honeycomb: shared, persistent memory for AI coding agents, and the ecosystem built around it.</strong><br>
-  One umbrella repository that stitches together every part of the system so it can be cloned, tracked, and reasoned about from a single place.
+  <strong>The Apiary gives your AI coding agents one shared, lasting memory on hardware you control.</strong><br>
+  A stack of small, sharp programs, each one killing a single stubborn problem. Learn something once, and every agent recalls it everywhere.
 </p>
 
 <p align="center">
-  <a href="https://github.com/legioncodeinc"><img src="https://img.shields.io/badge/by-Legion%20Code-F7A823?style=flat-square" alt="Legion Code"></a>
-  <a href="https://deeplake.ai"><img src="https://img.shields.io/badge/powered%20by-Deeplake-ff5a1f?style=flat-square" alt="Powered by Deeplake"></a>
-  <img src="https://img.shields.io/badge/structure-git%20submodules-339933?style=flat-square" alt="Git submodules">
-  <a href="https://theapiary.sh"><img src="https://img.shields.io/badge/docs-theapiary.sh-blue?style=flat-square" alt="theapiary.sh"></a>
+  <a href="https://theapiary.sh"><img src="https://img.shields.io/badge/install-one%20command-F7A823?style=flat-square" alt="One-command install"></a>
+  <a href="https://deeplake.ai"><img src="https://img.shields.io/badge/built%20on-Deeplake-8B7CF0?style=flat-square" alt="Built on Deeplake"></a>
+  <a href="https://github.com/activeloopai/hivemind"><img src="https://img.shields.io/badge/powered%20by-Hivemind-339933?style=flat-square" alt="Powered by Hivemind"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square" alt="AGPL-3.0"></a>
+  <a href="https://theapiary.sh"><img src="https://img.shields.io/badge/docs-theapiary.sh-1A1512?style=flat-square" alt="theapiary.sh"></a>
 </p>
 
-<p align="center"><sub>A <a href="https://github.com/legioncodeinc"><strong>Legion Code</strong></a> &times; <a href="https://activeloop.ai"><strong>Activeloop</strong></a> collaboration, built on <a href="https://github.com/activeloopai/hivemind">Hivemind</a> &amp; <a href="https://deeplake.ai">Deeplake</a>.</sub></p>
+<p align="center"><sub>A <a href="https://github.com/legioncodeinc"><strong>Legion Code</strong></a> &times; <a href="https://activeloop.ai"><strong>Activeloop</strong></a> collaboration.</sub></p>
 
 ---
 
-## What this repository is
+## Install
 
-`the-apiary` is the **umbrella (meta) repository** for Legion Code's Apiary ecosystem. It does not hold product code of its own. Instead it aggregates several independently versioned, independently released projects as **git submodules**, so the whole system stays reasoned-about and reproducible from one checkout while each part keeps its own repository, release cadence, and license.
+One command. It installs the local daemons, wires up your coding assistants, and opens a dashboard in your browser. No database to run, no config ritual.
 
-The name is the theme. A hive is a shared brain made of many small workers: memories are stored in the **honeycomb**, **the hive** itself is the always-on window you watch the colony through, a **doctor** keeps the colony healthy, **nectar** is the raw material each worker refines, the **queen** commands the whole yard of hives from above, and a whole **bee army** does the building. Every project below is one cell of that hive.
+```bash
+# macOS / Linux
+curl -fsSL https://get.theapiary.sh | sh
+```
+
+```powershell
+# Windows (PowerShell)
+irm https://get.theapiary.sh/install.ps1 | iex
+```
+
+Prefer to read the script first? Open [get.theapiary.sh](https://get.theapiary.sh) in a browser and check it, checksums and all, before you run it. When it finishes it hands you the **Hive** dashboard at `http://127.0.0.1:3853`. Click **First time setup**, approve the sign-in, and you are done.
 
 ---
 
-## What is in here
+## Why this exists
 
-Five product submodules, plus the local AI development tooling that builds them.
+AI coding assistants are brilliant in the moment and amnesiac the next. Close the window and the context is gone. Open a different tool tomorrow and it has never heard of your project. So you re-explain your conventions, re-discover the fix that already worked, and pay for the same tokens every single morning.
 
-| Project | What it is | Repository | Package | Stage |
-|---|---|---|---|---|
-| **[honeycomb](honeycomb/README.md)** | The flagship product. A cross-harness AI coding **memory system**: a long-lived local daemon plus thin clients (per-harness hooks, a unified CLI, an MCP server, a TypeScript SDK) that give coding assistants one shared, persistent memory (three harnesses supported: Claude Code, Cursor, Codex; three more in progress: Hermes, pi, OpenClaw). | [legioncodeinc/honeycomb](https://github.com/legioncodeinc/honeycomb) | [`@legioncodeinc/honeycomb`](https://www.npmjs.com/package/@legioncodeinc/honeycomb) `v0.3.x` | Production ready |
-| **[hive](hive/README.md)** | **Hive**: the always-on **portal daemon**. Boots with the device (supervised by Doctor), and serves the unified dashboard by aggregating each workload daemon's API rather than touching storage itself, so the dashboard is up even when a workload daemon is not. | [legioncodeinc/hive](https://github.com/legioncodeinc/hive) | [`@legioncodeinc/hive`](https://www.npmjs.com/package/@legioncodeinc/hive) `v0.4.x` | Production ready |
-| **[doctor](doctor/README.md)** | The **self-healing supervisor** for the daemon family. Deliberately tiny (zero runtime dependencies, Node built-ins only), OS-supervised, it keeps a small registry of the daemons it watches, probes their health, and runs an escalating repair ladder. Now its own repository. | [legioncodeinc/doctor](https://github.com/legioncodeinc/doctor) | [`@legioncodeinc/doctor`](https://www.npmjs.com/package/@legioncodeinc/doctor) `v0.3.x` | Production ready |
-| **[nectar](nectar/README.md)** | A **semantic memory layer over a source tree**: gives every file a stable, daemon-minted identity (a "nectar") and an LLM-minted description, served through the same hybrid recall Honeycomb already uses. | [legioncodeinc/nectar](https://github.com/legioncodeinc/nectar) | [`@legioncodeinc/nectar`](https://www.npmjs.com/package/@legioncodeinc/nectar) `v0.2.x` | Production ready |
-| **[queen](queen/README.md)** | The **cloud fleet orchestrator**. The control plane above every machine running the stack: fleet-wide presence and observation (heartbeats, a read-only fleet dashboard), trusted-device enrollment with a guarded mint/sign identity authority, a signed command channel, and a hosted ROI admin surface. Observation ships before control, by design. | [legioncodeinc/queen](https://github.com/legioncodeinc/queen) | not yet published | Design and specification |
-| **[.cursor](.cursor/)** | The **Bee Army**: the local AI development team (specialist subagents, skills, orchestration commands, rules, and a model-routing matrix) that Legion Code uses to build the Apiary. Tracked directly in this repo, not a submodule. | this repo | not applicable | Active tooling |
+The Apiary ends that. A small daemon runs quietly on your machine, notices what happens as you work, distills it into clean notes, and hands the right ones back to any assistant that asks, across sessions, tools, machines, and teammates. It lives on **[Deeplake](https://deeplake.ai)**, Activeloop's database built for AI: it stores your memory as exact text and as meaning at once, searches both, keeps full version history, and can run in your own cloud. Your memory is isolated per team and project, your secrets are never shown to an agent, and the whole thing gets sharper as it grows instead of rotting into a cache.
 
-> **New here?** Honeycomb installs in one command, and Hive gives you an always-on dashboard the moment your device boots. See the [Honeycomb README](honeycomb/README.md#-install-one-command). Everything else lives at **[theapiary.sh](https://theapiary.sh)**.
+Learn something once. Recall it everywhere. On infrastructure you own.
+
+---
+
+## The hive
+
+Five products. Each one answers a single stubborn question.
+
+| Product | The problem it kills | Package · port | Stage |
+|---|---|---|---|
+| **[honeycomb](honeycomb/README.md)** · the memory | Your agent forgets everything when the window closes. Honeycomb gives every assistant one shared memory that survives sessions, travels across tools, and compounds over time. | `@legioncodeinc/honeycomb` · `:3850` | **Production** `v0.3` |
+| **[nectar](nectar/README.md)** · the understanding layer | Ask where logins live and your agent opens the wrong file. Nectar describes every file by what it does, so agents find code by meaning, not by name. | `@legioncodeinc/nectar` · `:3854` | **Production** `v0.2` |
+| **[doctor](doctor/README.md)** · the watchdog | A daemon dies at 2am and nothing notices. Doctor catches the crash, heals it on a repair ladder, and has your memory back before your next prompt. | `@legioncodeinc/doctor` · `:3852` | **Production** `v0.3` |
+| **[hive](hive/README.md)** · the portal | Which local port was the dashboard again? None of your problem. Hive serves the whole stack from one address and stays up even when a workload is down. | `@legioncodeinc/hive` · `:3853` | **Production** `v0.4` |
+| **[queen](queen/README.md)** · the fleet orchestrator | Once the stack spreads across machines, who can see the fleet? Queen is the cloud control plane for presence, identity, and ROI, and it never touches your memory. | not yet published | **Design** |
+
+Supported coding assistants today: **Claude Code, Cursor, and Codex**, with **Hermes, pi, and OpenClaw** in progress. A memory written from one is recalled by the others.
 
 ---
 
 ## How the pieces fit together
 
-Honeycomb is the product. Hive shows it to you. Doctor keeps it all running. Nectar extends what it can remember. Queen commands the fleet of machines running all of it. On each device they form a **four-role, four-process topology**: two workload daemons (Honeycomb, Nectar) that do the memory work, one always-on portal (Hive) that presents it, and one supervisor (Doctor) that watches the set; Queen sits above every device as the cloud control plane. All of it sits on the same foundation: Activeloop's [Deeplake](https://deeplake.ai) (the versioned, columnar-plus-vector database for AI) and [Hivemind](https://github.com/activeloopai/hivemind) (Activeloop's open-source agent-memory project).
+Honeycomb is the product. Nectar extends what it can understand. Hive shows it to you. Doctor keeps it all alive. Queen commands the fleet of machines running the stack. On each device they form a **four-role topology**: two workload daemons (Honeycomb, Nectar) do the memory work, one always-on portal (Hive) presents it, and one supervisor (Doctor) watches the set. Queen sits above every device as the cloud control plane. All of it rests on the same foundation: Activeloop's **[Deeplake](https://deeplake.ai)** and the open-source **[Hivemind](https://github.com/activeloopai/hivemind)** agent-memory project.
 
 ```mermaid
 flowchart TD
@@ -68,85 +90,73 @@ flowchart TD
     queen -->|fleet dashboard · signed commands · ROI surface| admins["Admins & teammates,<br/>anywhere"]
 ```
 
-- **Honeycomb** captures what happens on every agent turn, distills it into a three-tier memory (key, summary, raw), and serves it back to any harness that asks, across sessions, tools, devices, and teammates.
-- **Hive** is the always-on portal. It boots with the device under Doctor's supervision and binds its socket before any workload is confirmed healthy, so the unified dashboard is up the moment you power on. It renders that dashboard by aggregating each daemon's HTTP API and holds no storage client of its own, so it stays a thin portal that degrades one panel, not the whole page, when a workload is down.
-- **Doctor** runs beside the daemons under OS supervision. It keeps a small registry of the daemons it watches (Honeycomb, Hive, Nectar), probes each one's health, heals common failures on the spot, and escalates loudly when it cannot, so a wedged daemon never becomes a silent, lost morning.
-- **Nectar** is the shipped, production-ready semantic-memory workload daemon. It adds a semantic layer so an agent can ask "where is the login logic" and get files that are not named `login-*`, complementing the structural codebase graph Honeycomb already builds.
-- **Queen** (design stage) is the cloud control plane above every machine running the stack. Daemons report presence upward via heartbeats; admins get a read-only fleet dashboard, a guarded mint/sign authority for enrolling trusted devices, a signed command channel, and a hosted ROI admin surface, with recovery, revocation, and escrow specified from day one. Observation ships before control.
+- **Honeycomb** captures what happens on every agent turn, distills it into a three-tier memory (key, summary, raw), and serves it back to any harness that asks. It tidies itself over time, so recall gets sharper, not noisier.
+- **Nectar** gives every file a stable, daemon-minted identity and a plain-language description of what it does, served through the same hybrid recall Honeycomb uses. That is how an agent finds the login logic in a file named `session-refresh.ts`.
+- **Hive** boots with the device under Doctor's supervision and binds its socket before any workload is confirmed healthy, so the dashboard is up the moment you power on. It renders by aggregating each daemon's API and holds no storage client of its own, so one bad panel never takes down the page.
+- **Doctor** runs beside the daemons under OS supervision. It probes each one's health, heals common failures on the spot, escalates loudly when it cannot, and has no code that can read or delete your credentials. Full stop.
+- **Queen** (design stage) is the control plane above every machine. Daemons report presence upward; admins get a read-only fleet dashboard, a guarded mint/sign identity authority, a signed command channel, and a hosted ROI surface. It coordinates identity and encrypted blobs it cannot decrypt, and never reads your memory content. Observation ships before control.
+
+---
+
+## What this repository is
+
+`the-apiary` is the **umbrella repository** for the ecosystem. It holds no product code of its own. It aggregates the five products as **git submodules**, so the whole system stays reproducible from one checkout while each product keeps its own repository, release cadence, and license.
+
+```text
+the-apiary/
+├── honeycomb/              submodule · the memory system (daemon, CLI, MCP, SDK, harnesses)
+├── nectar/                 submodule · semantic file-memory layer
+├── doctor/                 submodule · the self-healing supervisor watchdog
+├── hive/                   submodule · the always-on portal daemon
+├── queen/                  submodule · cloud fleet orchestrator (design and spec)
+├── branding/              brand marks and logos for the family and each product
+├── product-documentation/ per-product guides, technical manuals, and one-pagers
+├── library/              shared knowledge base, PRDs, and design corpus
+├── site/                  the theapiary.sh marketing site source
+├── .cursor/              the Bee Army: the local AI development team that builds the Apiary
+├── LICENSE.md             AGPL-3.0-or-later
+└── README.md              you are here
+```
+
+### Clone it
+
+Because the products live in submodules, clone with `--recurse-submodules`:
+
+```bash
+# fresh clone, submodules and all
+git clone --recurse-submodules git@github.com:legioncodeinc/the-apiary.git
+cd the-apiary
+
+# already cloned flat? pull the submodules in:
+git submodule update --init --recursive
+
+# update everything later:
+git pull --recurse-submodules && git submodule update --remote --merge
+```
+
+Then pick your entry point. **Try it:** run the one-command install above. **Build from source:** each submodule is self-contained (`cd honeycomb && npm install && npm run build`); see its README for the quality gate. **Read the design:** Queen is written README-first, with its specification under [`queen/library/`](queen/).
 
 ---
 
 ## The Bee Army (`.cursor/`)
 
-The `.cursor/` directory is the local AI development team that builds the Apiary, the "Legion AI Tools Factory." It is committed to this repository so any contributor using Cursor inherits the same specialists, guardrails, and orchestration.
-
-- **86 worker-bee subagents** (`.cursor/agents/`): narrow specialists (for example `db-worker-bee`, `security-worker-bee`, `react-worker-bee`, `deeplake-dataset-worker-bee`) that are routed a task and return focused work.
-- **112 stinger skills** (`.cursor/skills/`): the deep domain knowledge each bee wields, plus the factory pipeline that forges new bees (`command-center` to `scripture-historian` to `stinger-forge` to `bee-creator` to `hive-registrar`, driven by `the-queen`).
-- **Orchestration commands** (`.cursor/commands/`): [`the-beekeeper`](.cursor/commands/the-beekeeper.md) routes a task through the right bees, and [`the-smoker`](.cursor/commands/the-smoker.md) drives a set of PRDs to completion.
-- **Workspace rules** (`.cursor/rules/`): the always-on guardrails, including the plan construction protocol, the no-em-dashes house style, and the boundary rule that keeps agents from stepping on each other's work.
-- **[Model comparison matrix](.cursor/model-comparison-matrix.md)**: the scored rubric and routing heuristic used to pick the best-fit model for each task.
+The Apiary is built by a local AI development team that ships with this repo, so any contributor using Cursor inherits the same specialists and guardrails. It is a small factory: narrow **worker-bee** subagents (`db`, `security`, `react`, `deeplake-dataset`, and dozens more) each armed with a deep-domain **stinger** skill, routed by [`the-beekeeper`](.cursor/commands/the-beekeeper.md) and driven to done by [`the-smoker`](.cursor/commands/the-smoker.md). Workspace rules hold the house style (plan protocol, no em dashes, clean boundaries), and a [model comparison matrix](.cursor/model-comparison-matrix.md) picks the best-fit model per task. It is the same discipline that keeps the products honest.
 
 ---
 
-## Getting started
+## License
 
-Because the products live in submodules, clone with `--recurse-submodules`:
-
-```bash
-# fresh clone, with all submodules populated
-git clone --recurse-submodules git@github.com:legioncodeinc/the-apiary.git
-cd the-apiary
-
-# already cloned without submodules? initialize them:
-git submodule update --init --recursive
-
-# pull the latest for the umbrella and every submodule:
-git pull --recurse-submodules
-git submodule update --remote --merge
-```
-
-Then pick your entry point:
-
-- **Try the product**: follow the one-command install in the [Honeycomb README](honeycomb/README.md#-install-one-command).
-- **Build from source**: each submodule is self-contained. `cd honeycomb && npm install && npm run build`, and see its README for the quality gate. Hive, Doctor, and Nectar are production ready and each carry their own build and docs.
-- **Read the design**: Queen is written README-first; its specification lives under [`queen/library/knowledge/private/`](queen/library/knowledge/private/).
-
----
-
-## Repository layout
-
-```text
-the-apiary/
-├── honeycomb/        submodule · the memory system (daemon, CLI, MCP, SDK, harnesses)
-├── hive/             submodule · the always-on portal daemon (unified dashboard)
-├── doctor/           submodule · the self-healing supervisor watchdog
-├── nectar/           submodule · semantic file-memory layer (production ready)
-├── queen/            submodule · cloud fleet orchestrator (design and spec)
-├── .cursor/          the Bee Army: agents, skills, commands, rules, model matrix
-├── .gitmodules       submodule wiring (repository URLs and paths)
-├── LICENSE.md        AGPL-3.0-or-later (umbrella)
-└── README.md         you are here
-```
-
-Each submodule has its own `library/` documentation tree (PRDs, IRDs, and knowledge docs), its own `AGENTS.md` with per-repo agent guidance, and its own build and test gates. This umbrella intentionally stays thin.
-
----
-
-## Licensing
-
-Every project in the hive shares one license: the **GNU Affero General Public License v3.0 or later** ([AGPL-3.0-or-later](LICENSE.md)). Honeycomb, Hive, Doctor, Nectar, and Queen all carry it. Use any of them commercially or privately, free of charge; keep the copyright and license notices intact, and if you run a modified version as a network service you owe its source to its users.
-
-Always defer to the `LICENSE` file inside each submodule for that project's exact terms and copyright holder.
+Every project in the hive shares one license: the **GNU Affero General Public License v3.0 or later** ([AGPL-3.0-or-later](LICENSE.md)). Use any of them commercially or privately, free of charge. Keep the copyright and license notices intact, and if you run a modified version as a network service, you owe its source to its users. Always defer to the `LICENSE` file inside each submodule for that project's exact terms.
 
 ---
 
 ## Credits
 
-The Apiary exists because two halves fit together. **[Activeloop](https://activeloop.ai)** brings **[Deeplake](https://deeplake.ai)** and **[Hivemind](https://github.com/activeloopai/hivemind)**, the durable, queryable foundation the memories live on. **[Legion Code Inc](https://github.com/legioncodeinc)** brings the multi-tier memory system, session priming, skill propagation, the pollinating loop, the knowledge and codebase graphs, and the daemon architecture that turns Deeplake into a shared brain your coding agents read and write on every turn.
+The Apiary exists because two halves fit together. **[Activeloop](https://activeloop.ai)** brings **[Deeplake](https://deeplake.ai)** and **[Hivemind](https://github.com/activeloopai/hivemind)**, the durable, queryable foundation the memories live on. **[Legion Code](https://github.com/legioncodeinc)** brings the multi-tier memory, session priming, skill propagation, the self-tidying loop, the knowledge and codebase graphs, and the daemon architecture that turns Deeplake into a shared brain your coding agents read and write on every turn.
 
 ---
 
 <p align="center">
-  <sub><strong>Built by <a href="https://github.com/legioncodeinc">Legion Code Inc</a></strong> · <strong>Powered by <a href="https://deeplake.ai">Activeloop Deeplake</a></strong> · <strong>Built on <a href="https://github.com/activeloopai/hivemind">Hivemind</a></strong></sub><br>
+  <sub><strong>Built by <a href="https://github.com/legioncodeinc">Legion Code</a></strong> · <strong>Built on <a href="https://deeplake.ai">Activeloop Deeplake</a></strong> · <strong>Powered by <a href="https://github.com/activeloopai/hivemind">Hivemind</a></strong></sub><br>
   <sub><a href="https://theapiary.sh">theapiary.sh</a></sub>
 </p>
