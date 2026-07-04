@@ -1,0 +1,70 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face { font-family:'Inter'; src:url('assets/Inter.ttf'); }
+@font-face { font-family:'JBMono'; src:url('assets/JBMono.woff2'); }
+@page { size:Letter; margin:0; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; color:#1A1A1A; -weasy-hyphens:none; }
+.page { width:8.5in; height:11in; display:flex; flex-direction:column; overflow:hidden; }
+/* HEADER */
+.hdr { padding:0.52in 0.55in 0.44in 0.55in; background:linear-gradient(135deg,var(--a) 0%, var(--a2) 100%); color:var(--ht); position:relative; }
+.cobrand { position:absolute; top:0.34in; right:0.55in; display:flex; align-items:center; gap:7px; font-size:7.5pt; letter-spacing:.02em; color:var(--ht); opacity:.94; }
+.cobrand img { height:16px; width:16px; border-radius:3px; background:#fff; padding:1px; }
+.cobrand .x { opacity:.6; }
+.hrow { display:flex; align-items:center; gap:16px; }
+.badge { width:62px; height:62px; border-radius:15px; }
+.hmeta .kicker { font-size:8.5pt; font-weight:700; letter-spacing:.17em; text-transform:uppercase; color:var(--hs); }
+.hmeta h1 { font-size:35pt; font-weight:800; letter-spacing:-.02em; line-height:1; margin-top:2px; }
+.tag { margin-top:14px; font-size:15pt; font-weight:600; line-height:1.25; max-width:7in; }
+/* BODY */
+.body { flex:1; padding:0.36in 0.55in 0.18in 0.55in; display:flex; flex-direction:column; gap:0.24in; }
+.lbl { font-size:8.5pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:var(--a2); margin-bottom:7px; }
+.two { display:flex; gap:0.38in; }
+.two > div { flex:1; }
+p.t { font-size:11pt; line-height:1.5; color:#2E2E2E; }
+.cards { display:flex; flex-wrap:wrap; gap:11px; }
+.card { flex:1 1 46%; border:1px solid #ECE6DA; border-left:4px solid var(--a); border-radius:8px; padding:12px 15px; background:#FCFBF8; }
+.card h4 { font-size:11pt; font-weight:750; margin-bottom:3px; }
+.card p { font-size:9.4pt; line-height:1.4; color:#484848; }
+.specs { display:flex; flex-wrap:wrap; gap:0; border:1px solid #ECE6DA; border-radius:9px; overflow:hidden; }
+.spec { flex:1 1 33.33%; padding:11px 15px; border-top:1px solid #F0ECE2; border-right:1px solid #F0ECE2; }
+.spec .k { font-size:7.5pt; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#9A8F79; }
+.spec .v { font-size:9.8pt; font-weight:600; margin-top:2px; color:#222; }
+.arch { display:flex; align-items:stretch; gap:0; }
+.arch .node { flex:1; background:#FBF7EF; border:1px solid #EFE7D6; border-radius:8px; padding:9px 11px; }
+.arch .node .n { font-size:9pt; font-weight:750; color:var(--a2); }
+.arch .node .d { font-size:7.8pt; color:#555; line-height:1.3; margin-top:2px; }
+.arch .arr { display:flex; align-items:center; padding:0 6px; color:var(--a); font-weight:800; font-size:13pt; }
+.proof { background:linear-gradient(135deg,var(--a) 0%, var(--a2) 100%); color:var(--ht); border-radius:11px; padding:15px 18px; }
+.proof .q { font-size:11pt; line-height:1.45; font-weight:600; }
+.proof .l { font-size:7.5pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; opacity:.85; margin-bottom:6px; }
+.code { font-family:'JBMono',monospace; font-size:9pt; background:#161514; color:#F3EFE7; border-radius:9px; padding:13px 16px; line-height:1.6; }
+.code .c { color:#8A8577; }
+.code b { color:var(--a); font-weight:600; }
+.cta { display:flex; align-items:center; justify-content:space-between; gap:14px; background:#161514; border-radius:11px; padding:15px 19px; }
+.cta .txt { color:#fff; }
+.cta .txt .h { font-size:12pt; font-weight:750; }
+.cta .txt .s { font-size:9pt; color:#B8B2A6; margin-top:2px; }
+.cta .cmd { font-family:'JBMono',monospace; font-size:9.6pt; color:var(--a); white-space:nowrap; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; }
+.chip { font-size:9pt; font-weight:600; border:1px solid #E4DECF; border-radius:20px; padding:5px 13px; color:#444; background:#fff; }
+.chip b { color:var(--a2); font-weight:800; }
+.trust { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+/* FOOTER */
+.ftr { background:#12110F; color:#C9C2B4; padding:0.16in 0.5in; display:flex; justify-content:space-between; align-items:center; font-size:7.4pt; }
+.ftr .l { display:flex; align-items:center; gap:8px; }
+.ftr img { height:13px; width:13px; border-radius:3px; background:#fff; padding:1px; }
+.ftr b { color:#fff; font-weight:700; }
+.variant { font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--a); }
+</style></head>
+      <body><div class="page" style="--a:#E0569B;--a2:#B93A78;--ht:#FFFFFF;--hs:#FFE1EF"><div class="hdr"><div class="cobrand"><img src="assets/legion.png"><span>Legion Code</span><span class="x">×</span><span>Activeloop</span><img src="assets/activeloop.png"></div>
+      <div class="hrow"><img class="badge" src="assets/queen-badge.png">
+        <div class="hmeta"><div class="kicker">The Apiary · The Fleet Orchestrator</div><h1>Queen</h1></div></div>
+      <div class="tag">See and steer the whole fleet. Never touch the memory.</div></div>
+      <div class="body">
+      <div class="two"><div style="flex:1.15"><div class="lbl">Why it matters</div><p class="t">Clean on one machine, the Apiary gets hard to see once it spreads across machines, teammates, and throwaway workers. Who is alive, who may mint identity, what to cut when a laptop walks out.</p>
+        <p class="t" style="margin-top:8px">Queen is the control plane beside the Deeplake data plane. It carries liveness, identity, enrollment, signed commands, usage observation, and fleet reporting. Nothing else.</p></div>
+      <div><div class="lbl">What you get</div><div class="cards"><div class="card"><h4>Fleet at a glance</h4><p>Every agent in your org with derived health, healthy versus offline by heartbeat age.</p></div><div class="card"><h4>Custody stays with you</h4><p>Your orchestrator holds the Deeplake credential, not the cloud. Queen coordinates blobs it cannot decrypt.</p></div><div class="card"><h4>Enroll without ceremony</h4><p>Approve a machine in the cloud and a custodian device finishes the rewrap. A headless VPS joins with a join-only token.</p></div></div></div></div>
+      <div><div class="lbl">The specs</div><div class="specs"><div class="spec"><div class="k">Model</div><div class="v">Two-application: local agent + cloud control plane</div></div><div class="spec"><div class="k">Boundary</div><div class="v">Postgres behind an edge API. No memory content.</div></div><div class="spec"><div class="k">Stack</div><div class="v">Cloudflare Workers + Hyperdrive + managed Postgres</div></div><div class="spec"><div class="k">Presence</div><div class="v">Heartbeat + status-on-change, TTL reaping</div></div><div class="spec"><div class="k">Dashboard</div><div class="v">Read-only fleet view, org-scoped</div></div><div class="spec"><div class="k">Licensing</div><div class="v">Cloud binding and BYOC enforcement</div></div></div></div>
+      <div class="cta"><div class="txt"><div class="h">Get started</div><div class="s">One command. The whole stack, Doctor included.</div></div><div class="cmd">curl -fsSL https://get.theapiary.sh | sh</div></div></div><div class="ftr"><div class="l"><img src="assets/legion.png"><b>Legion Code Inc.</b>
+      <span>in collaboration with Activeloop</span></div>
+      <div><span class="variant">At a Glance</span> &nbsp;·&nbsp; get.theapiary.sh &nbsp;·&nbsp; AGPL-3.0-or-later</div></div></div></body></html>

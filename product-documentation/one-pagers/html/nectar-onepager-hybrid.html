@@ -1,0 +1,70 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face { font-family:'Inter'; src:url('assets/Inter.ttf'); }
+@font-face { font-family:'JBMono'; src:url('assets/JBMono.woff2'); }
+@page { size:Letter; margin:0; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; color:#1A1A1A; -weasy-hyphens:none; }
+.page { width:8.5in; height:11in; display:flex; flex-direction:column; overflow:hidden; }
+/* HEADER */
+.hdr { padding:0.52in 0.55in 0.44in 0.55in; background:linear-gradient(135deg,var(--a) 0%, var(--a2) 100%); color:var(--ht); position:relative; }
+.cobrand { position:absolute; top:0.34in; right:0.55in; display:flex; align-items:center; gap:7px; font-size:7.5pt; letter-spacing:.02em; color:var(--ht); opacity:.94; }
+.cobrand img { height:16px; width:16px; border-radius:3px; background:#fff; padding:1px; }
+.cobrand .x { opacity:.6; }
+.hrow { display:flex; align-items:center; gap:16px; }
+.badge { width:62px; height:62px; border-radius:15px; }
+.hmeta .kicker { font-size:8.5pt; font-weight:700; letter-spacing:.17em; text-transform:uppercase; color:var(--hs); }
+.hmeta h1 { font-size:35pt; font-weight:800; letter-spacing:-.02em; line-height:1; margin-top:2px; }
+.tag { margin-top:14px; font-size:15pt; font-weight:600; line-height:1.25; max-width:7in; }
+/* BODY */
+.body { flex:1; padding:0.36in 0.55in 0.18in 0.55in; display:flex; flex-direction:column; gap:0.24in; }
+.lbl { font-size:8.5pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:var(--a2); margin-bottom:7px; }
+.two { display:flex; gap:0.38in; }
+.two > div { flex:1; }
+p.t { font-size:11pt; line-height:1.5; color:#2E2E2E; }
+.cards { display:flex; flex-wrap:wrap; gap:11px; }
+.card { flex:1 1 46%; border:1px solid #ECE6DA; border-left:4px solid var(--a); border-radius:8px; padding:12px 15px; background:#FCFBF8; }
+.card h4 { font-size:11pt; font-weight:750; margin-bottom:3px; }
+.card p { font-size:9.4pt; line-height:1.4; color:#484848; }
+.specs { display:flex; flex-wrap:wrap; gap:0; border:1px solid #ECE6DA; border-radius:9px; overflow:hidden; }
+.spec { flex:1 1 33.33%; padding:11px 15px; border-top:1px solid #F0ECE2; border-right:1px solid #F0ECE2; }
+.spec .k { font-size:7.5pt; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#9A8F79; }
+.spec .v { font-size:9.8pt; font-weight:600; margin-top:2px; color:#222; }
+.arch { display:flex; align-items:stretch; gap:0; }
+.arch .node { flex:1; background:#FBF7EF; border:1px solid #EFE7D6; border-radius:8px; padding:9px 11px; }
+.arch .node .n { font-size:9pt; font-weight:750; color:var(--a2); }
+.arch .node .d { font-size:7.8pt; color:#555; line-height:1.3; margin-top:2px; }
+.arch .arr { display:flex; align-items:center; padding:0 6px; color:var(--a); font-weight:800; font-size:13pt; }
+.proof { background:linear-gradient(135deg,var(--a) 0%, var(--a2) 100%); color:var(--ht); border-radius:11px; padding:15px 18px; }
+.proof .q { font-size:11pt; line-height:1.45; font-weight:600; }
+.proof .l { font-size:7.5pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; opacity:.85; margin-bottom:6px; }
+.code { font-family:'JBMono',monospace; font-size:9pt; background:#161514; color:#F3EFE7; border-radius:9px; padding:13px 16px; line-height:1.6; }
+.code .c { color:#8A8577; }
+.code b { color:var(--a); font-weight:600; }
+.cta { display:flex; align-items:center; justify-content:space-between; gap:14px; background:#161514; border-radius:11px; padding:15px 19px; }
+.cta .txt { color:#fff; }
+.cta .txt .h { font-size:12pt; font-weight:750; }
+.cta .txt .s { font-size:9pt; color:#B8B2A6; margin-top:2px; }
+.cta .cmd { font-family:'JBMono',monospace; font-size:9.6pt; color:var(--a); white-space:nowrap; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; }
+.chip { font-size:9pt; font-weight:600; border:1px solid #E4DECF; border-radius:20px; padding:5px 13px; color:#444; background:#fff; }
+.chip b { color:var(--a2); font-weight:800; }
+.trust { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+/* FOOTER */
+.ftr { background:#12110F; color:#C9C2B4; padding:0.16in 0.5in; display:flex; justify-content:space-between; align-items:center; font-size:7.4pt; }
+.ftr .l { display:flex; align-items:center; gap:8px; }
+.ftr img { height:13px; width:13px; border-radius:3px; background:#fff; padding:1px; }
+.ftr b { color:#fff; font-weight:700; }
+.variant { font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--a); }
+</style></head>
+      <body><div class="page" style="--a:#FFD048;--a2:#C99400;--ht:#2E2400;--hs:#4A3B00"><div class="hdr"><div class="cobrand"><img src="assets/legion.png"><span>Legion Code</span><span class="x">×</span><span>Activeloop</span><img src="assets/activeloop.png"></div>
+      <div class="hrow"><img class="badge" src="assets/nectar-badge.png">
+        <div class="hmeta"><div class="kicker">The Apiary · The Understanding Layer</div><h1>Nectar</h1></div></div>
+      <div class="tag">Find code by meaning, not by file name.</div></div>
+      <div class="body">
+      <div class="two"><div style="flex:1.15"><div class="lbl">Why it matters</div><p class="t">Ask your agent where you handle logins and it hunts for login.ts. But the login logic lives in session-refresh.ts, three folders deep, and no name search will ever guess it. Dead end, every time.</p>
+        <p class="t" style="margin-top:8px">Nectar gives every file a short plain-language description of what it actually does, so your agent matches on meaning instead of names. You ask the same questions and get the right files back.</p></div>
+      <div><div class="lbl">What you get</div><div class="cards"><div class="card"><h4>Meaning, not matching</h4><p>Nectar reads each file and writes down what it does, like refreshes login tokens on each authenticated request.</p></div><div class="card"><h4>Quietly current</h4><p>Descriptions are written once and kept up to date as files change, moved, or renamed. You do nothing differently.</p></div><div class="card"><h4>Fewer dead ends</h4><p>Your agent points at the file that does the work, not the file that happens to share a name with your question.</p></div></div></div></div>
+      <div><div class="lbl">The specs</div><div class="specs"><div class="spec"><div class="k">Daemon</div><div class="v">127.0.0.1:3854</div></div><div class="spec"><div class="k">Surfaces</div><div class="v">Auto via Honeycomb recall, plus nectar search</div></div><div class="spec"><div class="k">Data</div><div class="v">Hive graph + portable registry</div></div><div class="spec"><div class="k">Portability</div><div class="v">Understanding ships with the project</div></div><div class="spec"><div class="k">Embeddings</div><div class="v">Provider switching supported</div></div><div class="spec"><div class="k">Identity</div><div class="v">Minted descriptions, trustworthy across a team</div></div></div></div>
+      <div class="cta"><div class="txt"><div class="h">Get started</div><div class="s">One command. The whole stack, Doctor included.</div></div><div class="cmd">curl -fsSL https://get.theapiary.sh | sh</div></div></div><div class="ftr"><div class="l"><img src="assets/legion.png"><b>Legion Code Inc.</b>
+      <span>in collaboration with Activeloop</span></div>
+      <div><span class="variant">At a Glance</span> &nbsp;·&nbsp; get.theapiary.sh &nbsp;·&nbsp; AGPL-3.0-or-later</div></div></div></body></html>
