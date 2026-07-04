@@ -972,7 +972,7 @@ function Invoke-PortalMain([string[]]$InvocationArgs) {
     Write-Host "[dry-run] would poll: $HiveHealthUrl"
     Write-Host '[dry-run] would run (if needed): hive start'
     Write-Host "[dry-run] would open: $HiveOnboardingBaseUrl?t=<token>"
-    Write-Host "Click here if the portal doesn't open automatically: http://127.0.0.1:3853/onboarding"
+    Write-Host "[dry-run] would print: Click here if the portal doesn't open automatically: $HiveOnboardingBaseUrl?t=<token>"
     return (& $finish 0)
   }
 
@@ -1018,7 +1018,9 @@ function Invoke-PortalMain([string[]]$InvocationArgs) {
   }
 
   Open-OnboardingUrl $token
-  Write-Host "Click here if the portal doesn't open automatically: http://127.0.0.1:3853/onboarding"
+  # The fallback link MUST carry the one-time token: the onboarding screen refuses every
+  # installer call without it (401), so a tokenless /onboarding visit can never proceed.
+  Write-Host "Click here if the portal doesn't open automatically: $HiveOnboardingBaseUrl?t=$token"
   return (& $finish 0)
 }
 

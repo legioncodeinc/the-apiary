@@ -1138,7 +1138,7 @@ run_portal_path() {
 		printf '[dry-run] would poll: %s\n' "$HIVE_HEALTH_URL"
 		printf '[dry-run] would run (if needed): hive start (detached)\n'
 		printf '[dry-run] would open: %s?t=<token>\n' "$HIVE_ONBOARDING_BASE_URL"
-		printf "Click here if the portal doesn't open automatically: http://127.0.0.1:3853/onboarding\n"
+		printf "[dry-run] would print: Click here if the portal doesn't open automatically: %s?t=<token>\n" "$HIVE_ONBOARDING_BASE_URL"
 		finish 0
 	fi
 
@@ -1178,7 +1178,9 @@ run_portal_path() {
 	fi
 
 	open_onboarding_url "$token"
-	printf "Click here if the portal doesn't open automatically: http://127.0.0.1:3853/onboarding\n"
+	# The fallback link MUST carry the one-time token: the onboarding screen refuses every
+	# installer call without it (401), so a tokenless /onboarding visit can never proceed.
+	printf "Click here if the portal doesn't open automatically: %s?t=%s\n" "$HIVE_ONBOARDING_BASE_URL" "$token"
 	finish 0
 }
 
