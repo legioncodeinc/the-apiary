@@ -20,7 +20,7 @@ Hive was designed by Mario Aldayuz around a simple observation: the old dashboar
 
 ### What you see when you open it
 
-**On a normal day: the dashboard.** The root page is the full Apiary dashboard: your memories, projects, the memory graph, the hive graph, sync activity, logs, ROI, and settings, all in one place. A health rail sits at the top of every page with a live pill per service, so you always know the state of the fleet without leaving what you are doing. Click through to the Health page for per-service metrics, Deep Lake connection status, and a live log tail with adjustable verbosity.
+**On a normal day: the dashboard.** The root page is the full Apiary dashboard: your memories, projects, the memory graph, the hive graph, sync activity, logs, ROI, and settings, all in one place. A health rail sits at the top of every page with a live pill per service, so you always know the state of the fleet without leaving what you are doing. Click through to the Health page for per-service metrics, Deeplake connection status, and a live log tail with adjustable verbosity.
 
 **On a cold boot: the buzzing screen.** If you open the portal while the services are still waking up, you get an honest readiness screen at `/buzzing`: one tile per service, each with a little bee icon showing its state, from an empty honeycomb cell (starting) to a bee in full flight (active). The moment the fleet is ready, you land on the dashboard automatically. You will never see a broken page or a false "first time setup" screen just because something was still booting.
 
@@ -50,7 +50,7 @@ Every service tile on the buzzing screen and every pill in the health rail uses 
 
 **The whole page went to the buzzing screen. Now what?** Wait a moment. The buzzing screen means the fleet is not fully healthy, and it dismisses itself the moment it is. If a tile stays on the error bee, that service needs attention; the Health page's live logs are the first place to look.
 
-**Does hive store my credentials?** No. Hive passes your session through to the services that own your data and stores nothing itself. Signing in (the device flow at `/login`) creates your Deep Lake credential on your machine, managed by Honeycomb, not by the portal.
+**Does hive store my credentials?** No. Hive passes your session through to the services that own your data and stores nothing itself. Signing in (the device flow at `/login`) creates your Deeplake credential on your machine, managed by Honeycomb, not by the portal.
 
 ### You should rarely need the terminal
 

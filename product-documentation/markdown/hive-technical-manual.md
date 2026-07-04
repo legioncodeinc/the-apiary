@@ -178,11 +178,11 @@ flowchart TD
     hive -->|"BFF proxy over loopback"| honeycomb
     hive -->|"BFF proxy over loopback"| nectar
     hive -->|"GET /status.json + GET /events (SSE)"| doctor
-    honeycomb --> deeplake[("Deep Lake")]
+    honeycomb --> deeplake[("Deeplake")]
     nectar --> deeplake
 ```
 
-Hive holds no Deep Lake client and persists nothing of its own beyond a PID/lock pair and a telemetry dedupe ledger. Every row the dashboard renders comes from a workload daemon's API (proxied server-side) or from doctor's status page and SSE stream. `tests/wire/*` and the PRD-001 QA audit both verify the no-Deep-Lake constraint.
+Hive holds no Deeplake client and persists nothing of its own beyond a PID/lock pair and a telemetry dedupe ledger. Every row the dashboard renders comes from a workload daemon's API (proxied server-side) or from doctor's status page and SSE stream. `tests/wire/*` and the PRD-001 QA audit both verify the no-Deep-Lake constraint.
 
 ### The four decisions that shape the codebase
 
@@ -740,11 +740,11 @@ ls ../honeycomb/src/dashboard/web
 # Honeycomb kept its TUI layer and data plane (expect: dashboard.ts, views.ts, html.ts, ...):
 ls ../honeycomb/src/dashboard
 
-# Hive holds no Deep Lake client (expect: no matches):
+# Hive holds no Deeplake client (expect: no matches):
 grep -ri "deeplake" src --include="*.ts" -l | grep -v "shared/fleet-telemetry"
 ```
 
-The last check has one legitimate near-miss: `fleet-telemetry.ts` mentions Deep Lake because doctor's telemetry carries per-service Deep Lake connection stats that the health page renders. Rendering another daemon's stats is not holding a client.
+The last check has one legitimate near-miss: `fleet-telemetry.ts` mentions Deeplake because doctor's telemetry carries per-service Deeplake connection stats that the health page renders. Rendering another daemon's stats is not holding a client.
 
 ### The divergence policy going forward
 
@@ -966,7 +966,7 @@ This is the fork ADR-0004 already rejected, and it is rejected again for a stron
 ### Relationship to the corpus ADRs
 
 - **nectar `ADR-0003` (three-daemon topology):** unchanged. This ADR does not alter the topology, the four roles, or the process boundaries. hive is still the always-on portal, honeycomb and nectar are still workload daemons, doctor is still the supervisor.
-- **nectar `ADR-0004` (hive role + boundaries):** decision #1 (always-on + boot order), decision #2 (API aggregation, not Deep Lake), and decision #4 (independent update cadence) are unchanged and still binding. This ADR **refines only the mechanism half of decision #3**: "hive owns the unified dashboard" stands; "gets there by reusing honeycomb's code via runtime import" is replaced by copy-and-own, because hive now lives in its own repository and honeycomb's dashboard is retired. ADR-0004 has been annotated with `Refined by:` pointers at the relevant anchors.
+- **nectar `ADR-0004` (hive role + boundaries):** decision #1 (always-on + boot order), decision #2 (API aggregation, not Deeplake), and decision #4 (independent update cadence) are unchanged and still binding. This ADR **refines only the mechanism half of decision #3**: "hive owns the unified dashboard" stands; "gets there by reusing honeycomb's code via runtime import" is replaced by copy-and-own, because hive now lives in its own repository and honeycomb's dashboard is retired. ADR-0004 has been annotated with `Refined by:` pointers at the relevant anchors.
 
 ### References
 
@@ -1050,7 +1050,7 @@ Rejected outright: a wildcard CORS allowance on a daemon that serves captured se
 
 ### Relationship to the corpus ADRs
 
-- **nectar `ADR-0004` decision #2 (API aggregation, not Deep Lake):** unchanged as a BOUNDARY. hive still holds no Deep Lake client and still fetches every row from the owning daemon's `/api/*`. This ADR refines only the MECHANISM: the aggregation happens on hive's server (a proxy) rather than in the browser.
+- **nectar `ADR-0004` decision #2 (API aggregation, not Deeplake):** unchanged as a BOUNDARY. hive still holds no Deeplake client and still fetches every row from the owning daemon's `/api/*`. This ADR refines only the MECHANISM: the aggregation happens on hive's server (a proxy) rather than in the browser.
 - **`ADR-0001` Decision B (copy-and-own):** unchanged. hive still owns the copied dashboard. This ADR only changes how the copied `wire` reaches data: same-origin to hive, which proxies, instead of cross-origin to each daemon.
 
 ### References
@@ -1119,7 +1119,7 @@ Near-real-time health on the dashboard and on `/buzzing` now arrives via the doc
 
 - **Root-is-dashboard.** A blank `/` is unacceptable for an always-on portal. The dashboard is the product, so it owns the root; `/buzzing` and `/login` are transient waystations the operator only sees when the fleet or the credential is not ready.
 - **Health-before-auth.** An unhealthy fleet shows `/buzzing` even to a logged-out operator, because when nothing behind the portal will answer, prompting for login is pointless and misleading. Health is the precondition for auth to be meaningful, so it is checked first.
-- **Reuse the Deep Lake credential, do not invent a portal session.** "Logged in" is already defined, shared, and observable through the proxied honeycomb `/setup/state` `authenticated` bit. Introducing a portal-specific session would create a second, divergent notion of authentication for hive to store and keep in sync, which contradicts the credential-free pass-through posture ADR-0002 established.
+- **Reuse the Deeplake credential, do not invent a portal session.** "Logged in" is already defined, shared, and observable through the proxied honeycomb `/setup/state` `authenticated` bit. Introducing a portal-specific session would create a second, divergent notion of authentication for hive to store and keep in sync, which contradicts the credential-free pass-through posture ADR-0002 established.
 - **Server-side gate over a client hash-gate.** A server redirect is authoritative and cannot flash the wrong screen; a client gate necessarily loads the shell first and decides afterward. Putting the decision on hive's server (the tier that already owns the proxy and the doctor registry) keeps the trust and routing decision where the other authoritative decisions already live.
 
 ### Consequences
@@ -1128,7 +1128,7 @@ Near-real-time health on the dashboard and on `/buzzing` now arrives via the doc
 
 - No wrong-screen flash. The operator's first paint is already the correct screen (`/buzzing`, `/login`, or the dashboard) because the server chose it before render.
 - Deep links and refreshes are authoritative and refresh-safe against real paths, and the gate re-evaluates identically on every entry.
-- One notion of "logged in" across the corpus: the Deep Lake credential, surfaced through the existing `/setup/state` bit. hive stays credential-free.
+- One notion of "logged in" across the corpus: the Deeplake credential, surfaced through the existing `/setup/state` bit. hive stays credential-free.
 - The health view-model gets live freshness for free by consuming doctor's SSE stream, proving out the ADR-0003 direction on the screen that needs it most.
 
 **Negative.**
@@ -1145,7 +1145,7 @@ Near-real-time health on the dashboard and on `/buzzing` now arrives via the doc
 
 Leave `useHashRoute` as the router and let `ReadinessSplash` / `SetupGate` (or their successors) keep deciding health and auth in React. Rejected because a client gate loads the shell first and decides afterward, so it can flash the wrong screen, and it is not authoritative: nothing at the server tier enforces that an unhealthy or logged-out visitor cannot request a data screen. Server redirects are cleaner and cannot flash.
 
-#### Introduce a new portal session distinct from the Deep Lake credential (REJECTED)
+#### Introduce a new portal session distinct from the Deeplake credential (REJECTED)
 
 Give hive its own session or cookie that represents "logged into the portal", separate from `~/.deeplake/credentials.json`. Rejected because it duplicates authentication: credential presence is the existing, shared source of truth that honeycomb already exposes via `/setup/state`, and a second notion would have to be stored by hive and kept in sync, breaking the credential-free pass-through posture of ADR-0002 for no gain.
 

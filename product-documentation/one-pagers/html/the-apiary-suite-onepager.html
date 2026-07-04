@@ -1,0 +1,92 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face { font-family:'Inter'; src:url('assets/Inter.ttf'); }
+@font-face { font-family:'JBMono'; src:url('assets/JBMono.woff2'); }
+@page { size:Letter; margin:0; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; color:#1A1A1A; -weasy-hyphens:none; }
+.page { width:8.5in; height:11in; display:flex; flex-direction:column; overflow:hidden; }
+/* HEADER */
+.hdr { padding:0.52in 0.55in 0.44in 0.55in; background:linear-gradient(135deg,var(--a) 0%, var(--a2) 100%); color:var(--ht); position:relative; }
+.cobrand { position:absolute; top:0.34in; right:0.55in; display:flex; align-items:center; gap:7px; font-size:7.5pt; letter-spacing:.02em; color:var(--ht); opacity:.94; }
+.cobrand img { height:16px; width:16px; border-radius:3px; background:#fff; padding:1px; }
+.cobrand .x { opacity:.6; }
+.hrow { display:flex; align-items:center; gap:16px; }
+.badge { width:62px; height:62px; border-radius:15px; }
+.hmeta .kicker { font-size:8.5pt; font-weight:700; letter-spacing:.17em; text-transform:uppercase; color:var(--hs); }
+.hmeta h1 { font-size:35pt; font-weight:800; letter-spacing:-.02em; line-height:1; margin-top:2px; }
+.tag { margin-top:14px; font-size:15pt; font-weight:600; line-height:1.25; max-width:7in; }
+/* BODY */
+.body { flex:1; padding:0.36in 0.55in 0.18in 0.55in; display:flex; flex-direction:column; gap:0.24in; }
+.lbl { font-size:8.5pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:var(--a2); margin-bottom:7px; }
+.two { display:flex; gap:0.38in; }
+.two > div { flex:1; }
+p.t { font-size:11pt; line-height:1.5; color:#2E2E2E; }
+.cards { display:flex; flex-wrap:wrap; gap:11px; }
+.card { flex:1 1 46%; border:1px solid #ECE6DA; border-left:4px solid var(--a); border-radius:8px; padding:12px 15px; background:#FCFBF8; }
+.card h4 { font-size:11pt; font-weight:750; margin-bottom:3px; }
+.card p { font-size:9.4pt; line-height:1.4; color:#484848; }
+.specs { display:flex; flex-wrap:wrap; gap:0; border:1px solid #ECE6DA; border-radius:9px; overflow:hidden; }
+.spec { flex:1 1 33.33%; padding:11px 15px; border-top:1px solid #F0ECE2; border-right:1px solid #F0ECE2; }
+.spec .k { font-size:7.5pt; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#9A8F79; }
+.spec .v { font-size:9.8pt; font-weight:600; margin-top:2px; color:#222; }
+.arch { display:flex; align-items:stretch; gap:0; }
+.arch .node { flex:1; background:#FBF7EF; border:1px solid #EFE7D6; border-radius:8px; padding:9px 11px; }
+.arch .node .n { font-size:9pt; font-weight:750; color:var(--a2); }
+.arch .node .d { font-size:7.8pt; color:#555; line-height:1.3; margin-top:2px; }
+.arch .arr { display:flex; align-items:center; padding:0 6px; color:var(--a); font-weight:800; font-size:13pt; }
+.proof { background:linear-gradient(135deg,var(--a) 0%, var(--a2) 100%); color:var(--ht); border-radius:11px; padding:15px 18px; }
+.proof .q { font-size:11pt; line-height:1.45; font-weight:600; }
+.proof .l { font-size:7.5pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; opacity:.85; margin-bottom:6px; }
+.code { font-family:'JBMono',monospace; font-size:9pt; background:#161514; color:#F3EFE7; border-radius:9px; padding:13px 16px; line-height:1.6; }
+.code .c { color:#8A8577; }
+.code b { color:var(--a); font-weight:600; }
+.cta { display:flex; align-items:center; justify-content:space-between; gap:14px; background:#161514; border-radius:11px; padding:15px 19px; }
+.cta .txt { color:#fff; }
+.cta .txt .h { font-size:12pt; font-weight:750; }
+.cta .txt .s { font-size:9pt; color:#B8B2A6; margin-top:2px; }
+.cta .cmd { font-family:'JBMono',monospace; font-size:9.6pt; color:var(--a); white-space:nowrap; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; }
+.chip { font-size:9pt; font-weight:600; border:1px solid #E4DECF; border-radius:20px; padding:5px 13px; color:#444; background:#fff; }
+.chip b { color:var(--a2); font-weight:800; }
+.trust { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+/* FOOTER */
+.ftr { background:#12110F; color:#C9C2B4; padding:0.16in 0.5in; display:flex; justify-content:space-between; align-items:center; font-size:7.4pt; }
+.ftr .l { display:flex; align-items:center; gap:8px; }
+.ftr img { height:13px; width:13px; border-radius:3px; background:#fff; padding:1px; }
+.ftr b { color:#fff; font-weight:700; }
+.variant { font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--a); }
+
+.suite { display:flex; flex-direction:column; gap:8px; }
+.shead { display:grid; grid-template-columns:1.05fr 1.35fr 1.6fr; gap:0 14px; padding:0 2px 4px; }
+.shead div { font-size:7pt; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#9A8F79; }
+.srow { display:grid; grid-template-columns:1.05fr 1.35fr 1.6fr; gap:0 14px; align-items:center;
+        border:1px solid #ECE6DA; border-left:4px solid var(--rc); border-radius:9px; padding:10px 12px; background:#FCFBF8; }
+.sp { display:flex; align-items:center; gap:10px; }
+.smark { width:30px; height:30px; flex:0 0 auto; }
+.sname { font-size:11.5pt; font-weight:800; color:#1A1A1A; letter-spacing:-.01em; }
+.scat { font-size:7.2pt; color:var(--rc); margin-top:1px; }
+.sprob { font-size:9pt; font-weight:650; line-height:1.32; color:#2A2A2A; }
+.ssol { font-size:9pt; line-height:1.32; color:#4A4A4A; }
+.sinstall { text-align:center; font-family:'JBMono',monospace; font-size:8.6pt; color:#4A4A4A; margin-top:2px; }
+.sinstall b { color:var(--a2); font-weight:600; }
+</style></head>
+<body><div class="page" style="--a:#8B7CF0;--a2:#5B3FD6;--ht:#FFFFFF;--hs:#EDE7FF">
+  <div class="hdr"><div class="cobrand"><img src="assets/legion.png"><span>Legion Code</span><span class="x">×</span><span>Activeloop</span><img src="assets/activeloop.png"></div>
+    <div class="hrow"><img class="badge" src="assets/apiary-badge.png">
+      <div class="hmeta"><div class="kicker">the apiary · the whole suite</div><h1>The Apiary</h1></div></div>
+    <div class="tag">Shared memory, and the hive around it, for your AI coding agents.</div></div>
+  <div class="body">
+    <div><div class="lbl">The problem</div><p class="t">AI coding assistants are brilliant in the moment and forgetful the next. They forget what you told them yesterday, they open the wrong files, the local daemons that hold their memory die unnoticed, the dashboard is a port hunt, and once the stack spreads across machines nobody can see the fleet. The memory your agents need is fragile, scattered, and invisible.</p></div>
+    <div><div class="lbl">The solution: one hive, five products</div>
+      <p class="t" style="margin-bottom:10px">The Apiary is five small, sharp programs that fix it together, on hardware you control. One captures and serves memory, one makes your code searchable by meaning, and three keep the whole thing alive, visible, and yours.</p>
+      <div class="suite">
+        <div class="shead"><div>Product</div><div>The problem it kills</div><div>What it does</div></div>
+        <div class="srow" style="--rc:#F7A823"><div class="sp"><img class="smark" src="assets/honeycomb-mark.png"><div><div class="sname">honeycomb</div><div class="scat mono">the memory</div></div></div><div class="sprob">Your agents forget everything the moment the window closes.</div><div class="ssol">One shared memory that survives sessions and travels across every tool.</div></div><div class="srow" style="--rc:#FFD048"><div class="sp"><img class="smark" src="assets/nectar-mark.png"><div><div class="sname">nectar</div><div class="scat mono">the understanding layer</div></div></div><div class="sprob">Your agent opens the wrong files because it searches by name.</div><div class="ssol">Describes every file by what it does, so it finds code by meaning, not names.</div></div><div class="srow" style="--rc:#3EC8A8"><div class="sp"><img class="smark" src="assets/doctor-mark.png"><div><div class="sname">doctor</div><div class="scat mono">the watchdog</div></div></div><div class="sprob">A memory daemon dies at 2am and nobody notices.</div><div class="ssol">Watches the stack, heals what breaks on a repair ladder, never touches your credentials.</div></div><div class="srow" style="--rc:#E8722A"><div class="sp"><img class="smark" src="assets/hive-mark.png"><div><div class="sname">hive</div><div class="scat mono">the portal</div></div></div><div class="sprob">Several services, several ports, and no single place to look.</div><div class="ssol">One always-on portal at 127.0.0.1:3853 for the whole stack.</div></div><div class="srow" style="--rc:#E0569B"><div class="sp"><img class="smark" src="assets/queen-mark.png"><div><div class="sname">queen</div><div class="scat mono">the fleet orchestrator · coming soon</div></div></div><div class="sprob">Once the stack spreads across machines, nobody can see the fleet.</div><div class="ssol">The control plane for liveness, identity, and fleet reporting. Coming soon.</div></div>
+      </div>
+    </div>
+    <div class="sinstall">Install the whole apiary: <b>curl -fsSL https://get.theapiary.sh | sh</b></div>
+  </div>
+  <div class="ftr"><div class="l"><img src="assets/legion.png"><b>Legion Code Inc.</b>
+    <span>in collaboration with Activeloop</span></div>
+    <div><span class="variant">Product Suite</span> &nbsp;·&nbsp; get.theapiary.sh &nbsp;·&nbsp; AGPL-3.0-or-later</div></div>
+</div></body></html>
