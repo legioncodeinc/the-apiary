@@ -1,5 +1,5 @@
 {
-  "manifestVersion": "0.6.0",
+  "manifestVersion": "0.6.1",
   "products": {
     "honeycomb": {
       "version": "0.5.0",
