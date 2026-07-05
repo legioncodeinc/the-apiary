@@ -60,10 +60,10 @@ Five products. Each one answers a single stubborn question.
 
 | Product | The problem it kills | Package · port | Stage |
 |---|---|---|---|
-| **[honeycomb](honeycomb/README.md)** · the memory | Your agent forgets everything when the window closes. Honeycomb gives every assistant one shared memory that survives sessions, travels across tools, and compounds over time. | `@legioncodeinc/honeycomb` · `:3850` | **Production** `v0.3` |
+| **[honeycomb](honeycomb/README.md)** · the memory | Your agent forgets everything when the window closes. Honeycomb gives every assistant one shared memory that survives sessions, travels across tools, and compounds over time. | `@legioncodeinc/honeycomb` · `:3850` | **Production** `v0.4` |
 | **[nectar](nectar/README.md)** · the understanding layer | Ask where logins live and your agent opens the wrong file. Nectar describes every file by what it does, so agents find code by meaning, not by name. | `@legioncodeinc/nectar` · `:3854` | **Production** `v0.2` |
 | **[doctor](doctor/README.md)** · the watchdog | A daemon dies at 2am and nothing notices. Doctor catches the crash, heals it on a repair ladder, and has your memory back before your next prompt. | `@legioncodeinc/doctor` · `:3852` | **Production** `v0.3` |
-| **[hive](hive/README.md)** · the portal | Which local port was the dashboard again? None of your problem. Hive serves the whole stack from one address and stays up even when a workload is down. | `@legioncodeinc/hive` · `:3853` | **Production** `v0.4` |
+| **[hive](hive/README.md)** · the portal | Which local port was the dashboard again? None of your problem. Hive serves the whole stack from one address and stays up even when a workload is down. | `@legioncodeinc/hive` · `:3853` | **Production** `v0.5` |
 | **[queen](queen/README.md)** · the fleet orchestrator | Once the stack spreads across machines, who can see the fleet? Queen is the cloud control plane for presence, identity, and ROI, and it never touches your memory. | not yet published | **Design** |
 
 Supported coding assistants today: **Claude Code, Cursor, and Codex**, with **Hermes, pi, and OpenClaw** in progress. A memory written from one is recalled by the others.
