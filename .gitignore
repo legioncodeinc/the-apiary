@@ -89,3 +89,6 @@ typings/
 .dynamodb/
 
 **/.DS_Store
+
+**.db
+**.ndjson
