@@ -436,6 +436,96 @@ EOF
 	fi
 }
 
+# -----------------------------------------------------------------------------
+# Stop running daemon processes by pid file. Service deregistration only stops
+# task/unit-managed instances; a daemon that was started DIRECTLY (for example
+# the installer's direct-startup fallback) survives it and keeps squatting the
+# loopback port with stale code. Each product writes a pid file inside its own
+# state dir; read it, verify the pid is a LIVE NODE process (never kill a
+# reused pid belonging to something else), then terminate it best-effort.
+# -----------------------------------------------------------------------------
+# Prints the pid's image name, or nothing when the pid is not alive. On Windows
+# shells (git-bash/MSYS) the pid files carry WINDOWS pids that `kill -0`/`ps`
+# cannot see, so the probe goes through PowerShell there.
+pid_image_name() {
+	pid="$1"
+	if is_windows_shell; then
+		powershell -NoProfile -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$pid\" -ErrorAction SilentlyContinue).Name" 2>/dev/null | tr -d '\r\n '
+		return 0
+	fi
+	if kill -0 "$pid" >/dev/null 2>&1; then
+		ps -p "$pid" -o comm= 2>/dev/null | tr -d ' '
+	fi
+	return 0
+}
+
+stop_daemon_pidfile() {
+	pidfile="$1"
+	label="$2"
+
+	if [ ! -f "$pidfile" ]; then
+		return 0
+	fi
+	pid="$(head -c 32 "$pidfile" 2>/dev/null | tr -cd '0-9')"
+	if [ -z "$pid" ]; then
+		return 0
+	fi
+	image="$(pid_image_name "$pid")"
+	if [ -z "$image" ]; then
+		step "No running $label daemon (stale pid file)."
+		return 0
+	fi
+	case "$image" in
+		node|node.exe|*/node) ;;
+		*)
+			warn "Pid $pid from the $label pid file is not a node process ($image); leaving it alone (pid reuse)."
+			return 0
+			;;
+	esac
+	if [ "$DRY_RUN" -eq 1 ]; then
+		step "[dry-run] would stop the running $label daemon (pid $pid)"
+		return 0
+	fi
+	if is_windows_shell; then
+		powershell -NoProfile -Command "Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue" >/dev/null 2>&1 || true
+	else
+		kill "$pid" >/dev/null 2>&1 || true
+		sleep 1
+		kill -0 "$pid" >/dev/null 2>&1 && kill -9 "$pid" >/dev/null 2>&1 || true
+	fi
+	ok "Stopped the running $label daemon (pid $pid)."
+	REMOVAL_COUNT=$((REMOVAL_COUNT + 1))
+}
+
+stop_running_daemons() {
+	step "Stopping running daemon processes (pid files)."
+
+	roots="${HOME}/.apiary"
+	apiary_home_env="${APIARY_HOME:-}"
+	if [ -n "$apiary_home_env" ]; then
+		case "$apiary_home_env" in
+			/*)
+				if ! is_dangerous_root "$apiary_home_env" && [ "$apiary_home_env" != "${HOME}/.apiary" ]; then
+					roots="$roots
+$apiary_home_env"
+				fi
+				;;
+		esac
+	fi
+
+	while IFS= read -r root; do
+		[ -n "$root" ] || continue
+		stop_daemon_pidfile "${root}/hive/hive.pid" "hive"
+		stop_daemon_pidfile "${root}/nectar/nectar.pid" "nectar"
+		stop_daemon_pidfile "${root}/honeycomb/daemon.pid" "honeycomb"
+	done <<EOF
+$roots
+EOF
+
+	# Legacy pre-fleet-root location (honeycomb owned ~/.honeycomb before ADR-0003).
+	stop_daemon_pidfile "${HOME}/.honeycomb/daemon.pid" "legacy honeycomb"
+}
+
 npm_is_usable() {
 	if ! have npm; then
 		return 1
@@ -564,6 +654,9 @@ main() {
 	confirm_destruction || return 1
 
 	remove_services
+	# After deregistration (so nothing auto-restarts what we stop), kill daemons that
+	# were started directly and therefore survive task/unit removal.
+	stop_running_daemons
 	remove_npm_packages
 	remove_state_dirs
 	print_summary

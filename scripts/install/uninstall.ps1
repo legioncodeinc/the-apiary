@@ -407,6 +407,58 @@ function Remove-Services([string]$HomePath) {
   }
 }
 
+# Stop running daemon processes by pid file. Service deregistration only stops
+# task-managed instances; a daemon started DIRECTLY (for example the installer's
+# direct-startup fallback) survives it and keeps squatting the loopback port with
+# stale code. Each product writes a pid file inside its own state dir; verify the
+# pid is a LIVE NODE process (never kill a reused pid) before terminating it.
+function Stop-DaemonByPidFile([string]$PidFilePath, [string]$Label) {
+  if (-not (Test-Path -LiteralPath $PidFilePath)) { return }
+  $raw = ''
+  try { $raw = (Get-Content -LiteralPath $PidFilePath -TotalCount 1 -ErrorAction Stop) } catch { return }
+  $pidText = ($raw -replace '[^0-9]', '')
+  if ([string]::IsNullOrEmpty($pidText)) { return }
+  $processId = 0
+  if (-not [int]::TryParse($pidText, [ref]$processId)) { return }
+  if ($processId -le 0) { return }
+  $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
+  if (-not $proc) {
+    Write-Step "No running $Label daemon (stale pid file)."
+    return
+  }
+  if ($proc.ProcessName -ne 'node') {
+    Write-Warn "Pid $processId from the $Label pid file is not a node process; leaving it alone (pid reuse)."
+    return
+  }
+  if ($script:DryRun) {
+    Write-Step "[dry-run] would stop the running $Label daemon (pid $processId)"
+    return
+  }
+  Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+  Write-Ok "Stopped the running $Label daemon (pid $processId)."
+  $script:RemovalCount++
+}
+
+function Stop-RunningDaemons([string]$HomePath) {
+  Write-Step 'Stopping running daemon processes (pid files).'
+
+  $roots = @((Join-Path $HomePath '.apiary'))
+  $apiaryHomeEnv = $env:APIARY_HOME
+  if (-not [string]::IsNullOrEmpty($apiaryHomeEnv) -and (Test-IsAbsolutePath $apiaryHomeEnv) -and
+      -not (Test-IsDangerousRoot $apiaryHomeEnv $HomePath) -and ($apiaryHomeEnv -ne (Join-Path $HomePath '.apiary'))) {
+    $roots += $apiaryHomeEnv
+  }
+
+  foreach ($root in $roots) {
+    Stop-DaemonByPidFile (Join-Path $root 'hive\hive.pid') 'hive'
+    Stop-DaemonByPidFile (Join-Path $root 'nectar\nectar.pid') 'nectar'
+    Stop-DaemonByPidFile (Join-Path $root 'honeycomb\daemon.pid') 'honeycomb'
+  }
+
+  # Legacy pre-fleet-root location (honeycomb owned ~/.honeycomb before ADR-0003).
+  Stop-DaemonByPidFile (Join-Path $HomePath '.honeycomb\daemon.pid') 'legacy honeycomb'
+}
+
 function Test-NpmUsable {
   if (-not (Test-Have 'npm')) { return $false }
   & npm --version *> $null
@@ -523,6 +575,9 @@ function Invoke-Main([string[]]$InvocationArgs) {
     return 1
   }
   Remove-Services $homePath
+  # After deregistration (so nothing auto-restarts what we stop), kill daemons that
+  # were started directly and therefore survive task removal.
+  Stop-RunningDaemons $homePath
   Remove-NpmPackages
   Remove-StateDirectories $homePath
   return (Write-Summary)
