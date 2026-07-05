@@ -44,6 +44,28 @@ Prefer to read the script first? Open [get.theapiary.sh](https://get.theapiary.s
 
 ---
 
+## Uninstall
+
+The front door has a matching back door. One command returns the machine to a pre-Apiary state:
+
+```bash
+# macOS / Linux
+curl -fsSL https://get.theapiary.sh/uninstall | sh
+```
+
+```powershell
+# Windows (PowerShell)
+irm https://get.theapiary.sh/uninstall.ps1 | iex
+```
+
+The script is fully self-contained (it works even when Node or npm is broken) and removes every Apiary asset under every historical name: the four OS service units (current and legacy labels), the npm globals (including legacy `@deeplake/hivemind`), and the state roots `~/.apiary`, `~/.deeplake`, `~/.hivemind`, and `~/.honeycomb`. It deletes nothing outside that allow-list.
+
+Before touching anything it asks you to type `uninstall` to confirm, naming everything it will destroy, including `~/.deeplake`, which holds shared Deeplake credentials also used by a standalone Hivemind install. Piped without a terminal it refuses unless you pass `--yes` (`-Yes` in PowerShell); `--dry-run` previews the removal without deleting. Like the installer, it is published with checksums you can verify at [get.theapiary.sh](https://get.theapiary.sh).
+
+Smaller hammers exist too: every product has its own `uninstall` verb that removes only that product (service unit, Doctor registry entry, state dir), and `doctor purge` performs the same full wipe when Doctor is installed and healthy.
+
+---
+
 ## Why this exists
 
 AI coding assistants are brilliant in the moment and amnesiac the next. Close the window and the context is gone. Open a different tool tomorrow and it has never heard of your project. So you re-explain your conventions, re-discover the fix that already worked, and pay for the same tokens every single morning.
