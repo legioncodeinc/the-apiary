@@ -1,5 +1,5 @@
 {
-  "manifestVersion": "0.6.8",
+  "manifestVersion": "0.6.9",
   "products": {
     "honeycomb": {
       "version": "0.5.8",
@@ -17,7 +17,7 @@
       "published": true
     },
     "nectar": {
-      "version": "0.3.2",
+      "version": "0.3.3",
       "packageName": "@legioncodeinc/nectar",
       "published": true
     }
