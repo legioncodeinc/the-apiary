@@ -843,8 +843,9 @@ function Send-ProductTransitions([string]$CurrentProducts, [string]$SelProfile, 
 # PRD-009d thin bootstrap companion (bs-AC-1..8): bare invocation portal path
 # -----------------------------------------------------------------------------
 function Resolve-HiveBin {
-  $cmd = Get-Command 'hive' -ErrorAction SilentlyContinue
-  if ($cmd) { return $cmd.Source }
+  # Prefer the .cmd shim over the .ps1 one: Start-Process -WindowStyle Hidden is honored for a
+  # .cmd (console app via CreateProcess), but a .ps1 launches through shell association, which
+  # IGNORES the hidden window style and pops a visible PowerShell window when the daemon starts.
   $prefix = (npm prefix -g 2>$null)
   if ($prefix) {
     $candidate = Join-Path $prefix 'hive.cmd'
@@ -852,6 +853,15 @@ function Resolve-HiveBin {
   }
   $appdataCmd = Join-Path $env:AppData 'npm\hive.cmd'
   if (Test-Path $appdataCmd) { return $appdataCmd }
+  $cmd = Get-Command 'hive' -ErrorAction SilentlyContinue
+  if ($cmd) {
+    # A .ps1 hit still gets swapped for its sibling .cmd when one exists (same npm bin dir).
+    if ($cmd.Source -and $cmd.Source.ToLowerInvariant().EndsWith('.ps1')) {
+      $sibling = [System.IO.Path]::ChangeExtension($cmd.Source, '.cmd')
+      if (Test-Path $sibling) { return $sibling }
+    }
+    return $cmd.Source
+  }
   return $null
 }
 
@@ -910,7 +920,7 @@ function Write-OnboardingToken {
 }
 
 function Open-OnboardingUrl([string]$Token) {
-  $url = "$HiveOnboardingBaseUrl?t=$Token"
+  $url = "${HiveOnboardingBaseUrl}?t=$Token"
   try { Start-Process $url -ErrorAction SilentlyContinue | Out-Null } catch { }
 }
 
@@ -971,8 +981,8 @@ function Invoke-PortalMain([string[]]$InvocationArgs) {
     Write-Host '[dry-run] would run: hive install-service'
     Write-Host "[dry-run] would poll: $HiveHealthUrl"
     Write-Host '[dry-run] would run (if needed): hive start'
-    Write-Host "[dry-run] would open: $HiveOnboardingBaseUrl?t=<token>"
-    Write-Host "[dry-run] would print: Click here if the portal doesn't open automatically: $HiveOnboardingBaseUrl?t=<token>"
+    Write-Host "[dry-run] would open: ${HiveOnboardingBaseUrl}?t=<token>"
+    Write-Host "[dry-run] would print: Click here if the portal doesn't open automatically: ${HiveOnboardingBaseUrl}?t=<token>"
     return (& $finish 0)
   }
 
@@ -1020,7 +1030,7 @@ function Invoke-PortalMain([string[]]$InvocationArgs) {
   Open-OnboardingUrl $token
   # The fallback link MUST carry the one-time token: the onboarding screen refuses every
   # installer call without it (401), so a tokenless /onboarding visit can never proceed.
-  Write-Host "Click here if the portal doesn't open automatically: $HiveOnboardingBaseUrl?t=$token"
+  Write-Host "Click here if the portal doesn't open automatically: ${HiveOnboardingBaseUrl}?t=$token"
   return (& $finish 0)
 }
 
