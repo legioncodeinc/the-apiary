@@ -8,10 +8,12 @@
 // is executed by Pages for EVERY request, deterministically, with no functions-discovery step. It
 // is copied into dist/ by build.mjs.
 //
-// It only special-cases GET "/" for script-vs-page content negotiation (the get.pnpm.io /
-// sh.rustup.rs pattern):
+// It only special-cases GET "/" and GET "/uninstall" for script-vs-page content negotiation
+// (the get.pnpm.io / sh.rustup.rs pattern):
 //   GET / from a SHELL client (curl/wget/fetch)      → install.sh as text/plain, so `| sh` works.
 //   GET / from a BROWSER (Accept: text/html)         → the human "inspect before piping" page.
+//   GET /uninstall from a SHELL client               → uninstall.sh as text/plain.
+//   GET /uninstall from a BROWSER                    → the same inspect page.
 // Every other path (/install.sh, /install.ps1, /SHA256SUMS, /hive-release.json, …) is forwarded to
 // the static asset pipeline via env.ASSETS.fetch, which still applies the _headers rules
 // (text/plain + nosniff) unchanged.
@@ -36,8 +38,8 @@ export default {
 	async fetch(request, env) {
 		const url = new URL(request.url);
 
-		// Everything except the bare root falls through to the static asset pipeline (+ _headers).
-		if (url.pathname !== "/") {
+		// Everything except the two negotiated roots falls through to assets (+ _headers).
+		if (url.pathname !== "/" && url.pathname !== "/uninstall") {
 			return env.ASSETS.fetch(request);
 		}
 
@@ -58,7 +60,20 @@ export default {
 			});
 		}
 
-		// Shell client → stream the canonical install.sh as plain text so `| sh` works.
+		if (url.pathname === "/uninstall") {
+			// Shell client on /uninstall -> stream uninstall.sh as plain text.
+			const uninstallResp = await env.ASSETS.fetch(new Request(new URL("/uninstall.sh", url), request));
+			return new Response(uninstallResp.body, {
+				status: uninstallResp.status,
+				headers: {
+					"Content-Type": "text/plain; charset=utf-8",
+					"X-Content-Type-Options": "nosniff",
+					"Cache-Control": "public, max-age=300",
+				},
+			});
+		}
+
+		// Shell client on / -> stream install.sh as plain text so `| sh` works.
 		const assetResp = await env.ASSETS.fetch(new Request(new URL("/install.sh", url), request));
 
 		const combo = COMBO_PRESETS[(url.searchParams.get("combo") || "").trim()];
