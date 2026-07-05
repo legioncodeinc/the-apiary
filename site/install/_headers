@@ -1,8 +1,10 @@
 # site/install/_headers — Cloudflare Pages header rules for the install surface.
 #
 # The script + checksum paths MUST be served as text/plain so a user can read them in a
-# browser before piping, and so `irm https://get.theapiary.sh/install.ps1 | iex` and
-# `curl -fsSL https://get.theapiary.sh/install.sh` receive plain text (not an HTML wrapper
+# browser before piping, and so `irm https://get.theapiary.sh/install.ps1 | iex`,
+# `irm https://get.theapiary.sh/uninstall.ps1 | iex`,
+# `curl -fsSL https://get.theapiary.sh/install.sh`, and
+# `curl -fsSL https://get.theapiary.sh/uninstall` receive plain text (not an HTML wrapper
 # or a download-forcing octet-stream). nosniff stops the browser from re-interpreting them.
 
 /install.sh
@@ -11,6 +13,21 @@
   Cache-Control: public, max-age=300
 
 /install.ps1
+  Content-Type: text/plain; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=300
+
+/uninstall
+  Content-Type: text/plain; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=300
+
+/uninstall.sh
+  Content-Type: text/plain; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=300
+
+/uninstall.ps1
   Content-Type: text/plain; charset=utf-8
   X-Content-Type-Options: nosniff
   Cache-Control: public, max-age=300
@@ -43,8 +60,8 @@
 # (the copy handler), an inline SVG, and a data: SVG favicon — all permitted below. No
 # external origins, no remote fetch, no eval; form/object/base/frame are locked off.
 #
-# NOTE: the bare "/" is served by functions/index.js (content negotiation), which sets these same
-# headers EXPLICITLY (Pages Functions don't inherit _headers). The "/" rule below is a static-serve
+# NOTE: the bare "/" is served by _worker.js (content negotiation), which sets these same
+# headers EXPLICITLY (worker responses don't inherit _headers). The "/" rule below is a static-serve
 # fallback; the "/index.html" rule covers a direct hit to the asset path. Keep all three in sync.
 /
   X-Content-Type-Options: nosniff

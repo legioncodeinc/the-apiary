@@ -10,7 +10,7 @@
 // from EXACTLY what gets deployed — self-consistent by construction.
 //
 // Run: `node build.mjs` (from site/install/, the Cloudflare Pages "build command").
-// Emits: dist/{install.sh, install.ps1, SHA256SUMS, index.html}
+// Emits: dist/{install.sh, install.ps1, uninstall.sh, uninstall.ps1, SHA256SUMS, index.html}
 //
 // Standalone tooling: pure Node ESM, no dependencies, never imported by the app build.
 // It is NOT part of `tsc && esbuild` and never ships in the npm tarball.
@@ -31,8 +31,8 @@ const TEMPLATE = join(__dirname, 'index.template.html');
 const VANITY = 'https://get.theapiary.sh';
 const GITHUB_SRC = 'https://github.com/legioncodeinc/the-apiary/tree/main/scripts/install';
 
-// The two installer scripts, in the order they appear in SHA256SUMS + the page.
-const SCRIPTS = ['install.sh', 'install.ps1'];
+// The install and uninstall scripts, in the order they appear in SHA256SUMS + the page.
+const SCRIPTS = ['install.sh', 'install.ps1', 'uninstall.sh', 'uninstall.ps1'];
 
 // PRD-002c: both installer scripts declare their PostHog key as an EMPTY string in source control
 // (`HONEYCOMB_INSTALL_POSTHOG_KEY=""` / `$HoneycombInstallPosthogKey = ''`). This is a PostHog
@@ -95,6 +95,12 @@ function escapeHtml(s) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+// String.replace/replaceAll interpret $-sequences in replacement text.
+// Script sources contain many $ tokens, so use split/join for literal token replacement.
+function replaceToken(text, token, value) {
+  return text.split(token).join(value);
 }
 
 async function main() {
@@ -161,20 +167,31 @@ async function main() {
 
   // 3) Render index.html from the template, injecting live values.
   const template = await readFile(TEMPLATE, 'utf8');
-  const html = template
-    .replaceAll('{{VANITY}}', VANITY)
-    .replaceAll('{{GITHUB_SRC}}', GITHUB_SRC)
-    .replaceAll('{{SHA_SH}}', sums['install.sh'])
-    .replaceAll('{{SHA_PS1}}', sums['install.ps1'])
-    .replaceAll('{{BUILT_AT}}', new Date().toISOString())
-    .replaceAll('{{SOURCE_SH}}', escapeHtml(sources['install.sh']))
-    .replaceAll('{{SOURCE_PS1}}', escapeHtml(sources['install.ps1']));
+  const replacements = {
+    '{{VANITY}}': VANITY,
+    '{{GITHUB_SRC}}': GITHUB_SRC,
+    '{{SHA_SH}}': sums['install.sh'],
+    '{{SHA_PS1}}': sums['install.ps1'],
+    '{{SHA_UNINSTALL_SH}}': sums['uninstall.sh'],
+    '{{SHA_UNINSTALL_PS1}}': sums['uninstall.ps1'],
+    '{{BUILT_AT}}': new Date().toISOString(),
+    '{{SOURCE_SH}}': escapeHtml(sources['install.sh']),
+    '{{SOURCE_PS1}}': escapeHtml(sources['install.ps1']),
+    '{{SOURCE_UNINSTALL_SH}}': escapeHtml(sources['uninstall.sh']),
+    '{{SOURCE_UNINSTALL_PS1}}': escapeHtml(sources['uninstall.ps1']),
+  };
+  let html = template;
+  for (const [token, value] of Object.entries(replacements)) {
+    html = replaceToken(html, token, value);
+  }
   await writeFile(join(DIST_DIR, 'index.html'), html, 'utf8');
 
   // 4) Report (stdout is the Cloudflare Pages build log).
   console.log('site/install build complete → dist/');
   console.log('  install.sh   ', sums['install.sh']);
   console.log('  install.ps1  ', sums['install.ps1']);
+  console.log('  uninstall.sh ', sums['uninstall.sh']);
+  console.log('  uninstall.ps1', sums['uninstall.ps1']);
   console.log('  SHA256SUMS   written');
   console.log('  hive-release.json copied (fleet manifest, manifestVersion', `${manifest.manifestVersion})`);
   console.log('  blessed-version.json', honeycombVersion);
