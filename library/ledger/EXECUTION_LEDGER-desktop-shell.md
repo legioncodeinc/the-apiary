@@ -25,13 +25,13 @@ Status legend: OPEN · IN PROGRESS · DONE (impl+tests pass) · VERIFIED (indepe
 | a-AC-5 | Second launch focuses running instance; no 2nd supervisor / no port re-bind (single-instance lock) | typescript-node | opus | DONE |
 | a-AC-6 | Port-in-use detected pre-spawn + surfaced actionably; no crash/double-bind | typescript-node | opus | DONE |
 | a-AC-7 | All daemon spawns use argv arrays + `shell:false`; no shell-string path | typescript-node | opus | DONE |
-| b-AC-1 | Hive dashboard renders in native BrowserWindow (loopback `:3853`); no browser, no manual URL | typescript-node | opus | OPEN |
-| b-AC-2 | Renderer `contextIsolation:true`, `nodeIntegration:false`, sandbox; no Node reachable | typescript-node | opus | OPEN |
-| b-AC-3 | Privileged actions only via minimal enumerated preload bridge; no raw ipcRenderer | typescript-node | opus | OPEN |
-| b-AC-4 | Loading state before host ready; actionable failure if Hive doesn't come up in budget | typescript-node | opus | OPEN |
-| b-AC-5 | Loopback exposure not widened; Hive gate/token still applies | typescript-node | opus | OPEN |
+| b-AC-1 | Hive dashboard renders in native BrowserWindow (loopback `:3853`); no browser, no manual URL | typescript-node | opus | DONE |
+| b-AC-2 | Renderer `contextIsolation:true`, `nodeIntegration:false`, sandbox; no Node reachable | typescript-node | opus | DONE |
+| b-AC-3 | Privileged actions only via minimal enumerated preload bridge; no raw ipcRenderer | typescript-node | opus | DONE |
+| b-AC-4 | Loading state before host ready; actionable failure if Hive doesn't come up in budget | typescript-node | opus | DONE |
+| b-AC-5 | Loopback exposure not widened; Hive gate/token still applies | typescript-node | opus | DONE |
 | b-AC-6 | (custom-protocol gate equivalence) — N/A for loopback-first v1 | — | — | CI-DEFERRED (design note only) |
-| b-AC-7 | IPC surface for PRD-004 auth window (open https verification URI, close signal), carries no token | typescript-node | opus | OPEN |
+| b-AC-7 | IPC surface for PRD-004 auth window (open https verification URI, close signal), carries no token | typescript-node | opus | DONE |
 
 ## Wave 2 — Native integration + autostart + takeover (005c)
 
