@@ -1,0 +1,45 @@
+# electron-builder configuration — CONFIG ONLY in this scaffold.
+# `npm run dist` is wired but is not run as part of this scaffold; packaging,
+# asar-unpacking of the embeddings runtime/sidecar Node, code signing, and
+# notarization are later-wave work (see PRD-005d).
+#
+# mac/linux targets and all signing/notarization are CI-deferred: this repo's
+# scaffold only needs the config to exist and be structurally valid so a
+# later wave can wire signing without re-architecting the build.
+
+appId: com.legioncodeinc.apiary-desktop
+productName: Apiary
+
+directories:
+  output: out
+  buildResources: build
+
+files:
+  - dist/**/*
+  - package.json
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  # Notarization/signing deferred to CI (PRD-005d); no identity configured here.
+  hardenedRuntime: true
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Utility

@@ -1,0 +1,28 @@
+{
+  "name": "@legioncodeinc/apiary-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Apiary Desktop Shell - Electron main process that supervises the fleet and renders the Hive dashboard in a native window.",
+  "type": "module",
+  "main": "dist/main/main.js",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && electron-builder"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "electron": "^43.0.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}
