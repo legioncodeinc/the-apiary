@@ -113,10 +113,67 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  # --- CI-DEFERRED: signed installers + publish -----------------------------------------------
-  # No job exists here for: nsis-signed .exe, notarized .dmg, signed AppImage, or a `publish`
-  # step that uploads to the GitHub Releases feed electron-builder.yml's `publish:` block points
-  # at. All three require a signing identity and/or a release-channel decision that prd-005d
-  # explicitly defers (open questions: "Cert timeline", "Update channel"). Wiring them is additive
-  # to this file — a new job gated on `if: github.ref == 'refs/heads/main'` with `secrets:` for
-  # the signing identity — not a rewrite of the matrix above.
+  # --- Rolling nightly pre-release (UNSIGNED Windows installer) --------------------------------
+  # After the full matrix passes, on a push to `main` that touched desktop/** (i.e. a merge) — or
+  # a manual run — build the nsis `.exe` and publish it to a single rolling `desktop-nightly`
+  # GitHub PRE-RELEASE (tag + assets replaced each run, always the latest desktop build).
+  #
+  # Still CI-DEFERRED (prd-005d "Cert timeline" / "Update channel"): code SIGNING (the .exe here is
+  # unsigned — Windows SmartScreen will warn), notarized .dmg, signed AppImage, and a stable
+  # (non-prerelease) release channel. Adding a signing identity is additive `secrets:`/`with:`
+  # config on this job, not a rewrite.
+  publish-windows-nightly:
+    name: Publish Windows nightly pre-release
+    needs: build
+    # Publish only from main (post-merge) or a manual dispatch — never on PRs.
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    permissions:
+      contents: write # create/update the rolling pre-release and move its tag (overrides top-level read)
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: false
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '22.x'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build + fleet version gate
+        run: npm run build && npm run check-fleet-versions
+
+      - name: Package Windows installer (nsis, UNSIGNED)
+        run: npx electron-builder --win nsis --publish never
+        env:
+          CI: true
+
+      # softprops runs at the repo root (defaults.working-directory applies only to `run:` steps),
+      # so the asset globs are repo-root-relative (desktop/out/...). blockmap + latest.yml are
+      # included so electron-updater has its metadata when the signing/update channel lands.
+      - name: Publish rolling `desktop-nightly` pre-release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          tag_name: desktop-nightly
+          name: Apiary Desktop (nightly)
+          prerelease: true
+          make_latest: false
+          files: |
+            desktop/out/*.exe
+            desktop/out/*.exe.blockmap
+            desktop/out/latest.yml
+          body: |
+            Automated **unsigned** Windows build of the Apiary desktop shell.
+
+            - Commit: `${{ github.sha }}`
+            - Rolling pre-release — replaced on every change to `desktop/**` merged to `main`.
+            - Windows SmartScreen will warn on first run until a signing certificate is wired.
