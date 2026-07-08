@@ -1,13 +1,14 @@
 /**
  * PRD-005a: the Electron main process — single-instance lock, app lifecycle, and the fleet
- * supervisor wiring, plus the thin extension-point calls later waves (005b window, 005c tray +
- * service) fill in.
+ * supervisor wiring, plus the window (005b), tray + service (005c) integration calls.
  *
  * Ordering on `whenReady` (ADR-0005): run the OS-service takeover FIRST (so the app is the sole
  * autostart owner before it starts anything), THEN start the supervisor (Doctor + Hive), THEN
- * open the window + tray. The window/tray/service bodies are stubs in this wave; their calls are
- * guarded so a not-yet-implemented later wave surfaces a clear log line instead of crashing the
- * whole app while the supervisor keeps running.
+ * open the window + tray. The window/tray/service modules are implemented; their calls stay
+ * guarded so a runtime failure in one surfaces a clear log line instead of crashing the whole app
+ * while the supervisor keeps running. The service takeover runs in dryRun in this skeleton (no
+ * live machine mutation); the LIVE OS-service takeover + standalone-Hivemind consent/abort
+ * (ADR-0005 dec.4/5) is the gated follow-up — see the TODO at the takeover call.
  */
 
 import { app, BrowserWindow } from "electron";
@@ -43,12 +44,15 @@ if (!gotTheLock) {
   });
 
   app.whenReady().then(async () => {
-    // 1. OS-service takeover (005c stub). Guarded: a not-yet-implemented takeover must not stop the
-    //    supervisor from coming up in this wave.
+    // 1. OS-service takeover (005c). Runs dryRun in the skeleton — no live machine mutation.
+    //    TODO(005c-live, gated): drop dryRun and surface the standalone-Hivemind decline→abort
+    //    outcome here (on abort, stop the app install instead of continuing). ADR-0005 dec.4/5.
+    //    Guarded so a takeover failure never blocks the supervisor from coming up.
     try {
-      await runServiceTakeover();
+      const takeover = await runServiceTakeover();
+      console.info("[main] service takeover (dryRun):", JSON.stringify(takeover));
     } catch (error) {
-      console.warn("[main] service takeover not available yet:", error instanceof Error ? error.message : error);
+      console.warn("[main] service takeover error:", error instanceof Error ? error.message : error);
     }
 
     // 2. Start the fleet supervisor (a-AC-2). A hard precondition failure (no system Node ≥22.5,
@@ -61,7 +65,7 @@ if (!gotTheLock) {
       console.error("[main] supervisor failed to start:", error instanceof Error ? error.message : error);
     }
 
-    // 3. Main window (005b stub) — needs the supervisor's stable contract.
+    // 3. Main window (005b) — needs the supervisor's stable contract.
     if (supervisor !== undefined) {
       try {
         mainWindow = createMainWindow(supervisor);
@@ -69,19 +73,19 @@ if (!gotTheLock) {
           mainWindow = undefined;
         });
       } catch (error) {
-        console.warn("[main] main window not available yet:", error instanceof Error ? error.message : error);
+        console.warn("[main] main window failed to open:", error instanceof Error ? error.message : error);
       }
 
-      // 4. Tray (005c stub).
+      // 4. Tray (005c).
       try {
         setupTray(supervisor);
       } catch (error) {
-        console.warn("[main] tray not available yet:", error instanceof Error ? error.message : error);
+        console.warn("[main] tray failed to set up:", error instanceof Error ? error.message : error);
       }
     }
 
     app.on("activate", () => {
-      // macOS re-activate with no windows: re-open (once 005b lands). Never a second supervisor.
+      // macOS re-activate with no windows: re-open. Never a second supervisor.
       if (BrowserWindow.getAllWindows().length === 0 && supervisor !== undefined && mainWindow === undefined) {
         try {
           mainWindow = createMainWindow(supervisor);
@@ -89,7 +93,7 @@ if (!gotTheLock) {
             mainWindow = undefined;
           });
         } catch (error) {
-          console.warn("[main] re-open not available yet:", error instanceof Error ? error.message : error);
+          console.warn("[main] window re-open failed:", error instanceof Error ? error.message : error);
         }
       }
     });
