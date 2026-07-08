@@ -44,7 +44,7 @@ The fastest, lowest-risk path is to point the window at `http://127.0.0.1:3853` 
 
 - **Loopback first.** `win.loadURL("http://127.0.0.1:3853")` once 005a reports Hive healthy. This reuses [`host.ts`](../../../../hive/src/daemon/dashboard/host.ts) and the served design-system CSS/bundle unchanged.
 - **Readiness gate.** Do not `loadURL` until Hive's `/health` answers; show a native splash/loading view meanwhile. Reuse the fleet-readiness posture ([`hive/src/shared/fleet-readiness.ts`](../../../../hive/src/shared/fleet-readiness.ts)) — an answering degraded daemon counts as up.
-- **Preload bridge.** Expose a small typed API via `contextBridge` (e.g. `apiary.onFleetStatus`, `apiary.restartFleet`, `apiary.openAuthWindow(url)`), never the raw `ipcRenderer`. Every channel is allow-listed.
+- **Preload bridge.** Expose a small typed API via `contextBridge` — the implemented allow-list is exactly `apiary.version`, `apiary.onFleetStatus`, `apiary.openAuthWindow(url)`, and `apiary.onAuthWindowClosed` (see [`desktop/src/preload/api-shape.ts`](../../../../desktop/src/preload/api-shape.ts)) — never the raw `ipcRenderer`. Every channel is allow-listed.
 - **External links.** Intercept `window.open` / `will-navigate`: dashboard-internal navigation stays in-window; a genuine external link (docs, Discord) uses `shell.openExternal` deliberately — but the Deep Lake auth URL does NOT (PRD-004 opens it in an owned window).
 - **Custom-protocol option (deferred).** If later loading `app://` bundled assets, register a standard-scheme privileged protocol and re-establish the gate/token equivalence; note it re-opens work [`host.ts`](../../../../hive/src/daemon/dashboard/host.ts)'s same-origin design currently gives for free.
 

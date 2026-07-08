@@ -30,11 +30,13 @@ on:
   pull_request:
     paths:
       - 'desktop/**'
+      - 'hive-release.json'
       - '.github/workflows/desktop-build.yml'
   push:
     branches: [main]
     paths:
       - 'desktop/**'
+      - 'hive-release.json'
       - '.github/workflows/desktop-build.yml'
   workflow_dispatch: {}
 

@@ -45,7 +45,7 @@ This is what makes the shell feel like an app and behave like the fleet's owner:
 - **Deregistration reuse.** PRD-003 already handles service-unit removal including legacy names ([`hive/src/service/platform.ts`](../../../../hive/src/service/platform.ts) `LEGACY_*`, and the per-product `uninstall`/service modules). Reuse that machinery for the takeover rather than re-implementing per-OS service teardown.
 - **Takeover sequence.** On first run as fleet owner: detect existing service units → stop them → deregister → start the fleet under the shell → register launch-at-login. Make it idempotent (re-running is a no-op) and log what it changed.
 - **Launch-at-login.** `app.setLoginItemSettings({ openAtLogin: true })` (with the Windows/macOS specifics). This replaces the daemon services' boot role for shell-managed machines.
-- **Doctor reconciliation.** Two coherent options: (a) Doctor keeps watchdogging Honeycomb and the shell supervises only Hive (Doctor owns Honeycomb liveness); (b) the shell owns all liveness and Doctor is not run on desktop. Pick one (ties to 005a's open question).
+- **Doctor reconciliation — decided (ADR-0005).** Doctor keeps watchdogging the workloads; the shell supervises only the two roots (Doctor + Hive). Non-overlap is enforced by the doctor registry's single-owner-per-daemon + a `pidPath`-liveness no-op, so the two supervisors never act on the same process.
 - **Notifications scope.** Start minimal — the "cannot restart a daemon" case — and avoid notification spam for transient restarts the supervisor handles silently.
 - **Tray status source.** Subscribe to the same fleet-status the dashboard uses (via 005a's supervisor state / Hive's `/api/fleet-status`), so tray and dashboard never disagree.
 
