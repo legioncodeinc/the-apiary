@@ -38,6 +38,11 @@ asar: true
 files:
   - dist/**/*
   - package.json
+  # Branded icons (Hive badge). `assets/icon.ico` is the Windows app + tray icon;
+  # `assets/tray-icon.png` is the non-Windows tray icon; `assets/icon.png` is the
+  # mac/linux app icon. Generated (committed) by `npm run generate-icons` from
+  # assets/icon.svg. Shipped INSIDE the asar — nativeImage reads asar paths.
+  - assets/**
   - "!**/*.test.js"
   - "!**/*.test.js.map"
 
@@ -75,6 +80,7 @@ asarUnpack:
   # it packs cleanly inside the asar per the parent PRD's ABI note.
 
 win:
+  icon: assets/icon.ico
   target:
     - target: nsis
       arch:
@@ -92,6 +98,7 @@ nsis:
 # .github/workflows/desktop-build.yml for the macos/ubuntu matrix legs that
 # run electron-builder for these targets in CI.
 mac:
+  icon: assets/icon.png
   target:
     - target: dmg
       arch:
@@ -103,6 +110,7 @@ mac:
   hardenedRuntime: true
 
 linux:
+  icon: assets/icon.png
   target:
     - target: AppImage
       arch:
