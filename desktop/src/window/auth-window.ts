@@ -14,7 +14,7 @@
  * side of it is the remote page, which must have no bridge into this app.
  */
 
-import { BrowserWindow, ipcMain, type WebContents } from "electron";
+import { BrowserWindow, ipcMain, shell, type WebContents } from "electron";
 
 import { APIARY_IPC_CHANNELS, type OpenAuthWindowResult } from "../preload/api-shape.js";
 import { validateAuthUrl } from "./auth-url.js";
@@ -31,8 +31,47 @@ const defaultLogger: AuthWindowLogger = {
 };
 
 /**
+ * Confine the auth child window to `https:` and deny it any in-app window-spawning surface.
+ *
+ * The child renders an UNTRUSTED remote verification page, so it must not be able to walk itself off
+ * https (a script-driven redirect to `file:`, `data:`, `javascript:`, or an http downgrade) nor use
+ * `window.open` to spawn a fresh in-app `BrowserWindow` (which would inherit an app-owned surface).
+ * A real https redirect stays in-window (device-flow pages legitimately hop across https origins);
+ * a genuine external link the page tries to pop open is handed to the OS browser instead.
+ */
+function confineAuthWindow(child: BrowserWindow): void {
+  child.webContents.on("will-navigate", (event, url) => {
+    let protocol: string | undefined;
+    try {
+      protocol = new URL(url).protocol;
+    } catch {
+      protocol = undefined;
+    }
+    // Only https navigation may proceed in-window. Anything else (http downgrade, file:, data:,
+    // javascript:, custom scheme, or an unparseable target) is refused.
+    if (protocol !== "https:") {
+      event.preventDefault();
+    }
+  });
+
+  // The renderer of this window is the remote page: NEVER let it spawn an in-app window. A genuine
+  // https popup is routed to the OS browser; everything else is dropped.
+  child.webContents.setWindowOpenHandler(({ url }) => {
+    let protocol: string | undefined;
+    try {
+      protocol = new URL(url).protocol;
+    } catch {
+      protocol = undefined;
+    }
+    if (protocol === "https:") void shell.openExternal(url);
+    return { action: "deny" };
+  });
+}
+
+/**
  * Open an app-owned child auth window at an already-validated `https` URL. Isolated and preload-less
- * (the remote verification page must not reach into this app). Fires `onClosed` when it closes.
+ * (the remote verification page must not reach into this app). Confined to https and denied any
+ * in-app window-spawning surface (see {@link confineAuthWindow}). Fires `onClosed` when it closes.
  */
 function openOwnedAuthWindow(parent: BrowserWindow | undefined, validatedUrl: string, onClosed: () => void): BrowserWindow {
   const child = new BrowserWindow({
@@ -48,6 +87,7 @@ function openOwnedAuthWindow(parent: BrowserWindow | undefined, validatedUrl: st
       // No preload: this window renders a remote https verification page. It must have NO bridge.
     },
   });
+  confineAuthWindow(child);
   child.on("closed", onClosed);
   void child.loadURL(validatedUrl);
   return child;
