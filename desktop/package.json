@@ -19,9 +19,9 @@
     "dist:dir": "npm run build && npm run check-fleet-versions && electron-builder --dir"
   },
   "fleetVersions": {
-    "honeycomb": "0.7.0",
+    "honeycomb": "0.8.0",
     "doctor": "0.4.3",
-    "hive": "0.6.9",
+    "hive": "0.7.0",
     "nectar": "0.3.4"
   },
   "devDependencies": {
