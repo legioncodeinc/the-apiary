@@ -60,6 +60,36 @@ export type UpdateAction =
       readonly reason: string;
     };
 
+/**
+ * The evidence a raw electron-updater `checkForUpdates()` call yields, reduced to the fields this
+ * decision needs. `null` from electron-updater means the updater is DISABLED (no publish config /
+ * unpackaged dev build) — modelled explicitly so it is never conflated with "up-to-date". Pure input:
+ * no electron-updater import here.
+ */
+export type RawUpdateCheck =
+  /** electron-updater returned `null`: the updater is disabled, so no check actually ran. */
+  | { readonly kind: "updater-disabled" }
+  /** electron-updater ran and reported its own availability verdict + the candidate version. */
+  | { readonly kind: "checked"; readonly isUpdateAvailable: boolean; readonly version: string; readonly downloadUrl: string };
+
+/**
+ * Map a raw electron-updater check into an {@link UpdateCheckOutcome} (d-AC-5). This is the pure,
+ * testable core of the `updater.ts` branch that CodeRabbit flagged:
+ *  - `null` (updater disabled) ⇒ `check-failed` — NEVER `up-to-date` (we never actually checked);
+ *  - `isUpdateAvailable === false` ⇒ `up-to-date` (electron-updater's OWN verdict, which honours its
+ *     downgrade/staging/channel rules — not a hand-rolled `version !== currentVersion` compare);
+ *  - `isUpdateAvailable === true` ⇒ `update-available` with the version + download URL.
+ */
+export function classifyUpdateCheck(raw: RawUpdateCheck): UpdateCheckOutcome {
+  if (raw.kind === "updater-disabled") {
+    return { kind: "check-failed", reason: "updater is disabled (no update feed configured for this build)" };
+  }
+  if (!raw.isUpdateAvailable) {
+    return { kind: "up-to-date" };
+  }
+  return { kind: "update-available", version: raw.version, downloadUrl: raw.downloadUrl };
+}
+
 /** Human-readable reason strings, centralized so tests and the UI prompt agree on wording. */
 const REASON_UNSIGNED =
   "This build is unsigned, so automatic updates are disabled. Download and install the new version manually.";

@@ -91,6 +91,33 @@ describe("unsupported OS", () => {
   });
 });
 
+describe("changeOnZeroExit marks the real removal step per OS (honest `changed` — c-AC-4)", () => {
+  // Exactly ONE command per plan carries the removal signal (zero exit ⇒ actually removed): the
+  // deregister step whose exit code distinguishes 'removed' from 'already absent'. Stop-only and
+  // bookkeeping steps (rm -f, daemon-reload) do NOT — their exit is not a reliable removal signal.
+  it("Windows: only schtasks-delete is the change signal (not schtasks-end)", () => {
+    const plan = buildDeregisterPlan(HIVE_CURRENT, winCtx);
+    expect(plan.commands.find((c) => c.id === "schtasks-delete")?.changeOnZeroExit).toBe(true);
+    expect(plan.commands.find((c) => c.id === "schtasks-end")?.changeOnZeroExit).not.toBe(true);
+    expect(plan.commands.filter((c) => c.changeOnZeroExit === true)).toHaveLength(1);
+  });
+
+  it("macOS: only launchctl-bootout is the change signal (not rm-plist)", () => {
+    const plan = buildDeregisterPlan(HIVE_CURRENT, macCtx);
+    expect(plan.commands.find((c) => c.id === "launchctl-bootout")?.changeOnZeroExit).toBe(true);
+    expect(plan.commands.find((c) => c.id === "rm-plist")?.changeOnZeroExit).not.toBe(true);
+    expect(plan.commands.filter((c) => c.changeOnZeroExit === true)).toHaveLength(1);
+  });
+
+  it("Linux: only systemctl-disable is the change signal (not rm-unit / daemon-reload)", () => {
+    const plan = buildDeregisterPlan(HIVE_CURRENT, linuxCtx);
+    expect(plan.commands.find((c) => c.id === "systemctl-disable")?.changeOnZeroExit).toBe(true);
+    expect(plan.commands.find((c) => c.id === "rm-unit")?.changeOnZeroExit).not.toBe(true);
+    expect(plan.commands.find((c) => c.id === "systemctl-daemon-reload")?.changeOnZeroExit).not.toBe(true);
+    expect(plan.commands.filter((c) => c.changeOnZeroExit === true)).toHaveLength(1);
+  });
+});
+
 describe("APIARY_SERVICE_UNITS coverage (current + legacy)", () => {
   it("includes both a current and a legacy label so old installs are cleaned up", () => {
     expect(APIARY_SERVICE_UNITS.some((u) => u.current)).toBe(true);

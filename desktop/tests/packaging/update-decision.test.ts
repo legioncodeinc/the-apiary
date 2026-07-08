@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { decideUpdateAction } from "../../src/packaging/update-decision.js";
+import { classifyUpdateCheck, decideUpdateAction } from "../../src/packaging/update-decision.js";
 
 describe("decideUpdateAction", () => {
   it("reports up-to-date when the feed check finds no newer version", () => {
@@ -65,5 +65,45 @@ describe("decideUpdateAction", () => {
       check: { kind: "update-available" as const, version: "3.0.0", downloadUrl: "https://example.test/v3.0.0" },
     };
     expect(decideUpdateAction(context)).toEqual(decideUpdateAction(context));
+  });
+});
+
+describe("classifyUpdateCheck (d-AC-5, updater availability branch)", () => {
+  // These three cases are the exact distinction CodeRabbit flagged: DISABLED (null) must not be
+  // conflated with UP-TO-DATE, and availability must come from electron-updater's own verdict.
+  it("maps a DISABLED updater (electron-updater returned null) to check-failed, NOT up-to-date", () => {
+    const outcome = classifyUpdateCheck({ kind: "updater-disabled" });
+    expect(outcome.kind).toBe("check-failed");
+    if (outcome.kind === "check-failed") expect(outcome.reason).toMatch(/disabled/i);
+  });
+
+  it("maps isUpdateAvailable=false to up-to-date (uses electron-updater's own verdict)", () => {
+    const outcome = classifyUpdateCheck({
+      kind: "checked",
+      isUpdateAvailable: false,
+      version: "1.0.0",
+      downloadUrl: "https://example.test/v1.0.0",
+    });
+    expect(outcome).toEqual({ kind: "up-to-date" });
+  });
+
+  it("maps isUpdateAvailable=true to update-available with version + downloadUrl", () => {
+    const outcome = classifyUpdateCheck({
+      kind: "checked",
+      isUpdateAvailable: true,
+      version: "2.5.0",
+      downloadUrl: "https://example.test/v2.5.0",
+    });
+    expect(outcome).toEqual({
+      kind: "update-available",
+      version: "2.5.0",
+      downloadUrl: "https://example.test/v2.5.0",
+    });
+  });
+
+  it("end-to-end: a DISABLED updater on an unsigned build yields check-failed, never a silent apply", () => {
+    // The whole point of the fix: a disabled updater must not read as up-to-date NOR auto-apply.
+    const action = decideUpdateAction({ signing: "unsigned", check: classifyUpdateCheck({ kind: "updater-disabled" }) });
+    expect(action.kind).toBe("check-failed");
   });
 });

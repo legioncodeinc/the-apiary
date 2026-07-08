@@ -1,51 +1,61 @@
 /**
  * PRD-005c: the system tray — the thin electron wrapper (c-AC-1, c-AC-2, c-AC-3).
  *
- * This wires the PURE cores ({@link buildTrayMenuModel}, {@link decideNotification},
+ * This wires the PURE cores ({@link buildTrayMenuModel}, {@link createNotificationGate},
  * {@link registerAutostartSettings}) to real electron surfaces (`Tray`, `Menu`, `Notification`,
  * `app.setLoginItemSettings`). The pure logic is unit-tested; this wrapper is integration-only (it
  * imports `electron`, so it is exercised by hand / e2e, not the node vitest env — like `main.ts`).
  *
- * The tray consumes ONLY the stable {@link FleetSupervisor} surface (005a): it reads
- * {@link FleetSupervisor.getFleetStatus} to render fleet state, subscribes via
- * {@link FleetSupervisor.onStatusChange} to re-render on change, and calls
- * {@link FleetSupervisor.stop} from the "Quit" action. It MUST NOT edit the supervisor.
+ * The tray drives the SHARED {@link AppController} (005a/finding), NOT a private supervisor: it reads
+ * the live supervisor's {@link FleetSupervisor.getFleetStatus} to render fleet state, subscribes via
+ * {@link FleetSupervisor.onStatusChange} to re-render, and routes Open Dashboard / Restart Fleet /
+ * Quit through the controller so restart swaps the ONE live instance for everyone (window + tray) and
+ * Open Dashboard focuses the ONE main window instead of spawning a second (both were prior findings).
  *
  * Flow:
  *   1. Build the tray icon + menu from the current snapshot (c-AC-1); it works while the main
  *      window is closed because the tray, unlike the window, is never torn down by "closed".
- *   2. Subscribe to `onStatusChange`: re-render the menu/tooltip every tick, and run every tick
- *      through the notification-decision core to (maybe) fire a native `Notification` (c-AC-2).
- *   3. Register launch-at-login on setup (c-AC-3); expose {@link disableAutostart} for symmetry
- *      (e.g. a future "uninstall"/settings surface can call it without re-deriving the settings).
- *   4. Wire actions: Open Dashboard focuses/creates the main window; Restart Fleet stops the current
- *      supervisor and starts a fresh one (the frozen 005a contract has no in-place per-root restart,
- *      and `start()` is a one-shot no-op on an already-started instance — so "restart" means a new
- *      supervisor instance, exactly as `createSupervisor()` is designed to be called); Quit stops
- *      the supervisor then quits the app.
+ *   2. Subscribe to `onStatusChange`: re-render the menu/tooltip every tick, and run EVERY tick —
+ *      including the INITIAL snapshot — through the notification gate to (maybe) fire a native
+ *      `Notification` (c-AC-2). Re-subscribe to the NEW supervisor on a Restart Fleet swap.
+ *   3. Register launch-at-login on setup (c-AC-3), gated to the platforms that support it.
+ *   4. Wire actions: Open Dashboard focuses/creates the shared main window; Restart Fleet restarts the
+ *      fleet through the controller; Quit stops the live supervisor then quits the app.
  */
 
 import { app, BrowserWindow, Menu, nativeImage, Notification, Tray } from "electron";
 
-import { createSupervisor, type FleetStatus, type FleetSupervisor } from "../supervisor/index.js";
-import { createMainWindow } from "../window/index.js";
-import { registerAutostartSettings, unregisterAutostartSettings } from "./autostart.js";
+import type { AppController } from "../main/app-controller.js";
+import type { FleetStatus } from "../supervisor/index.js";
+import { registerAutostartSettings, isAutostartSupported, unregisterAutostartSettings } from "./autostart.js";
 import { buildTrayMenuModel, type TrayMenuAction } from "./menu-model.js";
-import { decideNotification } from "./notification-policy.js";
+import { createNotificationGate } from "./tray-controller.js";
 
 /**
- * Register launch-at-login (c-AC-3). Exported so a future settings/uninstall surface can call the
- * symmetric unregister without re-deriving the electron call site.
+ * Register launch-at-login (c-AC-3). Gated on {@link isAutostartSupported}: Electron documents
+ * `setLoginItemSettings` as a no-op on Linux, so calling it there is dead effort (finding). Passes
+ * the per-platform `args` (the Windows `--hidden` flag) so a login launch starts hidden to the tray
+ * on every supported OS, not just macOS `openAsHidden` (finding).
  */
 export function enableAutostart(): void {
-  const settings = registerAutostartSettings();
-  app.setLoginItemSettings({ openAtLogin: settings.openAtLogin, openAsHidden: settings.openAsHidden });
+  if (!isAutostartSupported(process.platform)) return;
+  const settings = registerAutostartSettings(process.platform);
+  app.setLoginItemSettings({
+    openAtLogin: settings.openAtLogin,
+    openAsHidden: settings.openAsHidden,
+    args: [...settings.args],
+  });
 }
 
-/** Unregister launch-at-login (symmetry for opt-out/uninstall paths). */
+/** Unregister launch-at-login (symmetry for opt-out/uninstall paths). Same platform gate as enable. */
 export function disableAutostart(): void {
+  if (!isAutostartSupported(process.platform)) return;
   const settings = unregisterAutostartSettings();
-  app.setLoginItemSettings({ openAtLogin: settings.openAtLogin, openAsHidden: settings.openAsHidden });
+  app.setLoginItemSettings({
+    openAtLogin: settings.openAtLogin,
+    openAsHidden: settings.openAsHidden,
+    args: [...settings.args],
+  });
 }
 
 /** True iff any BrowserWindow in this process currently has OS focus (drives c-AC-2 suppression). */
@@ -55,62 +65,29 @@ function isAnyWindowFocused(): boolean {
 
 /**
  * Create the system tray (c-AC-1, c-AC-2, c-AC-3). `main.ts` calls this once on `whenReady` after
- * the supervisor and main window are up. Returns the live `Tray`; it is not destroyed on window
- * close, so its actions keep working with the main window closed (c-AC-1).
+ * the supervisor and main window are up, passing the SHARED controller. Returns the live `Tray`; it
+ * is not destroyed on window close, so its actions keep working with the main window closed (c-AC-1).
  */
-export function setupTray(initialSupervisor: FleetSupervisor): Tray {
+export function setupTray(controller: AppController): Tray {
   const tray = new Tray(trayIcon());
 
-  // The tray owns a mutable reference so "Restart Fleet" can swap in a fresh supervisor instance
-  // without touching main.ts's module-scoped variable (main.ts is not editable by this wave).
-  let supervisor = initialSupervisor;
-  let mainWindow: BrowserWindow | undefined;
-  let lastStatus: FleetStatus | undefined;
+  const gate = createNotificationGate();
   let unsubscribe: (() => void) | undefined;
 
-  const openDashboard = (): void => {
-    if (mainWindow !== undefined && !mainWindow.isDestroyed()) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-      return;
-    }
-    mainWindow = createMainWindow(supervisor);
-    mainWindow.on("closed", () => {
-      mainWindow = undefined;
-    });
-  };
-
-  const restartFleet = async (): Promise<void> => {
-    try {
-      await supervisor.stop();
-    } catch (error) {
-      console.error("[tray] error stopping supervisor during restart:", error instanceof Error ? error.message : error);
-    }
-    unsubscribe?.();
-    try {
-      supervisor = createSupervisor();
-      subscribe();
-      await supervisor.start();
-    } catch (error) {
-      console.error("[tray] error restarting supervisor:", error instanceof Error ? error.message : error);
-    }
-  };
-
-  const quit = (): void => {
-    void supervisor
-      .stop()
-      .catch((error) => {
-        console.error("[tray] error stopping supervisor on quit:", error instanceof Error ? error.message : error);
-      })
-      .finally(() => {
-        app.quit();
-      });
-  };
-
   const runAction = (action: TrayMenuAction): void => {
-    if (action.id === "open-dashboard") openDashboard();
-    else if (action.id === "restart-fleet") void restartFleet();
-    else quit();
+    if (action.id === "open-dashboard") controller.openOrFocusDashboard();
+    else if (action.id === "restart-fleet") {
+      void controller.restartFleet().catch((error) => {
+        console.error("[tray] error restarting fleet:", error instanceof Error ? error.message : error);
+      });
+    } else {
+      void controller
+        .stop()
+        .catch((error) => {
+          console.error("[tray] error stopping supervisor on quit:", error instanceof Error ? error.message : error);
+        })
+        .finally(() => app.quit());
+    }
   };
 
   const render = (status: FleetStatus): void => {
@@ -128,28 +105,37 @@ export function setupTray(initialSupervisor: FleetSupervisor): Tray {
     tray.setContextMenu(Menu.buildFromTemplate(template));
   };
 
-  const maybeNotify = (status: FleetStatus): void => {
-    const decision = decideNotification(lastStatus, status, isAnyWindowFocused());
+  /** Run one status tick (initial OR change) through render + the notification gate (finding: the
+   * initial snapshot must not bypass the notification decision). */
+  const onTick = (status: FleetStatus): void => {
+    const decision = gate.tick(status, isAnyWindowFocused());
     if (decision.kind === "notify" && Notification.isSupported()) {
       new Notification({ title: decision.title, body: decision.body }).show();
     }
+    render(status);
   };
 
-  function subscribe(): void {
-    const status = supervisor.getFleetStatus();
-    lastStatus = status;
-    render(status);
-    unsubscribe = supervisor.onStatusChange((next) => {
-      maybeNotify(next);
-      lastStatus = next;
-      render(next);
-    });
-  }
+  /** (Re)bind to a supervisor: run its CURRENT snapshot through the tick path, then subscribe. */
+  const bind = (): void => {
+    unsubscribe?.();
+    const supervisor = controller.getSupervisor();
+    if (supervisor === undefined) return;
+    onTick(supervisor.getFleetStatus());
+    unsubscribe = supervisor.onStatusChange(onTick);
+  };
 
-  subscribe();
+  // Rebind to the NEW supervisor whenever Restart Fleet swaps it in. Reset the gate so the swapped
+  // fleet's first tick is judged fresh (a new terminal failure after restart can notify again). The
+  // tray lives for the whole app lifetime, so the swap subscription is intentionally never disposed.
+  controller.onSupervisorSwap(() => {
+    gate.reset();
+    bind();
+  });
+
+  tray.on("click", () => controller.openOrFocusDashboard());
+
+  bind();
   enableAutostart();
-
-  tray.on("click", openDashboard);
 
   return tray;
 }

@@ -32,6 +32,21 @@ export interface Command {
    * idempotent (re-running is a no-op) without needing per-OS exit-code knowledge at the call site.
    */
   readonly tolerateFailure: boolean;
+  /**
+   * True iff THIS command is a DEREGISTRATION/removal step whose exit code carries "did something
+   * actually change" meaning: a zero exit ⇒ the unit/task/file was present and is now removed
+   * (a real state change); a tolerated non-zero exit ⇒ it was ALREADY ABSENT (nothing removed).
+   *
+   * This is how the takeover reports `changed` honestly (c-AC-4): it flips `changed=true` ONLY when a
+   * removal command with this flag exits zero, NOT merely because a tolerated command "ran without a
+   * hard failure". Stop-only steps (`schtasks /End`, `launchctl bootout`) and bookkeeping steps
+   * (`systemctl daemon-reload`) leave this `false` — their exit code is not a reliable removal signal.
+   *
+   * schtasks `/Delete`, `launchctl`'s `rm -f <plist>`, and `systemctl --user disable --now` +
+   * `rm -f <unitfile>` are the removal steps; each returns zero exactly when it removed something the
+   * OS actually had, and its tolerated non-zero (task/agent/unit not found) means already-absent.
+   */
+  readonly changeOnZeroExit?: boolean;
 }
 
 /** The ordered STOP→DEREGISTER command sequence for one unit on one OS (empty if nothing to do). */
@@ -49,8 +64,16 @@ export interface DeregisterPlan {
  */
 function windowsCommands(unit: ServiceUnitLabel): readonly Command[] {
   return [
+    // Stop-only: not a removal signal (a not-running task is fine and exit code is not load-bearing).
     { id: "schtasks-end", file: "schtasks", args: ["/End", "/TN", unit.schtasksName], tolerateFailure: true },
-    { id: "schtasks-delete", file: "schtasks", args: ["/Delete", "/TN", unit.schtasksName, "/F"], tolerateFailure: true },
+    // The removal step: zero ⇒ the task existed and is now deleted; tolerated non-zero ⇒ already absent.
+    {
+      id: "schtasks-delete",
+      file: "schtasks",
+      args: ["/Delete", "/TN", unit.schtasksName, "/F"],
+      tolerateFailure: true,
+      changeOnZeroExit: true,
+    },
   ];
 }
 
@@ -74,11 +97,15 @@ export function launchdPlistPath(homeDir: string, unit: ServiceUnitLabel): strin
  */
 function macosCommands(unit: ServiceUnitLabel, uid: number, homeDir: string): readonly Command[] {
   return [
+    // The removal signal: zero ⇒ the agent was loaded and is now booted out; tolerated non-zero ⇒
+    // it was not loaded (already absent). `rm -f` below is NOT a change signal (it exits zero even
+    // when the plist was already gone), so it stays unflagged.
     {
       id: "launchctl-bootout",
       file: "launchctl",
       args: ["bootout", `gui/${uid}/${unit.launchdLabel}`],
       tolerateFailure: true,
+      changeOnZeroExit: true,
     },
     { id: "rm-plist", file: "rm", args: ["-f", launchdPlistPath(homeDir, unit)], tolerateFailure: true },
   ];
@@ -103,11 +130,15 @@ export function systemdUnitPath(homeDir: string, unit: ServiceUnitLabel): string
  */
 function linuxCommands(unit: ServiceUnitLabel, homeDir: string): readonly Command[] {
   return [
+    // The removal signal: zero ⇒ the unit was enabled and is now disabled+stopped; tolerated
+    // non-zero ⇒ not present (already absent). `rm -f` and `daemon-reload` are bookkeeping, not
+    // change signals.
     {
       id: "systemctl-disable",
       file: "systemctl",
       args: ["--user", "disable", "--now", unit.systemdUnit],
       tolerateFailure: true,
+      changeOnZeroExit: true,
     },
     { id: "rm-unit", file: "rm", args: ["-f", systemdUnitPath(homeDir, unit)], tolerateFailure: true },
     { id: "systemctl-daemon-reload", file: "systemctl", args: ["--user", "daemon-reload"], tolerateFailure: true },

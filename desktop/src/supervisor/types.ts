@@ -114,6 +114,13 @@ export type ClockFn = () => number;
 /** Sleep for `ms`, cancellable via the returned handle's `cancel`. Injected so tests never wait. */
 export type SleepFn = (ms: number) => { readonly promise: Promise<void>; cancel(): void };
 
+/**
+ * Schedule `callback` to run every `ms`, returning a handle to cancel it. Injected so the adopted-
+ * root health re-probe (a-AC-3 for roots the shell has no child handle for) is unit-testable with
+ * NO real timer — a test drives the callback synchronously. The default is an unref'd `setInterval`.
+ */
+export type IntervalFn = (ms: number, callback: () => void) => { cancel(): void };
+
 /** A structured, credential-free log sink. Defaults to `console`. */
 export interface SupervisorLogger {
   info(message: string, fields?: Record<string, unknown>): void;
@@ -131,6 +138,8 @@ export interface SupervisorSeams {
   readonly readPidFile: ReadPidFileFn;
   readonly clock: ClockFn;
   readonly sleep: SleepFn;
+  /** Periodic scheduler backing the adopted/no-child-root health re-probe (a-AC-3). */
+  readonly setInterval: IntervalFn;
   readonly logger: SupervisorLogger;
 }
 
@@ -148,6 +157,12 @@ export interface SupervisorPolicy {
   readonly backoffCeilingMs: number;
   /** Max consecutive restart attempts before a root goes `failed` (a-AC-3: never loop forever). */
   readonly maxRestarts: number;
+  /**
+   * How often to re-probe `/health` for a root the shell adopted or found already-alive (so it has
+   * no child exit handle). A transition to unhealthy on this probe feeds the SAME bounded-restart
+   * policy (a-AC-3), so an adopted root that dies later is not left stranded as `healthy`.
+   */
+  readonly adoptedProbeIntervalMs: number;
 }
 
 /** How to launch one root: the resolved argv (sidecar-node-aware) and its loopback contract. */

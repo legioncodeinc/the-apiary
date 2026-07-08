@@ -15,19 +15,24 @@
 /** The subset of Electron's `Settings` (app.setLoginItemSettings) this module computes. */
 export interface LoginItemSettings {
   readonly openAtLogin: boolean;
-  /** Launch minimized/hidden to the tray rather than popping the main window on login. */
+  /**
+   * macOS-only hidden-start signal. Electron honors `openAsHidden` ONLY on darwin; on Windows it is
+   * ignored, so a hidden start there is driven by {@link HIDDEN_LOGIN_FLAG} in {@link args} instead.
+   */
   readonly openAsHidden: boolean;
+  /**
+   * Login-launch argv appended to the executable. On Windows this carries {@link HIDDEN_LOGIN_FLAG}
+   * so the app can start minimized to the tray (Windows has no `openAsHidden`); empty elsewhere.
+   */
+  readonly args: readonly string[];
 }
 
-/** The settings to register launch-at-login, hidden to the tray (ADR-0005: the app is now the autostart owner). */
-export function registerAutostartSettings(): LoginItemSettings {
-  return { openAtLogin: true, openAsHidden: true };
-}
-
-/** The settings to unregister launch-at-login (symmetry for uninstall / user opt-out). */
-export function unregisterAutostartSettings(): LoginItemSettings {
-  return { openAtLogin: false, openAsHidden: false };
-}
+/**
+ * The CLI flag Electron passes at login-launch (Windows) to request a hidden/tray start. The app
+ * reads {@link wasLaunchedHidden} at startup and, when true, does not pop the main window. macOS uses
+ * `openAsHidden` for the same effect, so the flag is not needed there.
+ */
+export const HIDDEN_LOGIN_FLAG = "--hidden";
 
 /**
  * Platforms Electron's `setLoginItemSettings` meaningfully supports. Linux is excluded — Electron
@@ -38,4 +43,33 @@ export type AutostartPlatform = "darwin" | "win32";
 /** Whether `app.setLoginItemSettings` has real effect on this platform (c-AC-3 scoping: Windows/macOS). */
 export function isAutostartSupported(platform: string): platform is AutostartPlatform {
   return platform === "darwin" || platform === "win32";
+}
+
+/**
+ * The settings to register launch-at-login, started hidden to the tray (ADR-0005: the app is the
+ * autostart owner). Per-platform: macOS gets `openAsHidden: true`; Windows gets the
+ * {@link HIDDEN_LOGIN_FLAG} in `args` because it has no `openAsHidden` (finding: without a
+ * cross-platform hidden signal the window still pops on Windows login).
+ */
+export function registerAutostartSettings(platform: string = process.platform): LoginItemSettings {
+  const isMac = platform === "darwin";
+  const isWindows = platform === "win32";
+  return {
+    openAtLogin: true,
+    openAsHidden: isMac,
+    args: isWindows ? [HIDDEN_LOGIN_FLAG] : [],
+  };
+}
+
+/** The settings to unregister launch-at-login (symmetry for uninstall / user opt-out). */
+export function unregisterAutostartSettings(): LoginItemSettings {
+  return { openAtLogin: false, openAsHidden: false, args: [] };
+}
+
+/** True iff the process was login-launched hidden, either via macOS `openAsHidden` or the Windows flag. */
+export function wasLaunchedHidden(
+  argv: readonly string[],
+  openedAtLoginHidden: boolean,
+): boolean {
+  return openedAtLoginHidden || argv.includes(HIDDEN_LOGIN_FLAG);
 }

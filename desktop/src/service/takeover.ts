@@ -60,25 +60,35 @@ function osContext(seams: ServiceSeams): { os: ServiceOs; ctx: OsContext } {
 
 /**
  * Run ONE command through the seam unless this is a dry run, appending an audit line either way.
- * Returns the result (or a synthetic ok result in dryRun). Honours `tolerateFailure` so a
+ * Returns the result (or a synthetic ok result in dryRun). Honours `tolerateFailure` so an
  * "already absent" non-zero exit is not treated as a failure — that is what makes re-running a no-op.
+ *
+ * `changed` is DELIBERATELY split from `ok` (c-AC-4): `ok` means "ran without a hard failure";
+ * `changed` means "actually removed something". For a removal command (`changeOnZeroExit`), a real
+ * change is signalled ONLY by a zero exit — a tolerated non-zero exit is "already absent" and must
+ * NOT flip `changed`. Non-removal steps (stop-only, `rm -f`, `daemon-reload`) never report a change.
+ * In dryRun nothing runs, so `changed` is always false.
  */
 async function runOrDescribe(
   command: Command,
   dryRun: boolean,
   seams: ServiceSeams,
   log: string[],
-): Promise<{ ran: boolean; ok: boolean }> {
+): Promise<{ ran: boolean; ok: boolean; changed: boolean }> {
   const argv = `${command.file} ${command.args.join(" ")}`;
   if (dryRun) {
     log.push(`[dry-run] would run: ${argv}`);
-    return { ran: false, ok: true };
+    return { ran: false, ok: true, changed: false };
   }
   const result: CommandResult = await seams.runCommand(command);
   const ok = command.tolerateFailure ? true : result.ok;
-  log.push(`ran: ${argv} -> code=${result.code ?? "signal"}${ok ? "" : " (FAILED)"}`);
+  // A real state change is a removal command that exited zero (present → removed). A tolerated
+  // non-zero exit on that same command means "already absent": ran, ok, but nothing changed.
+  const changed = command.changeOnZeroExit === true && result.code === 0;
+  const absentNote = command.changeOnZeroExit === true && !changed && ok ? " (already absent)" : "";
+  log.push(`ran: ${argv} -> code=${result.code ?? "signal"}${ok ? "" : " (FAILED)"}${absentNote}`);
   if (!ok) seams.logger.warn("takeover command failed", { id: command.id, code: result.code });
-  return { ran: true, ok };
+  return { ran: true, ok, changed };
 }
 
 /**
@@ -116,8 +126,11 @@ async function handleStandalone(
   const commands = buildStandaloneUninstall(ctx); // throws if any argv targets the protected dir
   let changed = false;
   for (const command of commands) {
-    const { ran, ok } = await runOrDescribe(command, dryRun, seams, log);
-    if (ran && ok) changed = true;
+    const { ran, ok, changed: didChange } = await runOrDescribe(command, dryRun, seams, log);
+    // `npm uninstall -g` is a non-tolerated removal without a per-OS exit-semantics marker; a
+    // successful run of it IS a real change. Removal units flip `changed` only on an actual removal.
+    if (didChange) changed = true;
+    else if (ran && ok && !command.tolerateFailure) changed = true;
     if (ran && !ok && !command.tolerateFailure) {
       // A hard uninstall failure (e.g. npm uninstall failed) must not leave a half state silently.
       return {
@@ -164,8 +177,11 @@ export async function runTakeover(
     const plan = buildDeregisterPlan(unit, ctx);
     assertNoProtectedPath(plan.commands); // defence in depth: teardown never targets ~/.deeplake
     for (const command of plan.commands) {
-      const { ran, ok } = await runOrDescribe(command, dryRun, seams, log);
-      if (ran && ok) changed = true;
+      // `changed` reflects a REAL removal (a deregister command that exited zero), NOT merely a
+      // tolerated command running: an already-absent unit runs its tolerated /Delete, is `ok`, but
+      // did NOT change anything — so it must not flip `changed` (c-AC-4).
+      const { changed: didChange } = await runOrDescribe(command, dryRun, seams, log);
+      if (didChange) changed = true;
     }
   }
 
@@ -213,8 +229,10 @@ export async function runShellUninstall(
   let changed = false;
   const commands = buildShellUninstallCommands(ctx);
   for (const command of commands) {
-    const { ran, ok } = await runOrDescribe(command, dryRun, seams, log);
-    if (ran && ok) changed = true;
+    // Same honesty rule as the takeover: only an actual removal (deregister command, zero exit)
+    // flips `changed`; a tolerated "already absent" exit does not (c-AC-7).
+    const { changed: didChange } = await runOrDescribe(command, dryRun, seams, log);
+    if (didChange) changed = true;
   }
 
   log.push(`shell-uninstall done (changed=${changed}); services NOT restored (clean removal)`);

@@ -14,7 +14,7 @@ import { createNodeSpawn } from "./spawn.js";
 import { probeHealth } from "./health-probe.js";
 import { createPortCheck } from "./port-check.js";
 import { isPidAlive } from "./pid-liveness.js";
-import type { ReadPidFileFn, SleepFn, SupervisorLogger, SupervisorSeams } from "./types.js";
+import type { IntervalFn, ReadPidFileFn, SleepFn, SupervisorLogger, SupervisorSeams } from "./types.js";
 
 /** The default pid-file reader: `utf8`, delegating existence/garbage handling to `readPidFile`. */
 const defaultReadPidFile: ReadPidFileFn = (pidPath) => readFileSync(pidPath, "utf8");
@@ -32,6 +32,13 @@ export const realSleep: SleepFn = (ms) => {
     };
   });
   return { promise, cancel };
+};
+
+/** A periodic scheduler over setInterval; unref'd so a pending re-probe never keeps the app alive. */
+export const realInterval: IntervalFn = (ms, callback) => {
+  const timer = setInterval(callback, ms);
+  if (typeof timer.unref === "function") timer.unref();
+  return { cancel: () => clearInterval(timer) };
 };
 
 /** A minimal console logger. Never logs a credential (the supervisor only ever passes safe fields). */
@@ -57,6 +64,7 @@ export function createDefaultSeams(overrides: Partial<SupervisorSeams> = {}): Su
     readPidFile: overrides.readPidFile ?? defaultReadPidFile,
     clock: overrides.clock ?? Date.now,
     sleep: overrides.sleep ?? realSleep,
+    setInterval: overrides.setInterval ?? realInterval,
     logger: overrides.logger ?? consoleLogger,
   };
 }

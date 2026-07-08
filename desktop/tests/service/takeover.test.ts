@@ -60,6 +60,41 @@ describe("runTakeover — live run deregisters Apiary units + registers login (c
     expect(fake.loginToggles).toEqual([true]);
     expect(run.log.some((l) => l.includes("takeover done"))).toBe(true);
   });
+
+  it("changed=FALSE when every unit was already ABSENT (deregister exits non-zero, nothing removed)", async () => {
+    // Every schtasks /Delete reports 'task not found' (exit 1, tolerated). No standalone present.
+    // `changed` must reflect real state change: nothing was removed, so it stays false — even though
+    // every tolerated command 'ran without a hard failure'.
+    const fake = makeSeams({ env: windowsEnv, exitCodes: { "schtasks-delete": 1, "schtasks-end": 1 } });
+    const run = await runTakeover({ dryRun: false }, fake.seams);
+    expect(run.changed).toBe(false);
+    // The audit log should note the absent units rather than claiming a change.
+    expect(run.log.some((l) => l.includes("already absent"))).toBe(true);
+    // ...but launch-at-login is still registered (that is not gated on `changed`).
+    expect(fake.loginToggles).toEqual([true]);
+  });
+
+  it("changed=TRUE when a unit was actually PRESENT and removed (deregister exits zero)", async () => {
+    // Default exit code is 0 → the /Delete 'removed' a present task → a real state change.
+    const fake = makeSeams({ env: windowsEnv });
+    const run = await runTakeover({ dryRun: false }, fake.seams);
+    expect(run.changed).toBe(true);
+    expect(run.log.some((l) => l.includes("already absent"))).toBe(false);
+  });
+
+  it("changed=FALSE in dryRun even though the units are present (nothing is executed)", async () => {
+    const fake = makeSeams({ env: windowsEnv });
+    const run = await runTakeover({ dryRun: true }, fake.seams);
+    expect(run.changed).toBe(false);
+    expect(fake.ranCommands).toHaveLength(0);
+  });
+
+  it("a stop-only step exiting zero does NOT by itself flip changed (only real deregistration does)", async () => {
+    // schtasks /End (stop) exits 0 but /Delete reports already-absent (exit 1): nothing was removed.
+    const fake = makeSeams({ env: windowsEnv, exitCodes: { "schtasks-delete": 1 } });
+    const run = await runTakeover({ dryRun: false }, fake.seams);
+    expect(run.changed).toBe(false);
+  });
 });
 
 describe("runTakeover — standalone Hivemind branches (c-AC-8)", () => {
@@ -110,6 +145,15 @@ describe("runShellUninstall — clean removal, NOT restore (c-AC-7)", () => {
     );
     expect(reRegistered).toBe(false);
     expect(result.log.some((l) => l.includes("NOT restored"))).toBe(true);
+    // Units were present (default exit 0 on the deregister step) → a real removal happened.
+    expect(result.changed).toBe(true);
+  });
+
+  it("shell-uninstall reports changed=FALSE when the units were already absent (nothing removed)", async () => {
+    const fake = makeSeams({ env: windowsEnv, exitCodes: { "schtasks-delete": 1, "schtasks-end": 1 } });
+    const result = await runShellUninstall({ dryRun: false }, fake.seams);
+    expect(result.changed).toBe(false);
+    expect(fake.loginToggles).toEqual([false]); // login is still cleared regardless of `changed`
   });
 
   it("the constructed shell-uninstall commands contain deregister argv and no re-register argv", () => {

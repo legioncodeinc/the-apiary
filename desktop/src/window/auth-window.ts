@@ -17,7 +17,7 @@
 import { BrowserWindow, ipcMain, shell, type WebContents } from "electron";
 
 import { APIARY_IPC_CHANNELS, type OpenAuthWindowResult } from "../preload/api-shape.js";
-import { validateAuthUrl } from "./auth-url.js";
+import { isAllowedAuthChildNavigation, validateAuthUrl } from "./auth-url.js";
 
 /** A minimal logger so this module never hard-depends on `console` and stays testable-by-shape. */
 export interface AuthWindowLogger {
@@ -38,32 +38,29 @@ const defaultLogger: AuthWindowLogger = {
  * `window.open` to spawn a fresh in-app `BrowserWindow` (which would inherit an app-owned surface).
  * A real https redirect stays in-window (device-flow pages legitimately hop across https origins);
  * a genuine external link the page tries to pop open is handed to the OS browser instead.
+ *
+ * The SAME https-only check (the pure {@link isAllowedAuthChildNavigation}) guards BOTH
+ * `will-navigate` AND `will-redirect`: `will-navigate` does NOT fire for a server-side (3xx)
+ * redirect, so without the `will-redirect` guard a validated https page could be bounced by the
+ * server to `http:`/`file:`/another scheme mid-flight and escape the confinement.
  */
 function confineAuthWindow(child: BrowserWindow): void {
-  child.webContents.on("will-navigate", (event, url) => {
-    let protocol: string | undefined;
-    try {
-      protocol = new URL(url).protocol;
-    } catch {
-      protocol = undefined;
-    }
+  const guard = (event: { preventDefault(): void }, url: string): void => {
     // Only https navigation may proceed in-window. Anything else (http downgrade, file:, data:,
     // javascript:, custom scheme, or an unparseable target) is refused.
-    if (protocol !== "https:") {
+    if (!isAllowedAuthChildNavigation(url)) {
       event.preventDefault();
     }
-  });
+  };
+  // Client-initiated navigation AND server-side redirects both go through the one decision — a 302
+  // off https is caught by will-redirect (will-navigate never fires for it).
+  child.webContents.on("will-navigate", (event, url) => guard(event, url));
+  child.webContents.on("will-redirect", (event, url) => guard(event, url));
 
   // The renderer of this window is the remote page: NEVER let it spawn an in-app window. A genuine
   // https popup is routed to the OS browser; everything else is dropped.
   child.webContents.setWindowOpenHandler(({ url }) => {
-    let protocol: string | undefined;
-    try {
-      protocol = new URL(url).protocol;
-    } catch {
-      protocol = undefined;
-    }
-    if (protocol === "https:") void shell.openExternal(url);
+    if (isAllowedAuthChildNavigation(url)) void shell.openExternal(url);
     return { action: "deny" };
   });
 }

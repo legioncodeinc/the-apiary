@@ -78,9 +78,12 @@ export function makeFakeSeams(options: {
   readonly clock: FakeClock;
   readonly spawns: { command: string; args: readonly string[]; process: FakeProcess }[];
   readonly logger: SupervisorLogger & { readonly entries: { level: string; message: string }[] };
+  /** Every armed interval, so a test can fire an adopted-root re-probe tick synchronously. */
+  readonly intervals: { ms: number; callback: () => void; cancelled: boolean }[];
 } {
   const clock = new FakeClock();
   const spawns: { command: string; args: readonly string[]; process: FakeProcess }[] = [];
+  const intervals: { ms: number; callback: () => void; cancelled: boolean }[] = [];
   const spawnQueue = options.spawnQueue ? [...options.spawnQueue] : undefined;
 
   const entries: { level: string; message: string }[] = [];
@@ -114,10 +117,20 @@ export function makeFakeSeams(options: {
       clock.advance(ms);
       return { promise: Promise.resolve(), cancel: () => undefined };
     },
+    // Virtual interval: record the callback so a test fires ticks synchronously; never a real timer.
+    setInterval: (ms: number, callback: () => void) => {
+      const entry = { ms, callback, cancelled: false };
+      intervals.push(entry);
+      return {
+        cancel: () => {
+          entry.cancelled = true;
+        },
+      };
+    },
     logger,
   };
 
-  return { seams, clock, spawns, logger };
+  return { seams, clock, spawns, logger, intervals };
 }
 
 /** Convenience: a health fn that returns a fixed result for all URLs. */

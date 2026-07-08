@@ -40,6 +40,7 @@ export const DEFAULT_POLICY: SupervisorPolicy = {
   backoffFloorMs: 1000,
   backoffCeilingMs: 30_000,
   maxRestarts: 5,
+  adoptedProbeIntervalMs: 10_000,
 };
 
 /** Mutable per-root supervision state (internal). */
@@ -52,6 +53,12 @@ interface RootRuntime {
   readonly backoff: Backoff;
   /** True once stop() has run, so a late crash callback does not trigger a restart (a-AC-4). */
   shuttingDown: boolean;
+  /**
+   * The periodic health re-probe for a root we adopted / found already-alive (no child exit handle).
+   * Cancelled whenever we take ownership another way (a fresh spawn) or on stop(). (Finding: adopted
+   * roots must not be left as `healthy` forever if the underlying process dies later.)
+   */
+  adoptedProbe?: { cancel(): void };
 }
 
 /** Construct a {@link FleetSupervisor} over the resolved launch specs, seams, and policy. */
@@ -146,6 +153,10 @@ export function createFleetSupervisor(
       return false;
     }
 
+    // We are about to own a real child; any adopted-root re-probe is now superseded by its exit handler.
+    rt.adoptedProbe?.cancel();
+    rt.adoptedProbe = undefined;
+
     let child: SpawnedProcess;
     try {
       child = seams.spawn(rt.spec.command, rt.spec.args);
@@ -177,10 +188,13 @@ export function createFleetSupervisor(
 
     if (rt.restarts >= policy.maxRestarts) {
       // a-AC-3: repeated failures stop retrying and surface an actionable terminal state, not a loop.
+      // Report the TOTAL crash count: `restarts` counts the recoveries we already attempted, and
+      // this exit is the one that pushed us over the bound — so the honest count is restarts + 1.
+      const totalCrashes = rt.restarts + 1;
       setPhase(
         rt,
         "failed",
-        `${rt.spec.name} crashed ${rt.restarts} times and did not recover; giving up. Check the daemon logs and restart the app.`,
+        `${rt.spec.name} crashed ${totalCrashes} times and did not recover; giving up. Check the daemon logs and restart the app.`,
       );
       return;
     }
@@ -191,21 +205,76 @@ export function createFleetSupervisor(
     setPhase(rt, "restarting", `restarting after crash (attempt ${rt.restarts}/${policy.maxRestarts})`);
 
     const nap = seams.sleep(delay);
-    void nap.promise.then(async () => {
+    // A throw ANYWHERE in the delayed restart (spawnRoot / waitHealthy → probeHealth) must NOT become
+    // an unhandled rejection that destabilizes the Electron main process — route it into the same
+    // terminal `failed` handling the give-up path uses, so the fleet lands actionable, not silent.
+    void nap.promise.then(() => runDelayedRestart(rt)).catch((error) => {
       if (rt.shuttingDown || stopping) return;
-      const spawned = spawnRoot(rt);
-      if (!spawned) return; // pid-liveness no-op, or a synchronous spawn failure already set `failed`.
-      setPhase(rt, "starting", `restarted (attempt ${rt.restarts}/${policy.maxRestarts})`);
-      const healthy = await waitHealthy(rt);
+      seams.logger.error("delayed restart threw", { root: rt.spec.name, error: error instanceof Error ? error.message : String(error) });
+      setPhase(
+        rt,
+        "failed",
+        `${rt.spec.name} failed while restarting: ${error instanceof Error ? error.message : "unknown error"}. Check the daemon logs and restart the app.`,
+      );
+    });
+  }
+
+  /** The body of a delayed restart, extracted so its rejection can be routed to terminal handling. */
+  async function runDelayedRestart(rt: RootRuntime): Promise<void> {
+    if (rt.shuttingDown || stopping) return;
+    const spawned = spawnRoot(rt);
+    if (!spawned) return; // pid-liveness no-op, or a synchronous spawn failure already set `failed`.
+    setPhase(rt, "starting", `restarted (attempt ${rt.restarts}/${policy.maxRestarts})`);
+    const healthy = await waitHealthy(rt);
+    if (rt.shuttingDown || stopping) return;
+    if (healthy) {
+      rt.backoff.reset();
+      setPhase(rt, "healthy");
+    } else {
+      // The restart did not come back healthy within budget: count it and let the next exit (or
+      // this path on a future crash) advance toward give-up. Surface the stall now.
+      setPhase(rt, "restarting", `restart did not become healthy within budget (attempt ${rt.restarts}/${policy.maxRestarts})`);
+    }
+  }
+
+  /**
+   * Arm a periodic `/health` re-probe for a root we ADOPTED or found already-alive (so we have no
+   * child exit handle to drive the bounded-restart policy). On the first probe that comes back NOT
+   * ok while the root is still believed `healthy`, we cancel the probe and route into `handleExit`
+   * — the SAME bounded-restart policy a crashing child would trigger. This closes the gap where an
+   * adopted Doctor/Hive dying later left the fleet reporting `healthy` forever with no follow-up.
+   *
+   * Scope (ADR-0005 single-owner): only the ROOTS the shell owns (Doctor + Hive) are re-probed here;
+   * the workload daemons remain Doctor's responsibility.
+   */
+  function armAdoptedProbe(rt: RootRuntime): void {
+    rt.adoptedProbe?.cancel();
+    rt.adoptedProbe = seams.setInterval(policy.adoptedProbeIntervalMs, () => {
       if (rt.shuttingDown || stopping) return;
-      if (healthy) {
-        rt.backoff.reset();
-        setPhase(rt, "healthy");
-      } else {
-        // The restart did not come back healthy within budget: count it and let the next exit (or
-        // this path on a future crash) advance toward give-up. Surface the stall now.
-        setPhase(rt, "restarting", `restart did not become healthy within budget (attempt ${rt.restarts}/${policy.maxRestarts})`);
+      // A child spawned in the meantime (e.g. a restart took ownership): the child's exit handler is
+      // now authoritative, so this adopted probe must step aside.
+      if (rt.child !== undefined) {
+        rt.adoptedProbe?.cancel();
+        rt.adoptedProbe = undefined;
+        return;
       }
+      if (rt.phase !== "healthy") return;
+      void seams
+        .probeHealth(rt.spec.healthUrl, policy.probeTimeoutMs)
+        .then((result) => {
+          if (rt.shuttingDown || stopping || rt.child !== undefined || rt.phase !== "healthy") return;
+          if (result.kind !== "ok") {
+            // The adopted root stopped answering: cancel this probe and hand off to the bounded
+            // policy exactly as a crash would (a-AC-3).
+            rt.adoptedProbe?.cancel();
+            rt.adoptedProbe = undefined;
+            seams.logger.warn("adopted root became unhealthy", { root: rt.spec.name, health: result.kind });
+            handleExit(rt, null);
+          }
+        })
+        .catch((error) => {
+          seams.logger.warn("adopted-root re-probe threw", { root: rt.spec.name, error: error instanceof Error ? error.message : String(error) });
+        });
     });
   }
 
@@ -218,6 +287,9 @@ export function createFleetSupervisor(
       // a-AC-5/a-AC-6: an already-healthy root of ours — adopt it, do not re-spawn or re-bind.
       seams.logger.info("adopted already-healthy root", { root: rt.spec.name, port: rt.spec.port });
       setPhase(rt, "healthy");
+      // We have no child exit handle for an adopted root, so watch it via a periodic re-probe that
+      // feeds the bounded-restart policy if it dies later (finding: adopted roots need monitoring).
+      armAdoptedProbe(rt);
       return;
     }
     if (holder.kind === "foreign") {
@@ -233,6 +305,8 @@ export function createFleetSupervisor(
       if (rt.phase !== "failed") {
         const healthy = await waitHealthy(rt);
         setPhase(rt, healthy ? "healthy" : "failed", healthy ? undefined : "an existing process holds the pid but is not healthy");
+        // A live pid we adopted (no child handle): watch it the same way as an `ours-healthy` adopt.
+        if (healthy) armAdoptedProbe(rt);
       }
       return;
     }
@@ -263,7 +337,12 @@ export function createFleetSupervisor(
       stopping = true;
       // Mark every root shutting-down BEFORE stopping any child so a crash callback mid-teardown
       // cannot trigger a restart (a-AC-4: no orphan, no resurrection).
-      for (const rt of roots.values()) rt.shuttingDown = true;
+      for (const rt of roots.values()) {
+        rt.shuttingDown = true;
+        // Stop watching any adopted root so a re-probe cannot resurrect it mid/after teardown (a-AC-4).
+        rt.adoptedProbe?.cancel();
+        rt.adoptedProbe = undefined;
+      }
       await Promise.all(
         [...roots.values()].map(async (rt) => {
           if (rt.child !== undefined) {

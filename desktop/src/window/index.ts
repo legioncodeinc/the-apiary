@@ -122,7 +122,7 @@ export function createMainWindow(supervisor: FleetSupervisor): BrowserWindow {
 
   // b-AC-5 + b-AC-4 retry: lock navigation to the loopback origin; external links → OS browser; the
   // failed-view Retry sentinel re-arms the gate instead of navigating anywhere.
-  win.webContents.on("will-navigate", (event, url) => {
+  const handleNavigation = (event: { preventDefault(): void }, url: string): void => {
     const decision = decideNavigation(url);
     if (decision.kind === "allow-in-window") return; // stay in-window
     event.preventDefault();
@@ -134,7 +134,12 @@ export function createMainWindow(supervisor: FleetSupervisor): BrowserWindow {
       void shell.openExternal(url);
     }
     // "blocked" → simply prevented; nothing is opened.
-  });
+  };
+  // Guard client-initiated navigation AND server-side redirects with the SAME loopback decision:
+  // `will-navigate` does NOT fire for a 3xx redirect, so a 302 from DASHBOARD_ORIGIN could otherwise
+  // move the window off loopback unchecked. `will-redirect` closes that hole (b-AC-5).
+  win.webContents.on("will-navigate", (event, url) => handleNavigation(event, url));
+  win.webContents.on("will-redirect", (event, url) => handleNavigation(event, url));
   win.webContents.setWindowOpenHandler(({ url }) => {
     const decision = decideNavigation(url);
     if (decision.kind === "external") void shell.openExternal(url);

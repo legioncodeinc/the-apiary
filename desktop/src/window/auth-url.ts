@@ -52,3 +52,26 @@ export function validateAuthUrl(rawUrl: unknown): AuthUrlValidation {
 
   return { ok: true, url: url.href };
 }
+
+/**
+ * PURE in-window navigation decision for the owned auth child window (b-AC-7).
+ *
+ * The child renders an UNTRUSTED remote verification page. It may only ever navigate WITHIN `https:`
+ * (device-flow pages legitimately hop across https origins). Anything else — an http downgrade,
+ * `file:`, `data:`, `javascript:`, a custom scheme, or an unparseable target — must be refused.
+ *
+ * This is the single decision both the `will-navigate` AND `will-redirect` electron handlers call:
+ * `will-navigate` does NOT fire for a server-side (3xx) redirect, so a validated https page that a
+ * server bounces to `http:`/`file:`/another scheme mid-flight would otherwise escape the guard.
+ * Returns `true` to ALLOW the navigation in-window, `false` to block it. Never throws.
+ */
+export function isAllowedAuthChildNavigation(rawUrl: string): boolean {
+  let protocol: string | undefined;
+  try {
+    protocol = new URL(rawUrl).protocol;
+  } catch {
+    protocol = undefined;
+  }
+  // Only https navigation may proceed in-window. Everything else is refused.
+  return protocol === "https:";
+}

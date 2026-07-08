@@ -55,6 +55,20 @@ describe("decideNavigation (b-AC-5)", () => {
     expect(decision.kind).toBe("blocked");
     if (decision.kind === "blocked") expect(decision.reason).toBeTruthy();
   });
+
+  // will-redirect coverage: a 302 does NOT fire will-navigate, so both handlers must run this same
+  // decision. A server-side redirect off the loopback origin must never resolve to allow-in-window —
+  // it moves the main window off loopback exactly the way an unchecked 302 would (b-AC-5).
+  it("a server-side redirect target off loopback is NOT allowed in-window (302 case)", () => {
+    // 302 DASHBOARD_ORIGIN → external https origin.
+    expect(decideNavigation("https://evil.example.com/phish").kind).toBe("external");
+    // 302 DASHBOARD_ORIGIN → widened loopback port (the silent-broadening attempt).
+    expect(decideNavigation("http://127.0.0.1:9999/").kind).not.toBe("allow-in-window");
+    // 302 DASHBOARD_ORIGIN → file: scheme.
+    expect(decideNavigation("file:///etc/passwd").kind).toBe("blocked");
+    // A redirect that stays on the exact dashboard origin is still fine in-window.
+    expect(decideNavigation(`${DASHBOARD_ORIGIN}/after-redirect`).kind).toBe("allow-in-window");
+  });
 });
 
 describe("isDashboardUrl (b-AC-5)", () => {

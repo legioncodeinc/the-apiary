@@ -17,7 +17,13 @@
 import { autoUpdater } from "electron-updater";
 
 import { verifyChecksum, type ChecksumVerificationResult } from "./checksum-verify.js";
-import { decideUpdateAction, type SigningPosture, type UpdateAction } from "./update-decision.js";
+import {
+  classifyUpdateCheck,
+  decideUpdateAction,
+  type RawUpdateCheck,
+  type SigningPosture,
+  type UpdateAction,
+} from "./update-decision.js";
 
 /** A structured, credential-free log sink. Defaults to `console`, matching the supervisor's logger shape. */
 export interface UpdaterLogger {
@@ -90,21 +96,37 @@ export async function checkForUpdates(logger: UpdaterLogger = consoleLogger): Pr
     return decideUpdateAction({ signing, check: { kind: "check-failed", reason } });
   }
 
-  if (checkResult === null || checkResult.updateInfo.version === autoUpdater.currentVersion.version) {
+  // Reduce electron-updater's raw result to the evidence the pure decision needs, WITHOUT a
+  // hand-rolled version compare:
+  //  - `null` means the updater is DISABLED (no publish config / unpackaged dev) — NOT "up-to-date";
+  //  - otherwise defer to electron-updater's own `isUpdateAvailable` (which honours its
+  //    downgrade/staging/channel rules a bare `version !== currentVersion` compare would bypass).
+  // The version→download-URL derivation is only meaningful when an update is actually available.
+  const raw: RawUpdateCheck =
+    checkResult === null
+      ? { kind: "updater-disabled" }
+      : {
+          kind: "checked",
+          isUpdateAvailable: checkResult.isUpdateAvailable,
+          version: checkResult.updateInfo.version,
+          // electron-updater's GitHub-releases provider derives the browser-facing download page from
+          // the repo + tag; point users at the Releases page rather than a raw asset URL that may not
+          // exist for their platform (e.g. a user on an unreleased arch).
+          downloadUrl: `https://github.com/legioncodeinc/the-apiary/releases/tag/v${checkResult.updateInfo.version}`,
+        };
+
+  const check = classifyUpdateCheck(raw);
+  if (check.kind === "check-failed") {
+    logger.warn("update check unavailable", { reason: check.reason });
+    return decideUpdateAction({ signing, check });
+  }
+  if (check.kind === "up-to-date") {
     logger.info("no update available");
-    return decideUpdateAction({ signing, check: { kind: "up-to-date" } });
+    return decideUpdateAction({ signing, check });
   }
 
-  const version = checkResult.updateInfo.version;
-  // electron-updater's GitHub-releases provider derives the browser-facing download page from the
-  // repo + tag; point users at the Releases page rather than a raw asset URL that may not exist
-  // for their platform (e.g. a user on an unreleased arch).
-  const downloadUrl = `https://github.com/legioncodeinc/the-apiary/releases/tag/v${version}`;
-
-  const action = decideUpdateAction({
-    signing,
-    check: { kind: "update-available", version, downloadUrl },
-  });
+  const version = check.version;
+  const action = decideUpdateAction({ signing, check });
 
   if (action.kind === "auto-apply") {
     logger.info("signed build: delegating to electron-updater auto-apply", { version });

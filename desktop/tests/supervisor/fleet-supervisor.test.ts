@@ -55,6 +55,7 @@ const FAST_POLICY: SupervisorPolicy = {
   backoffFloorMs: 5,
   backoffCeilingMs: 20,
   maxRestarts: 2,
+  adoptedProbeIntervalMs: 50,
 };
 
 /** Flush the microtask queue so the fake `sleep` (which resolves immediately) lets restarts run. */
@@ -135,6 +136,10 @@ describe("createFleetSupervisor restart policy (a-AC-3)", () => {
     await flush();
     expect(doctorPhase()?.phase).toBe("failed");
     expect(doctorPhase()?.detail).toContain("giving up");
+    // Off-by-one guard (finding): the honest count is the TOTAL crashes (maxRestarts recoveries + the
+    // final crash that pushed us over) = 3, not the `restarts` counter's 2.
+    expect(doctorPhase()?.detail).toContain("crashed 3 times");
+    expect(doctorPhase()?.restarts).toBe(2);
     expect(supervisor.getFleetStatus().hasTerminalFailure).toBe(true);
   });
 
@@ -157,6 +162,91 @@ describe("createFleetSupervisor restart policy (a-AC-3)", () => {
     // At least one backoff sleep was taken, and every sleep is within the bounded ceiling.
     expect(sleepMs.length).toBeGreaterThan(0);
     for (const ms of sleepMs) expect(ms).toBeLessThanOrEqual(FAST_POLICY.backoffCeilingMs);
+  });
+});
+
+describe("createFleetSupervisor delayed-restart error routing (finding: no unhandled rejection)", () => {
+  it("routes a throw inside the delayed restart into terminal `failed`, not an unhandled rejection", async () => {
+    // probeHealth answers ok during the initial start(), then THROWS on the post-crash restart's
+    // health-wait. Without the .catch() this throw would be an unhandled rejection; with it, the root
+    // must land in a terminal `failed` state naming the failure — never a silent swallow.
+    let started = false;
+    const { seams, spawns } = makeFakeSeams();
+    const throwingProbe = vi.fn(async (url: string) => {
+      if (started && url.includes("3852")) throw new Error("probe boom");
+      return { kind: "ok" as const };
+    });
+    const supervisor = createFleetSupervisor(SPECS, { ...seams, probeHealth: throwingProbe }, FAST_POLICY);
+
+    // Capture any unhandled rejection: there must be none.
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => {
+      unhandled.push(reason);
+    };
+    process.on("unhandledRejection", onUnhandled);
+    try {
+      await supervisor.start();
+      started = true;
+
+      const doctorChild = spawns.find((s) => s.args[0] === "/g/doctor/bundle/cli.js")?.process;
+      doctorChild?.fireExit(1);
+      await flush();
+      // Let any queued rejection microtasks settle so an unhandled rejection (if any) would surface.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const doctor = supervisor.getFleetStatus().roots.find((r) => r.name === "doctor");
+      expect(doctor?.phase).toBe("failed");
+      expect(doctor?.detail).toContain("probe boom");
+      expect(supervisor.getFleetStatus().hasTerminalFailure).toBe(true);
+      expect(unhandled).toHaveLength(0);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
+    }
+  });
+});
+
+describe("createFleetSupervisor adopted-root monitoring (finding: adopted roots need a re-probe)", () => {
+  it("restarts an adopted root that later fails, within the bounded policy", async () => {
+    // doctor is adopted (`ours-healthy`) → no child spawned, no exit handle. The adopted re-probe is
+    // the only thing that can notice it dying later. We toggle its /health to not-ok, fire the probe
+    // tick, and assert it feeds the SAME bounded-restart policy (a fresh spawn happens).
+    let doctorHealthy = true;
+    const { seams, spawns, intervals } = makeFakeSeams({
+      port: (port) => (port === 3852 ? { kind: "ours-healthy" } : { kind: "free" }),
+      health: (url) => (url.includes("3852") && !doctorHealthy ? { kind: "unreachable-refused", detail: "ECONNREFUSED" } : { kind: "ok" }),
+    });
+    const supervisor = createFleetSupervisor(SPECS, seams, FAST_POLICY);
+
+    await supervisor.start();
+    // Adopted: doctor healthy with NO spawn; an adopted probe was armed for it.
+    expect(supervisor.getFleetStatus().roots.find((r) => r.name === "doctor")?.phase).toBe("healthy");
+    expect(spawns.some((s) => s.args[0] === "/g/doctor/bundle/cli.js")).toBe(false);
+    const doctorProbe = intervals.find((iv) => !iv.cancelled);
+    expect(doctorProbe).toBeDefined();
+
+    // The adopted doctor dies. Fire the re-probe tick: it sees not-ok and hands off to the bounded
+    // policy, which respawns doctor (now that health is ok again it comes back healthy).
+    doctorHealthy = false;
+    doctorProbe?.callback();
+    await flush();
+    doctorHealthy = true;
+    await flush();
+
+    const doctor = supervisor.getFleetStatus().roots.find((r) => r.name === "doctor");
+    expect(doctor?.restarts).toBe(1);
+    // A real spawn now backs doctor (the adopted no-op path is over): the bounded policy took over.
+    expect(spawns.some((s) => s.args[0] === "/g/doctor/bundle/cli.js")).toBe(true);
+  });
+
+  it("cancels adopted-root re-probes on stop (no resurrection)", async () => {
+    const { seams, intervals } = makeFakeSeams({
+      port: (port) => (port === 3852 ? { kind: "ours-healthy" } : { kind: "free" }),
+    });
+    const supervisor = createFleetSupervisor(SPECS, seams, FAST_POLICY);
+    await supervisor.start();
+    await supervisor.stop();
+    // Every armed adopted probe is cancelled after stop().
+    expect(intervals.every((iv) => iv.cancelled)).toBe(true);
   });
 });
 
