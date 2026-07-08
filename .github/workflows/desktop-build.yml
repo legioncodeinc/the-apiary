@@ -1,0 +1,122 @@
+name: Desktop Build
+
+# PRD-005d: build + package the Apiary desktop shell (desktop/) across a windows/macos/ubuntu
+# matrix. Runs typecheck + the Vitest suite on every leg, then `electron-builder --dir` (an
+# UNPACKED, uninstalled app directory — no installer, no signing) so every OS proves the
+# electron-builder config resolves and produces a runnable app tree.
+#
+# Scope note (d-AC-1 / d-AC-7, CI-DEFERRED items called out explicitly):
+#   - This workflow does NOT sign anything on any OS. No Apple Developer ID / Windows OV-EV cert
+#     is configured anywhere in this repo yet (prd-005d's open question). Adding one later is a
+#     `secrets:`/`with:` addition to the (currently absent) publish job, not a rewrite of this
+#     matrix — see electron-builder.yml's own CI-deferred comments for the packaging-config side
+#     of that story.
+#   - This workflow does NOT run the full installer builders (nsis .exe, dmg, deb-in-AppImage
+#     final packaging) — only `--dir` (unpacked). A real signed installer + a GitHub Releases
+#     publish step is future work once a release channel/cert decision is made (prd-005d open
+#     questions: "Update channel" and "Cert timeline").
+#   - mac/linux legs here prove electron-builder's config resolves and packages on those OSes in
+#     CI (something the authoring machine cannot do locally — Windows-only, per PRD-005d run
+#     scope). They do not sign or publish.
+#
+# What runs locally vs. here: `npm run typecheck` and `npm test` are run locally on every change
+# (157+ baseline tests, now 180 with the packaging module's pure-logic tests). The Windows
+# `electron-builder --dir` unpacked-app smoke was also run locally (see the PR/report for output).
+# This workflow is the CROSS-OS proof: the same three steps (typecheck, test, package --dir) on
+# windows-latest, macos-14, and ubuntu-latest, so a regression on a platform the author cannot
+# run locally is caught before merge.
+
+on:
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - 'hive-release.json'
+      - '.github/workflows/desktop-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'desktop/**'
+      - 'hive-release.json'
+      - '.github/workflows/desktop-build.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: desktop-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Least privilege (guides/06-actions-security.md §1/§3): this workflow only reads the repo and
+# builds artifacts locally to the runner. It never pushes, publishes, or mutates any state, so
+# every job needs nothing beyond `contents: read`. No `id-token`/`packages`/`contents: write` is
+# declared anywhere because nothing here performs OIDC auth, registry pushes, or repo writes.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform-label: windows
+          - os: macos-14
+            platform-label: macos
+          - os: ubuntu-latest
+            platform-label: linux
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      # Pinned to commit SHA (guides/06-actions-security.md §2) — tags are mutable; the version
+      # comment alongside is for human readers and Dependabot's SHA-pin update flow.
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: false
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '22.x'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test (Vitest)
+        run: npm test
+
+      - name: Fleet version consistency gate (d-AC-8)
+        run: npm run build && npm run check-fleet-versions
+
+      # UNPACKED app directory only — no installer, no signing (see file header). Proves the
+      # electron-builder config (asar, asarUnpack placeholders, files allowlist, per-OS target
+      # block) is structurally valid and produces a runnable app tree on every OS in the matrix.
+      - name: Package (unpacked, unsigned, --dir only)
+        run: npx electron-builder --dir
+        env:
+          # electron-builder inspects CI-standard env vars to skip interactive prompts; no
+          # secrets are read or required for an unsigned --dir build.
+          CI: true
+
+      - name: Upload unpacked app (debug artifact, 7-day retention)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: desktop-unpacked-${{ matrix.platform-label }}
+          path: desktop/out/**
+          if-no-files-found: error
+          retention-days: 7
+
+  # --- CI-DEFERRED: signed installers + publish -----------------------------------------------
+  # No job exists here for: nsis-signed .exe, notarized .dmg, signed AppImage, or a `publish`
+  # step that uploads to the GitHub Releases feed electron-builder.yml's `publish:` block points
+  # at. All three require a signing identity and/or a release-channel decision that prd-005d
+  # explicitly defers (open questions: "Cert timeline", "Update channel"). Wiring them is additive
+  # to this file — a new job gated on `if: github.ref == 'refs/heads/main'` with `secrets:` for
+  # the signing identity — not a rewrite of the matrix above.
