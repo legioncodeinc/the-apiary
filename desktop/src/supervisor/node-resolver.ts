@@ -18,7 +18,7 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { delimiter, join } from "node:path";
+import { delimiter, join, win32 as pathWin32 } from "node:path";
 
 /** The minimum acceptable Node version (ADR-0005 decision 1: "a real Node ≥22.5"). */
 export const MIN_NODE_MAJOR = 22;
@@ -57,8 +57,13 @@ export class NodeResolutionError extends Error {
 /** The env var an operator may set to point the shell at an exact node binary, bypassing PATH search. */
 export const NODE_OVERRIDE_ENV = "APIARY_SIDECAR_NODE";
 
-/** The documented Windows default install path for the system Node, tried when PATH search misses. */
-const WINDOWS_DEFAULT_NODE = join("C:\\", "Program Files", "nodejs", "node.exe");
+/**
+ * The documented Windows default install path for the system Node, tried when PATH search misses.
+ * Built with `path.win32` (NOT the host-dependent `join`) so this is always the Windows form even
+ * when the win32 branch is exercised on a POSIX host (e.g. CI on Linux/macOS) — otherwise POSIX
+ * `join` would yield a malformed `C:\/Program Files/...` and the win32 fallback would never match.
+ */
+const WINDOWS_DEFAULT_NODE = pathWin32.join("C:\\", "Program Files", "nodejs", "node.exe");
 
 /** Parse `v22.5.1` / `22.5.1` into a {@link NodeVersion}, or `null` if it is not a version string. */
 export function parseNodeVersion(raw: string): NodeVersion | null {
