@@ -13,3 +13,6 @@
 [submodule "queen"]
 	path = queen
 	url = git@github.com:legioncodeinc/queen.git
+[submodule "cli-kit"]
+	path = cli-kit
+	url = git@github.com:legioncodeinc/cli-kit.git
