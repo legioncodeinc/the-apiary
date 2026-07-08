@@ -80,10 +80,15 @@ Status legend: OPEN · IN PROGRESS · DONE (impl+tests pass) · VERIFIED (indepe
 
 | Step | Bee | Model | Status |
 |---|---|---|---|
-| Security audit + remediate Critical/High | security-worker-bee | opus | OPEN |
-| Quality verify vs PRD-005 | quality-worker-bee | opus | OPEN |
+| Security audit + remediate Critical/High | security-worker-bee | opus | VERIFIED (1 High fixed, 1 Low deferred) |
+| Quality verify vs PRD-005 | quality-worker-bee | opus | VERIFIED (PASS: 25 met / 16 deferred / 0 gaps) |
 
 ## Blockers / deferrals surfaced
 
 - **CI-DEFERRED (user constraint):** mac/linux installer builds, code signing/notarization, signed auto-update path, actual embeddings-model packing, per-OS Node vendoring. These get wired as **config** now; their execution/verification runs in CI (post-cert).
 - **ADR-0005 OQ-4 resolved by env:** Node 25.2.1 loads `node:sqlite` without the flag; nectar's flagged self-spawn remains compatible.
+
+
+## RUN COMPLETE (2026-07-08)
+
+Skeleton scope PASS. 41 ACs: 25 fully met, 16 correctly CI-deferred, 0 gaps. 180/180 vitest, typecheck clean, Windows Apiary.exe packaged. Security: 1 High fixed in place, 1 Low deferred (signing wave). Quality: PASS, report in prd-005-desktop-shell/qa/. No live destructive machine action taken (takeover dryRun, machine untouched). Commits 28aa271..ece67fb on worktree-prd-004-005-desktop-shell.
