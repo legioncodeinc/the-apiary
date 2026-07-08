@@ -1,23 +1,23 @@
 {
-  "manifestVersion": "0.7.0",
+  "manifestVersion": "0.8.0",
   "products": {
     "honeycomb": {
-      "version": "0.6.0",
+      "version": "0.7.0",
       "packageName": "@legioncodeinc/honeycomb",
       "published": true
     },
     "doctor": {
-      "version": "0.4.2",
+      "version": "0.4.3",
       "packageName": "@legioncodeinc/doctor",
       "published": true
     },
     "hive": {
-      "version": "0.6.8",
+      "version": "0.6.9",
       "packageName": "@legioncodeinc/hive",
       "published": true
     },
     "nectar": {
-      "version": "0.3.3",
+      "version": "0.3.4",
       "packageName": "@legioncodeinc/nectar",
       "published": true
     }
