@@ -54,10 +54,10 @@ Status legend: OPEN · IN PROGRESS · DONE (impl+tests pass) · VERIFIED (indepe
 | d-AC-2 | Unsigned build installs + launches (Windows verified; mac/linux CI-deferred) | devops | sonnet | OPEN (win) / CI-DEFERRED |
 | d-AC-3 | Embeddings model+ONNX packed / offline recall — **model packing = CI-deferred**; skeleton must not break BM25 fallback | devops | sonnet | CI-DEFERRED (packing) / OPEN (don't-break-BM25) |
 | d-AC-4 | asar-unpack placement for native + sidecar Node; **sidecar vendoring = 005d follow-up (config only now)** | devops | sonnet | OPEN (config) / CI-DEFERRED (vendor) |
-| d-AC-5 | electron-updater wired; unsigned → clear manual "download" prompt (signed auto-update = deferred) | devops | sonnet | OPEN (manual path) / CI-DEFERRED (signed) |
-| d-AC-6 | Update artifacts integrity-checked (checksum path in scope; signature = deferred) | devops | sonnet | OPEN (checksum) / CI-DEFERRED (sig) |
-| d-AC-7 | Packaging structured so adding signing/notarization later is config, not re-architecture | devops | sonnet | OPEN |
-| d-AC-8 | Build consumes submodule/published bundles + respects pinned versions; mismatch fails build | devops | sonnet | OPEN |
+| d-AC-5 | electron-updater wired; unsigned → clear manual "download" prompt (signed auto-update = deferred) | devops | sonnet | DONE |
+| d-AC-6 | Update artifacts integrity-checked (checksum path in scope; signature = deferred) | devops | sonnet | DONE |
+| d-AC-7 | Packaging structured so adding signing/notarization later is config, not re-architecture | devops | sonnet | DONE |
+| d-AC-8 | Build consumes submodule/published bundles + respects pinned versions; mismatch fails build | devops | sonnet | DONE |
 | — | GitHub Actions workflow: cross-OS build matrix (mac/win/linux) as config (CI runs deferred) | devops | sonnet | OPEN (config) |
 
 ## Module roll-up ACs (PRD-005 index)
