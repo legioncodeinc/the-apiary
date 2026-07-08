@@ -1,0 +1,134 @@
+# electron-builder configuration (PRD-005d).
+#
+# THIS WAVE (005d): asar packaging + a correct `files` allowlist + a `publish`
+# provider for electron-updater, win/mac/linux target config, and clearly
+# labeled placeholders for the two heavy pieces that land LATER without
+# re-architecting this file (d-AC-7):
+#   1. the vendored per-OS Node sidecar binary (005a's execPath contract)
+#   2. the embeddings model weights + native ONNX runtime (honeycomb's
+#      semantic-recall daemon)
+#
+# CI-DEFERRED in this wave (see desktop/.github or root .github/workflows/desktop-build.yml):
+#   - mac (dmg) and linux (AppImage) artifact BUILDS — config lives here, but
+#     this machine only builds/smokes the Windows (nsis, unsigned) leg.
+#   - code signing (macOS Developer ID + notarization, Windows OV/EV cert) —
+#     no identity is configured anywhere in this file.
+#   - signed auto-update — see src/packaging/update-decision.ts: the app
+#     detects the absence of a valid signature and falls back to a manual
+#     "update available — download" prompt instead of a broken silent apply.
+
+appId: com.legioncodeinc.apiary-desktop
+productName: Apiary
+
+directories:
+  output: out
+  buildResources: build
+
+# asar: true is electron-builder's default, but pinned explicitly — the whole
+# packaging strategy below (asarUnpack for native/large artifacts) only makes
+# sense paired with an asar'd app bundle.
+asar: true
+
+# --- files allowlist -------------------------------------------------------
+# Only ship the compiled output + manifest; never the TS source, tests, or
+# devDependencies. electron-builder already excludes node_modules/devDeps by
+# inspecting package.json, but the explicit allowlist keeps the archive lean
+# and its contents auditable (per guides/01-dockerfile-patterns.md's "minimal
+# shippable surface" principle, applied here to the asar equivalent).
+files:
+  - dist/**/*
+  - package.json
+  # Branded icons (Hive badge). `assets/icon.ico` is the Windows app + tray icon;
+  # `assets/tray-icon.png` is the non-Windows tray icon; `assets/icon.png` is the
+  # mac/linux app icon. Generated (committed) by `npm run generate-icons` from
+  # assets/icon.svg. Shipped INSIDE the asar — nativeImage reads asar paths.
+  - assets/**
+  - "!**/*.test.js"
+  - "!**/*.test.js.map"
+
+# --- asarUnpack --------------------------------------------------------
+# Anything that must be a real file on disk (executable, native-loaded, or
+# read by a spawned child that cannot see inside an .asar archive) goes here.
+# Structured now, populated later — d-AC-7: adding the two entries below is a
+# one-line config change, not a re-architecture.
+asarUnpack:
+  # --- PLACEHOLDER: sidecar Node binary (005a execPath contract) ---------
+  # The supervisor spawns Doctor/Hive with a REAL Node binary as `execPath`
+  # (see src/supervisor/node-resolver.ts + ADR-0005 decision 1) — Electron's
+  # own process.execPath cannot be used. Today node-resolver.ts finds the
+  # SYSTEM Node on PATH; a later wave vendors a per-OS/per-arch Node under
+  # `resources/node/<platform>-<arch>/` so the app works with no system Node
+  # installed. When that lands, uncomment:
+  #   - resources/node/**/*
+  # and point node-resolver.ts's override/candidate list at the unpacked path
+  # (asar-relative paths resolve through `app.asar.unpacked/...`).
+
+  # --- PLACEHOLDER: embeddings model + native ONNX runtime ----------------
+  # honeycomb's semantic-recall daemon loads nomic-embed-text-v1.5 (768-dim,
+  # q8) via @huggingface/transformers, which pulls a platform/arch-specific
+  # native ONNX runtime binary (the ABI-sensitive part — NOT the model
+  # weights). Per PRD-005d, the desktop build packs both so recall works
+  # fully offline from first launch (BM25 stays only as the safety-net
+  # fallback, never the shipped default). When the model pre-fetch step and
+  # per-arch ONNX binaries are wired, uncomment:
+  #   - resources/models/nomic-embed-text-v1.5/**/*
+  #   - resources/onnx-runtime/**/*
+  # and update honeycomb's embed-daemon resource resolution to read from the
+  # unpacked resources path instead of a runtime download.
+
+  # Tree-sitter is WASM (no native ABI) and is deliberately NOT listed here —
+  # it packs cleanly inside the asar per the parent PRD's ABI note.
+
+win:
+  icon: assets/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # No `certificateFile`/`certificateSubjectName`/`signAndEditExecutable`
+  # configured: this wave ships UNSIGNED. Adding a Windows OV/EV cert later is
+  # additive config here (d-AC-7) — see prd-005d "Signing tracks".
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+# --- mac / linux: CI-DEFERRED --------------------------------------------
+# Config only. This machine does NOT build or sign these — see
+# .github/workflows/desktop-build.yml for the macos/ubuntu matrix legs that
+# run electron-builder for these targets in CI.
+mac:
+  icon: assets/icon.png
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  # Notarization/signing deferred (no Apple Developer ID exists yet). When
+  # one is procured, electron-builder's afterSign notarize hook is additive
+  # config, not a rewrite (d-AC-7).
+  hardenedRuntime: true
+
+linux:
+  icon: assets/icon.png
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Utility
+  # AppImage signing is optional and deferred; no signing key configured.
+
+# --- publish: electron-updater feed ----------------------------------------
+# GitHub Releases as the update provider (see src/packaging/updater.ts for the
+# decision logic that gates auto-apply behind valid signing). `publish` here
+# only shapes the artifact metadata electron-builder writes (latest.yml /
+# latest-mac.yml / latest-linux.yml); it does not itself perform a release —
+# that is the CI publish job's job (config only, CI-deferred: this repo has
+# no GITHUB_TOKEN-driven publish step wired locally).
+publish:
+  provider: github
+  owner: legioncodeinc
+  repo: the-apiary
+  # releaseType left at electron-builder's default ("draft" for prereleases,
+  # else "release"); the CI publish job controls this via env/CLI when it is
+  # wired.
