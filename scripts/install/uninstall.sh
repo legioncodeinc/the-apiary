@@ -57,6 +57,18 @@ HivenectarDaemon
 HiveDoctor
 thehive'
 
+# Markers identifying INSTALLED Apiary daemon processes by command line. Every
+# globally-installed daemon runs as `node <...>/node_modules/<scope>/<pkg>/...`, so
+# the scoped package segment appears verbatim in argv. A daemon running from a dev
+# checkout (e.g. the-apiary/honeycomb/) does NOT contain these, so an active
+# dev/test/editor session is never matched - this is the boundary between
+# "uninstall the product" and "kill my editor".
+DAEMON_PROCESS_MARKERS='@legioncodeinc/honeycomb
+@legioncodeinc/nectar
+@legioncodeinc/hive
+@legioncodeinc/doctor
+@deeplake/hivemind'
+
 step() { printf '%s\n' "-> $1"; }
 ok() { printf '[ok] %s\n' "$1"; }
 warn() { printf '[warn] %s\n' "$1"; HAS_WARNINGS=1; }
@@ -497,6 +509,109 @@ stop_daemon_pidfile() {
 	REMOVAL_COUNT=$((REMOVAL_COUNT + 1))
 }
 
+# -----------------------------------------------------------------------------
+# Catch-all process scan. The pid-file pass above only reaches daemons that wrote
+# a pid file in a known location; a daemon started DIRECTLY (installer fallback,
+# `HONEYCOMB_DAEMON_SERVICE=spawn`, manual `hive start`, a leftover from a
+# previous version with a different pid location) survives it and keeps squatting
+# its loopback port with stale code. Scan every live process command line for one
+# of the installed-package markers and terminate it. We deliberately match the
+# scoped npm package segment (e.g. @legioncodeinc/honeycomb), which is present
+# only for an INSTALLED daemon - a dev/test/editor session running from the repo
+# checkout (the-apiary/honeycomb/) does not contain it and is left alone.
+# -----------------------------------------------------------------------------
+# stop_pid_if_node terminates a pid only after confirming it is a live node
+# process, guarding against pid reuse between detection and kill.
+stop_pid_if_node() {
+	_pid="$1"
+	_label="$2"
+	_image="$(pid_image_name "$_pid")"
+	if [ -z "$_image" ]; then
+		return 0
+	fi
+	case "$_image" in
+		node|node.exe|*/node) ;;
+		*)
+			warn "Pid $_pid ($_label) is not a node process ($_image); leaving it alone (pid reuse)."
+			return 0
+			;;
+	esac
+	if [ "$DRY_RUN" -eq 1 ]; then
+		step "[dry-run] would stop running daemon pid $_pid ($_label)"
+		return 0
+	fi
+	if is_windows_shell; then
+		powershell -NoProfile -Command "Stop-Process -Id $_pid -Force -ErrorAction SilentlyContinue" >/dev/null 2>&1 || true
+	else
+		kill "$_pid" >/dev/null 2>&1 || true
+		sleep 1
+		kill -0 "$_pid" >/dev/null 2>&1 && kill -9 "$_pid" >/dev/null 2>&1 || true
+	fi
+	ok "Stopped running daemon pid $_pid ($_label)."
+	REMOVAL_COUNT=$((REMOVAL_COUNT + 1))
+}
+
+# scan_daemon_pids_for_marker prints live node pids whose full command line
+# contains the given marker. Uses pgrep where available (Linux/macOS/BSD),
+# falls back to ps on Unix, and goes through PowerShell on Windows shells.
+scan_daemon_pids_for_marker() {
+	_marker="$1"
+	if is_windows_shell; then
+		# Win32_Process CommandLine is the full argv including node flags; normalize
+		# backslashes to forward slashes so a single marker substring check matches
+		# regardless of whether the bin path was recorded with \ or /.
+		powershell -NoProfile -Command "\$ErrorActionPreference='SilentlyContinue'; Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { (\$_.CommandLine -replace '\\\\','/') -like '*\${_marker}*' } | ForEach-Object { \$_.ProcessId }" 2>/dev/null | tr -d '\r'
+		return 0
+	fi
+	if have pgrep; then
+		pgrep -f "$_marker" 2>/dev/null
+		return 0
+	fi
+	# POSIX ps fallback: list pid + full command and match the marker substring.
+	ps -e -o pid= -o args= 2>/dev/null | while IFS= read -r _line; do
+		_rest="${_line# }"
+		_p="${_rest%% *}"
+		[ -n "$_p" ] || continue
+		case "$_line" in
+			*"$_marker"*) printf '%s\n' "$_p" ;;
+		esac
+	done
+}
+
+stop_daemons_by_process_scan() {
+	step "Scanning running processes for Apiary daemons (catch-all)."
+
+	scan_killed=0
+	# Walk the newline-separated markers list with a here-doc-fed loop so IFS does
+	# not need to be disturbed (POSIX-safe, handles the @scope/name form correctly).
+	while IFS= read -r marker; do
+		[ -n "$marker" ] || continue
+		pids="$(scan_daemon_pids_for_marker "$marker")"
+		[ -z "$pids" ] && continue
+		# De-duplicate: the same pid can match more than one marker (e.g. its argv
+		# contains the package path in both the node argv and a copied env value).
+		seen=""
+		for pid in $pids; do
+			[ -n "$pid" ] || continue
+			case "$seen" in
+				*"|$pid|"*) continue ;;
+			esac
+			seen="${seen}|${pid}|"
+			before="$REMOVAL_COUNT"
+			stop_pid_if_node "$pid" "$marker"
+			if [ "$REMOVAL_COUNT" -ne "$before" ]; then
+				scan_killed=$((scan_killed + 1))
+			fi
+		done
+	done <<EOF
+$DAEMON_PROCESS_MARKERS
+EOF
+
+	if [ "$scan_killed" -eq 0 ]; then
+		step "No additional Apiary daemon processes found by scan."
+	fi
+}
+
 stop_running_daemons() {
 	step "Stopping running daemon processes (pid files)."
 
@@ -524,6 +639,11 @@ EOF
 
 	# Legacy pre-fleet-root location (honeycomb owned ~/.honeycomb before ADR-0003).
 	stop_daemon_pidfile "${HOME}/.honeycomb/daemon.pid" "legacy honeycomb"
+
+	# Catch-all: also kill any installed Apiary daemon still running that wrote no
+	# pid file we know about (directly-started instances, leftover from prior
+	# versions). Runs after service deregistration so nothing auto-restarts them.
+	stop_daemons_by_process_scan
 }
 
 npm_is_usable() {

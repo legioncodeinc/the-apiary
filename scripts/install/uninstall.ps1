@@ -62,6 +62,20 @@ $script:WindowsTasksCurrent = @('honeycomb', 'nectar', 'doctor', 'hive')
 $script:WindowsTasksLegacy = @('HoneycombDaemon', 'HivenectarDaemon', 'HiveDoctor', 'thehive')
 $script:SystemdReloadNeeded = $false
 
+# Markers identifying INSTALLED Apiary daemon processes by command line. Every
+# globally-installed daemon runs as `node <...>/node_modules/<scope>/<pkg>/...`, so
+# the scoped package segment appears verbatim in argv. A daemon running from a dev
+# checkout (e.g. the-apiary/honeycomb/) does NOT contain these, so an active
+# dev/test/editor session is never matched - this is the boundary between
+# "uninstall the product" and "kill my editor".
+$script:DaemonProcessMarkers = @(
+  '@legioncodeinc/honeycomb',
+  '@legioncodeinc/nectar',
+  '@legioncodeinc/hive',
+  '@legioncodeinc/doctor',
+  '@deeplake/hivemind'
+)
+
 function Write-Step([string]$Message) { Write-Host "-> $Message" }
 function Write-Ok([string]$Message) { Write-Host "[ok] $Message" }
 function Write-Warn([string]$Message) { Write-Host "[warn] $Message"; $script:HasWarnings = $true }
@@ -439,6 +453,63 @@ function Stop-DaemonByPidFile([string]$PidFilePath, [string]$Label) {
   $script:RemovalCount++
 }
 
+# Catch-all process scan. The pid-file pass above only reaches daemons that wrote
+# a pid file in a known location; a daemon started DIRECTLY (installer fallback,
+# `HONEYCOMB_DAEMON_SERVICE=spawn`, manual `hive start`, a leftover from a
+# previous version with a different pid location) survives it and keeps squatting
+# its loopback port with stale code. Scan every live node.exe command line for one
+# of the installed-package markers and terminate it. We deliberately match the
+# scoped npm package segment (e.g. @legioncodeinc/honeycomb), which is present
+# only for an INSTALLED daemon - a dev/test/editor session running from the repo
+# checkout (the-apiary/honeycomb/) does not contain it and is left alone.
+function Stop-DaemonsByProcessScan {
+  Write-Step 'Scanning running processes for Apiary daemons (catch-all).'
+
+  $nodeProcesses = @()
+  try {
+    $nodeProcesses = @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" -ErrorAction SilentlyContinue)
+  } catch {
+    Write-Warn 'Could not enumerate running node.exe processes; skipping process scan.'
+    return
+  }
+  if ($nodeProcesses.Count -eq 0) {
+    Write-Step 'No running node.exe processes found by scan.'
+    return
+  }
+
+  $scanKilled = 0
+  $seen = @{}
+  foreach ($proc in $nodeProcesses) {
+    $cmdLine = $proc.CommandLine
+    if ([string]::IsNullOrWhiteSpace($cmdLine)) { continue }
+    # Normalize backslashes to forward slashes so a single marker substring match
+    # works regardless of whether the bin path was recorded with \ or /.
+    $cmdLineNorm = $cmdLine -replace '\\', '/'
+    $matchedMarker = $null
+    foreach ($marker in $script:DaemonProcessMarkers) {
+      if ($cmdLineNorm -like "*$marker*") { $matchedMarker = $marker; break }
+    }
+    if (-not $matchedMarker) { continue }
+
+    $processId = $proc.ProcessId
+    if ($seen.ContainsKey($processId)) { continue }
+    $seen[$processId] = $true
+
+    if ($script:DryRun) {
+      Write-Step "[dry-run] would stop running daemon pid $processId ($matchedMarker)"
+      continue
+    }
+    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+    Write-Ok "Stopped running daemon pid $processId ($matchedMarker)."
+    $script:RemovalCount++
+    $scanKilled++
+  }
+
+  if ($scanKilled -eq 0 -and -not $script:DryRun) {
+    Write-Step 'No additional Apiary daemon processes found by scan.'
+  }
+}
+
 function Stop-RunningDaemons([string]$HomePath) {
   Write-Step 'Stopping running daemon processes (pid files).'
 
@@ -457,6 +528,11 @@ function Stop-RunningDaemons([string]$HomePath) {
 
   # Legacy pre-fleet-root location (honeycomb owned ~/.honeycomb before ADR-0003).
   Stop-DaemonByPidFile (Join-Path $HomePath '.honeycomb\daemon.pid') 'legacy honeycomb'
+
+  # Catch-all: also kill any installed Apiary daemon still running that wrote no
+  # pid file we know about (directly-started instances, leftover from prior
+  # versions). Runs after service deregistration so nothing auto-restarts them.
+  Stop-DaemonsByProcessScan
 }
 
 function Test-NpmUsable {
