@@ -23,6 +23,9 @@
  *      fleet through the controller; Quit stops the live supervisor then quits the app.
  */
 
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { app, BrowserWindow, Menu, nativeImage, Notification, Tray } from "electron";
 
 import type { AppController } from "../main/app-controller.js";
@@ -30,6 +33,10 @@ import type { FleetStatus } from "../supervisor/index.js";
 import { registerAutostartSettings, isAutostartSupported, unregisterAutostartSettings } from "./autostart.js";
 import { buildTrayMenuModel, type TrayMenuAction } from "./menu-model.js";
 import { createNotificationGate } from "./tray-controller.js";
+import { resolveTrayIconPath } from "./tray-icon-path.js";
+
+/** This compiled module's directory (`dist/tray`), used to resolve the branded icon asset. */
+const thisDir = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Register launch-at-login (c-AC-3). Gated on {@link isAutostartSupported}: Electron documents
@@ -141,12 +148,13 @@ export function setupTray(controller: AppController): Tray {
 }
 
 /**
- * The tray icon image. This repo does not yet ship a dedicated branded tray asset (no `.ico`/`.png`
- * exists under this package), so this uses `nativeImage.createEmpty()` — Electron's documented,
- * crash-free placeholder for "no image yet" — rather than pointing `Tray` at a path that does not
- * exist (which throws at construction). Swapping in a branded icon is a follow-up asset task, not
- * a behavior change to this module.
+ * The tray icon image: the branded Hive badge shipped under `assets/` (Windows `.ico`, a 32px PNG
+ * elsewhere), resolved relative to this compiled module (see {@link resolveTrayIconPath}). If the
+ * asset is somehow missing/unreadable, `nativeImage.createFromPath` yields an EMPTY image rather
+ * than throwing; we detect that and fall back to `createEmpty()` so `new Tray(...)` never crashes
+ * at construction (the crash-free property the previous placeholder guaranteed).
  */
 function trayIcon(): Electron.NativeImage {
-  return nativeImage.createEmpty();
+  const image = nativeImage.createFromPath(resolveTrayIconPath(thisDir, process.platform));
+  return image.isEmpty() ? nativeImage.createEmpty() : image;
 }
