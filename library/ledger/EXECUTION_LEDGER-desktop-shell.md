@@ -37,14 +37,14 @@ Status legend: OPEN · IN PROGRESS · DONE (impl+tests pass) · VERIFIED (indepe
 
 | ID | Criterion | Owner | Model | Status |
 |---|---|---|---|---|
-| c-AC-1 | Tray shows live fleet status + open-dashboard/restart-fleet/quit; works with window closed | typescript-node | opus | OPEN |
-| c-AC-2 | ≥1 critical state raises native notification when window unfocused | typescript-node | opus | OPEN |
-| c-AC-3 | Launch-at-login via `setLoginItemSettings`; registration verified (reboot behavior = manual/CI) | typescript-node | opus | OPEN |
-| c-AC-4 | Adopting shell de-registers per-daemon OS units — current + legacy labels (Windows schtasks verifiable) | typescript-node | opus | OPEN |
-| c-AC-5 | Exactly one fleet after login (Windows verified; mac launchd / linux systemd = CI-deferred) | typescript-node | opus | OPEN (partial) |
-| c-AC-6 | Doctor + shell non-overlapping ownership (registry single-owner + pidPath no-op); no fighting | typescript-node | opus | OPEN |
-| c-AC-7 | Shell uninstall removes launch-at-login, stops fleet, de-registers owned units; no OS-service restore | typescript-node | opus | OPEN |
-| c-AC-8 | Standalone Hivemind: detect on install → prompt → consent uninstalls (preserve `~/.deeplake`) / decline aborts install | typescript-node | opus | OPEN |
+| c-AC-1 | Tray shows live fleet status + open-dashboard/restart-fleet/quit; works with window closed | typescript-node | opus | DONE |
+| c-AC-2 | ≥1 critical state raises native notification when window unfocused | typescript-node | opus | DONE |
+| c-AC-3 | Launch-at-login via `setLoginItemSettings`; registration verified (reboot behavior = manual/CI) | typescript-node | opus | DONE |
+| c-AC-4 | Adopting shell de-registers per-daemon OS units — current + legacy labels (Windows schtasks verifiable) | typescript-node | opus | DONE |
+| c-AC-5 | Exactly one fleet after login (Windows verified; mac launchd / linux systemd = CI-deferred) | typescript-node | opus | DONE |
+| c-AC-6 | Doctor + shell non-overlapping ownership (registry single-owner + pidPath no-op); no fighting | typescript-node | opus | DONE |
+| c-AC-7 | Shell uninstall removes launch-at-login, stops fleet, de-registers owned units; no OS-service restore | typescript-node | opus | DONE |
+| c-AC-8 | Standalone Hivemind: detect on install → prompt → consent uninstalls (preserve `~/.deeplake`) / decline aborts install | typescript-node | opus | DONE |
 
 ## Wave 3 — Packaging / updates / distribution (005d)
 
