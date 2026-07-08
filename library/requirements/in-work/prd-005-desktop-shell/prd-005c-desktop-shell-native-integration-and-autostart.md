@@ -1,7 +1,7 @@
 # PRD-005c: Native Integration and Autostart
 
 > **Parent:** [PRD-005](./prd-005-desktop-shell-index.md)
-> **Status:** Backlog
+> **Status:** In-work
 > **Priority:** P2 (native polish + the service-migration that makes the shell the real owner; ships after 005a/005b)
 > **Effort:** M (1-3d)
 > **Schema changes:** None. Deregisters OS service units; adds launch-at-login registration.

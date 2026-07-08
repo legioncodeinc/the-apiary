@@ -1,6 +1,6 @@
 # PRD-002: One-Line Installer Product Loading and Install-Time Telemetry
 
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0 (the installer is the top of funnel for every product, and today it neither selects products nor reliably reports installs)
 > **Effort:** XL (> 3d)
 > **Schema changes:** None to any DeepLake catalog. Writes doctor's registry on lifecycle transitions and adds a public-key install-time telemetry path.
@@ -42,9 +42,9 @@ This module implements [`ADR-0002`](../../../knowledge/private/architecture/ADR-
 
 | Sub-PRD | Scope | Status |
 |---|---|---|
-| [`prd-002a-...-product-loading`](./prd-002a-installer-product-loading-and-phone-home-product-loading.md) | The flag grammar (`--products` / `--profile` / `--license` / `--code`), product-code resolution at the install site, combo-URL sugar, and env/config precedence for admin deploys. | Draft |
-| [`prd-002b-...-registration-and-install-coverage`](./prd-002b-installer-product-loading-and-phone-home-registration-and-install-coverage.md) | Installing hive and nectar per the selected set, and writing doctor's registry on install / update / delete. | Draft |
-| [`prd-002c-...-install-time-telemetry`](./prd-002c-installer-product-loading-and-phone-home-install-time-telemetry.md) | The phone-home moved into `install.sh` / `install.ps1`: public PostHog key baked in the install site, start and completion/failure events, stable anonymous install id; keep `honeycomb_first_link`. | Draft |
+| [`prd-002a-...-product-loading`](./prd-002a-installer-product-loading-and-phone-home-product-loading.md) | The flag grammar (`--products` / `--profile` / `--license` / `--code`), product-code resolution at the install site, combo-URL sugar, and env/config precedence for admin deploys. | Completed |
+| [`prd-002b-...-registration-and-install-coverage`](./prd-002b-installer-product-loading-and-phone-home-registration-and-install-coverage.md) | Installing hive and nectar per the selected set, and writing doctor's registry on install / update / delete. | Completed |
+| [`prd-002c-...-install-time-telemetry`](./prd-002c-installer-product-loading-and-phone-home-install-time-telemetry.md) | The phone-home moved into `install.sh` / `install.ps1`: public PostHog key baked in the install site, start and completion/failure events, stable anonymous install id; keep `honeycomb_first_link`. | Completed |
 
 ---
 

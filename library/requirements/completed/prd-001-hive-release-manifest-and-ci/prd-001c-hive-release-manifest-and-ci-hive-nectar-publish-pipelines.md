@@ -1,7 +1,7 @@
 # PRD-001c: Publish Pipelines for hive and nectar
 
 > **Parent:** [PRD-001](./prd-001-hive-release-manifest-and-ci-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0
 > **Effort:** L (1-3d)
 > **Schema changes:** None. Adds two submodule release workflows and their npm publish setup.

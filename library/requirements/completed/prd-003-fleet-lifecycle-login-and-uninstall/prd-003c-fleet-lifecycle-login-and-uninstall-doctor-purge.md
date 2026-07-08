@@ -1,7 +1,7 @@
 # PRD-003c: Doctor Purge (destructive full-machine wipe)
 
 > **Parent:** [PRD-003](./prd-003-fleet-lifecycle-login-and-uninstall-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P1 (unblocked users need 003a/003b first; purge is the escape hatch)
 > **Effort:** M (0.5-1d)
 > **Schema changes:** None. Deletes state; creates nothing persistent.

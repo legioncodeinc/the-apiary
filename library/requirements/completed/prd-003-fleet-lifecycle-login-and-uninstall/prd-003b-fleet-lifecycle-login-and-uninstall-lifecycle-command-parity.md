@@ -1,7 +1,7 @@
 # PRD-003b: Lifecycle Command Parity (start / stop / uninstall on every product)
 
 > **Parent:** [PRD-003](./prd-003-fleet-lifecycle-login-and-uninstall-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0
 > **Effort:** L (1-3d)
 > **Schema changes:** None. Adds per-product doctor registry deletes on uninstall (existing contract, new writer).

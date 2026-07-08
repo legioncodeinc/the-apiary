@@ -1,7 +1,7 @@
 # PRD-003a: Solo-vs-Fleet Login Deferral
 
 > **Parent:** [PRD-003](./prd-003-fleet-lifecycle-login-and-uninstall-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0
 > **Effort:** L (1-3d)
 > **Schema changes:** None. No credential format or device-flow protocol change; only who initiates the flow and when.

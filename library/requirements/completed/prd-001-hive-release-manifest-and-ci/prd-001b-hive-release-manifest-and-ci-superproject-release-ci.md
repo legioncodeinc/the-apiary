@@ -1,7 +1,7 @@
 # PRD-001b: Superproject Release CI and Combined Release Train
 
 > **Parent:** [PRD-001](./prd-001-hive-release-manifest-and-ci-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0
 > **Effort:** L (1-3d)
 > **Schema changes:** None. Adds superproject CI workflows only.

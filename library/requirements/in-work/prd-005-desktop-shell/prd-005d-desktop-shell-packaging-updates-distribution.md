@@ -1,7 +1,7 @@
 # PRD-005d: Packaging, Updates, and Distribution
 
 > **Parent:** [PRD-005](./prd-005-desktop-shell-index.md)
-> **Status:** Backlog
+> **Status:** In-work
 > **Priority:** P1 (there is no shippable app without this; the signing sub-track is separately gated on certs)
 > **Effort:** L (1-3d for the pipeline; the signing track is calendar-gated on certificate procurement)
 > **Schema changes:** None. Adds installers, an update feed, and a bundled Node sidecar to the packaged app.

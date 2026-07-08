@@ -1,7 +1,7 @@
 # PRD-001a: Hive Release Manifest, Format and Ownership
 
 > **Parent:** [PRD-001](./prd-001-hive-release-manifest-and-ci-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0
 > **Effort:** L (1-3d)
 > **Schema changes:** None to any DeepLake catalog. Introduces one new source-controlled manifest file in the superproject.

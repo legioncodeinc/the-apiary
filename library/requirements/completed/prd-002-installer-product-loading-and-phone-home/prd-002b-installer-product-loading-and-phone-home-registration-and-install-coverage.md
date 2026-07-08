@@ -1,7 +1,7 @@
 # PRD-002b: Install Coverage and Registry Writes
 
 > **Parent:** [PRD-002](./prd-002-installer-product-loading-and-phone-home-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0
 > **Effort:** L (1-3d)
 > **Schema changes:** None to any DeepLake catalog. Writes doctor's registry on lifecycle transitions.

@@ -1,7 +1,7 @@
 # PRD-003d: Global One-Command Uninstall Script
 
 > **Parent:** [PRD-003](./prd-003-fleet-lifecycle-login-and-uninstall-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P1
 > **Effort:** L (1-3d)
 > **Schema changes:** None. Adds two published scripts and their checksum entries to the install site.

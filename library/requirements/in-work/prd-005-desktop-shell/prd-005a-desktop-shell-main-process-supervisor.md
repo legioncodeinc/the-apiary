@@ -1,7 +1,7 @@
 # PRD-005a: Main-Process Fleet Supervisor
 
 > **Parent:** [PRD-005](./prd-005-desktop-shell-index.md)
-> **Status:** Backlog
+> **Status:** In-work
 > **Priority:** P1
 > **Effort:** L (1-3d)
 > **Schema changes:** None. Shell-managed supervisor state in user-data; no Deeplake or `~/.apiary` change.

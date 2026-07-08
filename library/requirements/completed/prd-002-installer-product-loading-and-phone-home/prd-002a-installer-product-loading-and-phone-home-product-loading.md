@@ -1,7 +1,7 @@
 # PRD-002a: Product Loading, Flags, Codes, and Admin Config
 
 > **Parent:** [PRD-002](./prd-002-installer-product-loading-and-phone-home-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0
 > **Effort:** L (1-3d)
 > **Schema changes:** None. Adds installer flags, install-site code resolution, and an admin config surface.

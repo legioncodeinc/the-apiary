@@ -1,6 +1,6 @@
 # PRD-001: Hive Release Manifest and Combined Release Train
 
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0 (fleet coherence, and the prerequisite that makes hive and nectar installable at all)
 > **Effort:** XL (> 3d)
 > **Schema changes:** None to any DeepLake catalog. Introduces one new versioned superproject artifact (the hive release manifest) plus new CI and two new submodule publish pipelines.
@@ -38,9 +38,9 @@ This module implements [`ADR-0001`](../../../knowledge/private/architecture/ADR-
 
 | Sub-PRD | Scope | Status |
 |---|---|---|
-| [`prd-001a-...-manifest-format-and-ownership`](./prd-001a-hive-release-manifest-and-ci-manifest-format-and-ownership.md) | The manifest file: its location in the superproject root, its schema (manifest version + one pinned version per product), ownership, and versioning rules. | Draft |
-| [`prd-001b-...-superproject-release-ci`](./prd-001b-hive-release-manifest-and-ci-superproject-release-ci.md) | New superproject CI: validate the manifest (every pinned version resolves, set is consistent) and run the combined release train that promotes a pinned set into a named fleet release. | Draft |
-| [`prd-001c-...-hive-nectar-publish-pipelines`](./prd-001c-hive-release-manifest-and-ci-hive-nectar-publish-pipelines.md) | OIDC Trusted Publishing pipelines for hive and nectar, mirroring honeycomb and doctor, so both become installable and pinnable. | Draft |
+| [`prd-001a-...-manifest-format-and-ownership`](./prd-001a-hive-release-manifest-and-ci-manifest-format-and-ownership.md) | The manifest file: its location in the superproject root, its schema (manifest version + one pinned version per product), ownership, and versioning rules. | Completed |
+| [`prd-001b-...-superproject-release-ci`](./prd-001b-hive-release-manifest-and-ci-superproject-release-ci.md) | New superproject CI: validate the manifest (every pinned version resolves, set is consistent) and run the combined release train that promotes a pinned set into a named fleet release. | Completed |
+| [`prd-001c-...-hive-nectar-publish-pipelines`](./prd-001c-hive-release-manifest-and-ci-hive-nectar-publish-pipelines.md) | OIDC Trusted Publishing pipelines for hive and nectar, mirroring honeycomb and doctor, so both become installable and pinnable. | Completed |
 
 ---
 

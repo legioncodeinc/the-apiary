@@ -1,7 +1,7 @@
 # PRD-005b: Dashboard Window and Renderer Integration
 
 > **Parent:** [PRD-005](./prd-005-desktop-shell-index.md)
-> **Status:** Backlog
+> **Status:** In-work
 > **Priority:** P1
 > **Effort:** M (1-3d)
 > **Schema changes:** None. Presentation/host integration only.

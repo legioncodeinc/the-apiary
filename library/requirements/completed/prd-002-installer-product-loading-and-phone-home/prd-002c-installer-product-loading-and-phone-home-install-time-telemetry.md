@@ -1,7 +1,7 @@
 # PRD-002c: Install-Time Telemetry from the Shell Script
 
 > **Parent:** [PRD-002](./prd-002-installer-product-loading-and-phone-home-index.md)
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0
 > **Effort:** M (3-8h)
 > **Schema changes:** None to any DeepLake catalog. Persists a machine-local anonymous install id.

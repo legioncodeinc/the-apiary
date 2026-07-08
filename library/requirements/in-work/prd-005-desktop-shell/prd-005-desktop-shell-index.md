@@ -1,6 +1,6 @@
 # PRD-005: Apiary Desktop Shell (Electron)
 
-> **Status:** Backlog
+> **Status:** In-work
 > **Priority:** P1 (the foundation the desktop product rests on; PRD-004's in-app sign-in and any native-app ambition depend on it existing)
 > **Effort:** XL (> 3d; a walking skeleton is small, a shippable cross-OS installer is weeks)
 > **Schema changes:** None to any Deeplake catalog. Replaces the fleet's OS-service autostart with an app-managed supervisor; adds a new `apiary-desktop` package and its installers.
@@ -52,10 +52,10 @@ This is the parent of [`PRD-004`](../prd-004-branded-in-app-signin/prd-004-brand
 
 | Sub-PRD | Scope | Status |
 |---|---|---|
-| [`prd-005a-...-main-process-supervisor`](./prd-005a-desktop-shell-main-process-supervisor.md) | The main-process fleet supervisor: bundled Node sidecar, spawn/health-check/restart/stop of the daemons, single-instance lock, port-in-use handling, graceful shutdown, and the Hive-relationship decision. | Draft |
-| [`prd-005b-...-dashboard-window`](./prd-005b-desktop-shell-dashboard-window.md) | Rendering Hive's dashboard in a `BrowserWindow` (loopback vs. bundled-asset decision), the renderer security posture, window lifecycle, and the deep-link/IPC surface PRD-004 builds on. | Draft |
-| [`prd-005c-...-native-integration-and-autostart`](./prd-005c-desktop-shell-native-integration-and-autostart.md) | Tray, app menu, native notifications, launch-at-login, and the migration off per-daemon OS services (deregister launchd/systemd/schtasks; avoid double-spawn; reconcile with Doctor's watchdog role). | Draft |
-| [`prd-005d-...-packaging-updates-distribution`](./prd-005d-desktop-shell-packaging-updates-distribution.md) | electron-builder installers per OS, asar + embeddings/native-artifact placement, electron-updater wiring, the signing/notarization tracks, and how the shell consumes the four submodules' built bundles. | Draft |
+| [`prd-005a-...-main-process-supervisor`](./prd-005a-desktop-shell-main-process-supervisor.md) | The main-process fleet supervisor: bundled Node sidecar, spawn/health-check/restart/stop of the daemons, single-instance lock, port-in-use handling, graceful shutdown, and the Hive-relationship decision. | In-work |
+| [`prd-005b-...-dashboard-window`](./prd-005b-desktop-shell-dashboard-window.md) | Rendering Hive's dashboard in a `BrowserWindow` (loopback vs. bundled-asset decision), the renderer security posture, window lifecycle, and the deep-link/IPC surface PRD-004 builds on. | In-work |
+| [`prd-005c-...-native-integration-and-autostart`](./prd-005c-desktop-shell-native-integration-and-autostart.md) | Tray, app menu, native notifications, launch-at-login, and the migration off per-daemon OS services (deregister launchd/systemd/schtasks; avoid double-spawn; reconcile with Doctor's watchdog role). | In-work |
+| [`prd-005d-...-packaging-updates-distribution`](./prd-005d-desktop-shell-packaging-updates-distribution.md) | electron-builder installers per OS, asar + embeddings/native-artifact placement, electron-updater wiring, the signing/notarization tracks, and how the shell consumes the four submodules' built bundles. | In-work |
 
 ---
 

@@ -1,6 +1,6 @@
 # PRD-003: Fleet Lifecycle, Login Deferral, and One-Command Uninstall
 
-> **Status:** Backlog
+> **Status:** Completed
 > **Priority:** P0 (non-technical users can hang at login and have no clean exit path today; install, login, and uninstall are the trust surfaces at the top and bottom of the funnel)
 > **Effort:** XL (> 3d)
 > **Schema changes:** None to any Deeplake catalog. Adds doctor registry deletes on uninstall and one new published install-site artifact (the uninstall script and its checksums).
@@ -45,10 +45,10 @@ Background this builds on (already shipped in fleet 0.5.1): every install/readin
 
 | Sub-PRD | Scope | Status |
 |---|---|---|
-| [`prd-003a-...-solo-vs-fleet-login-deferral`](./prd-003a-fleet-lifecycle-login-and-uninstall-solo-vs-fleet-login-deferral.md) | Solo-vs-fleet detection in honeycomb and nectar, login deferral to hive when present, solo auto-popup on first install, and the `honeycomb login` / new `nectar login` verbs. | Draft |
-| [`prd-003b-...-lifecycle-command-parity`](./prd-003b-fleet-lifecycle-login-and-uninstall-lifecycle-command-parity.md) | `uninstall`, `start`, and `stop` on every product (nectar, doctor, and hive reach parity with honeycomb); uninstall removes unit + registry entry + state dir. | Draft |
-| [`prd-003c-...-doctor-purge`](./prd-003c-fleet-lifecycle-login-and-uninstall-doctor-purge.md) | The destructive, confirmation-gated `doctor purge` (`--yes` for non-interactive): all state dirs, all four service units, all npm globals under current and legacy names, doctor last. | Draft |
-| [`prd-003d-...-global-uninstall-script`](./prd-003d-fleet-lifecycle-login-and-uninstall-global-uninstall-script.md) | `uninstall.sh` / `uninstall.ps1` in `scripts/install/`, the `get.theapiary.sh/uninstall` route, SHA-256 checksum publication, and full historical-name coverage. | Draft |
+| [`prd-003a-...-solo-vs-fleet-login-deferral`](./prd-003a-fleet-lifecycle-login-and-uninstall-solo-vs-fleet-login-deferral.md) | Solo-vs-fleet detection in honeycomb and nectar, login deferral to hive when present, solo auto-popup on first install, and the `honeycomb login` / new `nectar login` verbs. | Completed |
+| [`prd-003b-...-lifecycle-command-parity`](./prd-003b-fleet-lifecycle-login-and-uninstall-lifecycle-command-parity.md) | `uninstall`, `start`, and `stop` on every product (nectar, doctor, and hive reach parity with honeycomb); uninstall removes unit + registry entry + state dir. | Completed |
+| [`prd-003c-...-doctor-purge`](./prd-003c-fleet-lifecycle-login-and-uninstall-doctor-purge.md) | The destructive, confirmation-gated `doctor purge` (`--yes` for non-interactive): all state dirs, all four service units, all npm globals under current and legacy names, doctor last. | Completed |
+| [`prd-003d-...-global-uninstall-script`](./prd-003d-fleet-lifecycle-login-and-uninstall-global-uninstall-script.md) | `uninstall.sh` / `uninstall.ps1` in `scripts/install/`, the `get.theapiary.sh/uninstall` route, SHA-256 checksum publication, and full historical-name coverage. | Completed |
 
 ---
 
