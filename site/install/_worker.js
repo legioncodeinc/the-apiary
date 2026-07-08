@@ -46,7 +46,20 @@ export default {
 		if (wantsHtml(request)) {
 			// Browser → the inspect page. Set the inspect-page security headers explicitly (a
 			// worker response does not inherit _headers), authoritative for the bare "/".
-			const assetResp = await env.ASSETS.fetch(new Request(new URL("/index.html", url), request));
+			//
+			// Fetch the CANONICAL "/" — NOT "/index.html". Cloudflare Pages auto-canonicalizes
+			// "/index.html" to "/" with a 308 redirect (empty body). This worker rebuilds the
+			// response headers from scratch below and would DROP that redirect's Location, so a
+			// browser received a 308 pointing nowhere and rendered a blank white page. "/" serves
+			// index.html directly with a 200. As belt-and-suspenders, follow one redirect if the
+			// asset pipeline still returns a 3xx.
+			let assetResp = await env.ASSETS.fetch(new Request(new URL("/", url), request));
+			if (assetResp.status >= 300 && assetResp.status < 400) {
+				const location = assetResp.headers.get("Location");
+				if (location) {
+					assetResp = await env.ASSETS.fetch(new Request(new URL(location, url), request));
+				}
+			}
 			return new Response(assetResp.body, {
 				status: assetResp.status,
 				headers: {
