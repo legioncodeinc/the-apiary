@@ -31,8 +31,8 @@ const TEMPLATE = join(__dirname, 'index.template.html');
 const VANITY = 'https://get.theapiary.sh';
 const GITHUB_SRC = 'https://github.com/legioncodeinc/the-apiary/tree/main/scripts/install';
 
-// The install and uninstall scripts, in the order they appear in SHA256SUMS + the page.
-const SCRIPTS = ['install.sh', 'install.ps1', 'uninstall.sh', 'uninstall.ps1'];
+// The install, uninstall, and update scripts, in the order they appear in SHA256SUMS + the page.
+const SCRIPTS = ['install.sh', 'install.ps1', 'uninstall.sh', 'uninstall.ps1', 'update.sh', 'update.ps1'];
 
 // PRD-002c: both installer scripts declare their PostHog key as an EMPTY string in source control
 // (`HONEYCOMB_INSTALL_POSTHOG_KEY=""` / `$HoneycombInstallPosthogKey = ''`). This is a PostHog
@@ -65,6 +65,18 @@ const POSTHOG_KEY_PATTERNS = {
     replace: (key) => `HONEYCOMB_INSTALL_POSTHOG_KEY="${key}"`,
   },
   'install.ps1': {
+    pattern: /^\$HoneycombInstallPosthogKey = ''$/m,
+    replace: (key) => `$HoneycombInstallPosthogKey = '${key}'`,
+  },
+  // PRD-007c: the update scripts declare the SAME public PostHog key with the SAME anchored
+  // declaration line as the install scripts, so update_started / update_completed / update_failed /
+  // product_updated report on the identical anonymous install-site channel. One key, injected the
+  // same way — no second key, no new payload fields.
+  'update.sh': {
+    pattern: /^HONEYCOMB_INSTALL_POSTHOG_KEY=""$/m,
+    replace: (key) => `HONEYCOMB_INSTALL_POSTHOG_KEY="${key}"`,
+  },
+  'update.ps1': {
     pattern: /^\$HoneycombInstallPosthogKey = ''$/m,
     replace: (key) => `$HoneycombInstallPosthogKey = '${key}'`,
   },
@@ -174,11 +186,15 @@ async function main() {
     '{{SHA_PS1}}': sums['install.ps1'],
     '{{SHA_UNINSTALL_SH}}': sums['uninstall.sh'],
     '{{SHA_UNINSTALL_PS1}}': sums['uninstall.ps1'],
+    '{{SHA_UPDATE_SH}}': sums['update.sh'],
+    '{{SHA_UPDATE_PS1}}': sums['update.ps1'],
     '{{BUILT_AT}}': new Date().toISOString(),
     '{{SOURCE_SH}}': escapeHtml(sources['install.sh']),
     '{{SOURCE_PS1}}': escapeHtml(sources['install.ps1']),
     '{{SOURCE_UNINSTALL_SH}}': escapeHtml(sources['uninstall.sh']),
     '{{SOURCE_UNINSTALL_PS1}}': escapeHtml(sources['uninstall.ps1']),
+    '{{SOURCE_UPDATE_SH}}': escapeHtml(sources['update.sh']),
+    '{{SOURCE_UPDATE_PS1}}': escapeHtml(sources['update.ps1']),
   };
   let html = template;
   for (const [token, value] of Object.entries(replacements)) {
@@ -192,6 +208,8 @@ async function main() {
   console.log('  install.ps1  ', sums['install.ps1']);
   console.log('  uninstall.sh ', sums['uninstall.sh']);
   console.log('  uninstall.ps1', sums['uninstall.ps1']);
+  console.log('  update.sh    ', sums['update.sh']);
+  console.log('  update.ps1   ', sums['update.ps1']);
   console.log('  SHA256SUMS   written');
   console.log('  hive-release.json copied (fleet manifest, manifestVersion', `${manifest.manifestVersion})`);
   console.log('  blessed-version.json', honeycombVersion);

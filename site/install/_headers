@@ -2,9 +2,9 @@
 #
 # The script + checksum paths MUST be served as text/plain so a user can read them in a
 # browser before piping, and so `irm https://get.theapiary.sh/install.ps1 | iex`,
-# `irm https://get.theapiary.sh/uninstall.ps1 | iex`,
-# `curl -fsSL https://get.theapiary.sh/install.sh`, and
-# `curl -fsSL https://get.theapiary.sh/uninstall` receive plain text (not an HTML wrapper
+# `irm https://get.theapiary.sh/uninstall.ps1 | iex`, `irm https://get.theapiary.sh/update.ps1 | iex`,
+# `curl -fsSL https://get.theapiary.sh/install.sh`, `curl -fsSL https://get.theapiary.sh/uninstall`,
+# and `curl -fsSL https://get.theapiary.sh/update` receive plain text (not an HTML wrapper
 # or a download-forcing octet-stream). nosniff stops the browser from re-interpreting them.
 
 /install.sh
@@ -28,6 +28,21 @@
   Cache-Control: public, max-age=300
 
 /uninstall.ps1
+  Content-Type: text/plain; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=300
+
+/update
+  Content-Type: text/plain; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=300
+
+/update.sh
+  Content-Type: text/plain; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=300
+
+/update.ps1
   Content-Type: text/plain; charset=utf-8
   X-Content-Type-Options: nosniff
   Cache-Control: public, max-age=300
