@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Install And Uninstall - get.theapiary.sh</title>
-<meta name="description" content="Inspect before you pipe. Install and uninstall scripts, published SHA-256 checksums, and full source.">
+<title>Install, Update, And Uninstall - get.theapiary.sh</title>
+<meta name="description" content="Inspect before you pipe. Install, update, and uninstall scripts, published SHA-256 checksums, and full source.">
 <meta name="color-scheme" content="dark light">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
@@ -113,7 +113,7 @@
       <path d="M 104.0 80.0 L 92.0 100.78 L 68.0 100.78 L 56.0 80.0 L 68.0 59.22 L 92.0 59.22 Z" fill="url(#hc-bg)" stroke="#FFD27A" stroke-width="1.6" stroke-linejoin="round"/>
     </svg>
     <div>
-      <h1>Install And Uninstall</h1>
+      <h1>Install, Update, And Uninstall</h1>
       <p class="tag">Shared memory for your AI coding agents — one command, all local.</p>
     </div>
   </header>
@@ -128,7 +128,15 @@ curl -fsSL {{VANITY}} | sh<button class="copy" data-copy="curl -fsSL {{VANITY}} 
   <div class="cmd"><span class="os"># Windows PowerShell</span>
 irm {{VANITY}}/install.ps1 | iex<button class="copy" data-copy="irm {{VANITY}}/install.ps1 | iex">Copy</button></div>
 
-  <h2><span class="num">2</span>Uninstall</h2>
+  <h2><span class="num">2</span>Update</h2>
+  <p>macOS &amp; Linux:</p>
+  <div class="cmd"><span class="os"># macOS / Linux</span>
+curl -fsSL {{VANITY}}/update | sh<button class="copy" data-copy="curl -fsSL {{VANITY}}/update | sh">Copy</button></div>
+  <p>Windows (PowerShell):</p>
+  <div class="cmd"><span class="os"># Windows PowerShell</span>
+irm {{VANITY}}/update.ps1 | iex<button class="copy" data-copy="irm {{VANITY}}/update.ps1 | iex">Copy</button></div>
+
+  <h2><span class="num">3</span>Uninstall</h2>
   <p>macOS &amp; Linux:</p>
   <div class="cmd"><span class="os"># macOS / Linux</span>
 curl -fsSL {{VANITY}}/uninstall | sh<button class="copy" data-copy="curl -fsSL {{VANITY}}/uninstall | sh">Copy</button></div>
@@ -136,34 +144,38 @@ curl -fsSL {{VANITY}}/uninstall | sh<button class="copy" data-copy="curl -fsSL {
   <div class="cmd"><span class="os"># Windows PowerShell</span>
 irm {{VANITY}}/uninstall.ps1 | iex<button class="copy" data-copy="irm {{VANITY}}/uninstall.ps1 | iex">Copy</button></div>
 
-  <h2><span class="num">3</span>Verify before you run</h2>
+  <h2><span class="num">4</span>Verify before you run</h2>
   <p>Prefer to check the bytes first? Download the script and its checksum, verify, <em>then</em> run:</p>
   <div class="cmd"><span class="os"># download + verify + run (macOS / Linux)</span>
 curl -fsSL -O {{VANITY}}/install.sh
+curl -fsSL -O {{VANITY}}/update.sh
 curl -fsSL -O {{VANITY}}/uninstall.sh
 curl -fsSL -O {{VANITY}}/SHA256SUMS
-sha256sum -c --ignore-missing SHA256SUMS    # expect: install.sh: OK, uninstall.sh: OK
+sha256sum -c --ignore-missing SHA256SUMS    # expect: install.sh: OK, update.sh: OK, uninstall.sh: OK
 sh install.sh<button class="copy" data-copy="curl -fsSL -O {{VANITY}}/install.sh
+curl -fsSL -O {{VANITY}}/update.sh
 curl -fsSL -O {{VANITY}}/uninstall.sh
 curl -fsSL -O {{VANITY}}/SHA256SUMS
 sha256sum -c --ignore-missing SHA256SUMS
 sh install.sh">Copy</button></div>
   <p class="muted" style="font-size:0.88rem">On macOS without <code class="inline">sha256sum</code>, use <code class="inline">shasum -a 256 -c --ignore-missing SHA256SUMS</code>. (<code class="inline">--ignore-missing</code> skips the checksum entries for scripts you did not download, such as the PowerShell twins.)</p>
 
-  <h2><span class="num">4</span>Published checksums</h2>
+  <h2><span class="num">5</span>Published checksums</h2>
   <p class="muted">These are the SHA-256 of the exact files this domain serves. They change only when a new release is deployed.</p>
   <div class="sums">
 <span class="hash">{{SHA_SH}}</span>  <span class="file">install.sh</span>
 <span class="hash">{{SHA_PS1}}</span>  <span class="file">install.ps1</span>
 <span class="hash">{{SHA_UNINSTALL_SH}}</span>  <span class="file">uninstall.sh</span>
 <span class="hash">{{SHA_UNINSTALL_PS1}}</span>  <span class="file">uninstall.ps1</span>
+<span class="hash">{{SHA_UPDATE_SH}}</span>  <span class="file">update.sh</span>
+<span class="hash">{{SHA_UPDATE_PS1}}</span>  <span class="file">update.ps1</span>
   </div>
   <p class="muted" style="font-size:0.85rem; margin-top:10px">
-    Raw files: <a href="/install.sh">/install.sh</a> · <a href="/install.ps1">/install.ps1</a> · <a href="/uninstall">/uninstall</a> · <a href="/uninstall.sh">/uninstall.sh</a> · <a href="/uninstall.ps1">/uninstall.ps1</a> · <a href="/SHA256SUMS">/SHA256SUMS</a> ·
+    Raw files: <a href="/install.sh">/install.sh</a> · <a href="/install.ps1">/install.ps1</a> · <a href="/update">/update</a> · <a href="/update.sh">/update.sh</a> · <a href="/update.ps1">/update.ps1</a> · <a href="/uninstall">/uninstall</a> · <a href="/uninstall.sh">/uninstall.sh</a> · <a href="/uninstall.ps1">/uninstall.ps1</a> · <a href="/SHA256SUMS">/SHA256SUMS</a> ·
     source on <a href="{{GITHUB_SRC}}">GitHub</a>
   </p>
 
-  <h2><span class="num">5</span>What install actually does</h2>
+  <h2><span class="num">6</span>What install actually does</h2>
   <ul class="does">
     <li><strong>Installs Node</strong> (via <a href="https://github.com/Schniz/fnm">fnm</a>, under your home dir, no admin) — but only if you don't already have it.</li>
     <li><strong>Installs the npm package</strong> <code class="inline">@legioncodeinc/honeycomb</code> globally.</li>
@@ -189,7 +201,7 @@ sh install.sh">Copy</button></div>
     </p>
   </details>
 
-  <h2><span class="num">6</span>Read the source</h2>
+  <h2><span class="num">7</span>Read the source</h2>
   <p class="muted">The full scripts are inline. This is byte-for-byte what the checksums above cover.</p>
   <details>
     <summary>install.sh (POSIX <code class="inline">sh</code>)</summary>
@@ -198,6 +210,14 @@ sh install.sh">Copy</button></div>
   <details>
     <summary>install.ps1 (Windows PowerShell)</summary>
     <pre>{{SOURCE_PS1}}</pre>
+  </details>
+  <details>
+    <summary>update.sh (POSIX <code class="inline">sh</code>)</summary>
+    <pre>{{SOURCE_UPDATE_SH}}</pre>
+  </details>
+  <details>
+    <summary>update.ps1 (Windows PowerShell)</summary>
+    <pre>{{SOURCE_UPDATE_PS1}}</pre>
   </details>
   <details>
     <summary>uninstall.sh (POSIX <code class="inline">sh</code>)</summary>
