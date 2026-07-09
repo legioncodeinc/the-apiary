@@ -63,7 +63,7 @@
 - **Wave 1 (parallel):** Scripts bee + Site bee — disjoint file sets. → dispatched.
 - **Wave 2:** integration verify (`node site/install/build.mjs`, `sha256sum -c`, shell `-n`/dry-run smoke).
 - **Wave 3 (close-out):** security-worker-bee → quality-worker-bee.
-- **Wave 4 (ship):** commit, push, PR, monitor CI to green.
+- **Wave 4 (ship):** commit `2782faf` → pushed → PR #19 (https://github.com/legioncodeinc/the-apiary/pull/19). CI: no PR-triggered workflow matches these paths (installer/site/library); the only gate is the `v*`-tag install-site deploy, which runs `node site/install/build.mjs` — pre-validated locally (clean build, `sha256sum -c` 6/6). Nothing red. **SHIPPED.**
 
 ## Terminations / decompositions
 
