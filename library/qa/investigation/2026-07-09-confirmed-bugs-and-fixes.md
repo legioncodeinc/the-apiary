@@ -16,7 +16,7 @@ This register is the actionable companion to the narrative reports. Each entry i
 | [BUG-01](#bug-01) | Cursor `hooks.json` written without required numeric `version` | honeycomb | Critical | 🟡 stopgap | LIVE+CODE+PROVEN |
 | [BUG-02](#bug-02) | Cursor `/c:/…` `workspace_roots` not normalized → captures gated | honeycomb | Critical | 🔴 open | LIVE+CODE+PROVEN |
 | [BUG-03](#bug-03) | Variable-width batch INSERT drops captures (`15 != 19`) | honeycomb | Critical | 🟢 fixed (PR #291) | LIVE+CODE |
-| [BUG-04](#bug-04) | `memory_controlled_write` dedup probe `query_error` | honeycomb | High | 🔴 open | LIVE |
+| [BUG-04](#bug-04) | `memory_controlled_write` dedup probe `query_error` | honeycomb | High | 🟡 root-caused + diagnosed (PR #293); durability follow-up open | LIVE |
 | [BUG-17](#bug-17) | **Harness memory injection dead** — recall ~40s avg vs 2.5s per-turn budget (dashboard OK; corpus healthy) | honeycomb | **Critical** | 🟢 fixed (PR #281 + #283) | LIVE+PROVEN |
 | [BUG-05](#bug-05) | Skills/Sync hardcode Claude layout; miss Codex/Cursor + home dir | honeycomb | High | 🔴 open | CODE |
 | [BUG-06](#bug-06) | ROI net can't compute; trend is a hardcoded stub | honeycomb | High | 🔴 open | LIVE+CODE |
@@ -78,7 +78,7 @@ This register is the actionable companion to the narrative reports. Each entry i
 - **FIXED 2026-07-11 (PR #291, honeycomb):** took option **(b)** — `groupBufferedRows` (`capture-handler.ts`) now sub-groups each scope by **column signature** (the ordered column-name list) so every `appendOnlyInsertMany` is uniform; absent-usage rows group together and keep those columns omitted (→ SQL NULL, preserving PRD-060a a-AC-6), while same-shape same-scope turns still coalesce into one write. This mirrors the scope+signature grouping PRD-079c added for the outbox drain, applied to the PRIMARY flush. `flushBatch` also hardened to continue-then-throw (a per-group failure defers that group to the durable outbox, PRD-079a, without stranding the others). Regression tests: a mixed user + assistant-with-usage window flushes as two uniform appends (both persisted, no drop); same-shape rows still coalesce into one. Note: since PR #287 the failed batch was already caught by the durable outbox rather than lost — this fixes the root so the primary flush succeeds instead of failing-then-recovering.
 
 <a id="bug-04"></a>
-### BUG-04 — `memory_controlled_write` dedup probe fails with `query_error` 🔴
+### BUG-04 — `memory_controlled_write` dedup probe fails with `query_error` 🟡
 **Component:** honeycomb · **Severity:** High · **Confidence:** LIVE
 
 - **Symptom:** Even when extraction succeeds, distilled memories don't commit; `memoryCount` flat.
@@ -86,6 +86,7 @@ This register is the actionable companion to the narrative reports. Each entry i
 - **Evidence (LIVE):** `event_log`: `stage.failed {"kind":"memory_controlled_write","attempt":5,"reason":"controlled-write dedup probe failed: query_error"}` (505×).
 - **Fix:** capture the exact failing query first (the log fields only say `query_error`) — add the query text / underlying error to the event, then fix the dedup-probe query. Likely related to scope/column mismatch on the `memories` table probe.
 - **Verify:** `stage.failed` for `memory_controlled_write` stops; `memoryFormation.committedSinceBoot` climbs after extractions.
+- **ROOT-CAUSED + PARTIALLY FIXED 2026-07-11 (PR #293, honeycomb) — the "scope/column mismatch" hypothesis above is REFUTED by live evidence.** Measured read-only against the production `apiary` workspace: the probe SQL **works** (`SELECT id FROM "memories" WHERE content_hash = '…' LIMIT 1` → HTTP 200; `content_hash` **exists** on the live `memories` table, 2,145 rows), and `classifyFailure` **correctly** classifies the real Deeplake missing-column/missing-table wire strings (→ heal-then-INSERT). The live local job queue showed **101 failed** `memory_controlled_write` jobs (×5 attempts = the 505) alongside **236 done**, **all with the identical correct scope** (`apiary`/`the-apiary`). Same scope → both successes AND failures ⇒ the failure is **intermittent = Deeplake degraded/flapping windows** (5xx / 429 / 402-balance / eventual-consistency). `classifyFailure` correctly routes those to `other` so the stage **correctly throws** (safety: never an unguarded duplicate insert); when a window outlasts all 5 attempts the memory is permanently dropped. **PR #293 (BUG-04a)** closes the *confirmed* defect — diagnostic **opacity**: it surfaces the previously-discarded `dedup.message` + HTTP status in a secret-free `controlled_write.dedup_probe_failed { classification, kind, status, transient, reason }` event + the thrown error (redacting the SHA-256 `content_hash` so it can't persist at-rest in `last_error_class` — a High the security pass caught), preserving the safety throw. Close-out: security CLEAN at High+ (leak fixed), quality SHIP. **REMAINING (BUG-04b, open):** a **durable retry-later outbox for controlled-writes** — the PRD-079 twin (recall + capture were insulated from Deeplake availability via `recallFast` + `capture_outbox`; controlled-writes never were). Until it lands, memories distilled during a degraded window that outlasts 5 attempts are still dropped, and the 101 already-failed jobs are terminal (need a one-time re-drive). So the register's Verify criteria (`stage.failed` stops / `committedSinceBoot` climbs through outages) are NOT yet met — this is 🟡, not 🟢.
 
 ---
 
@@ -265,8 +266,9 @@ The live state root is `~/.apiary/` (ADR-0003, migration complete). `~/.daemon` 
 
 - 🟢 **BUG-17** (Critical) — harness memory injection, fixed via PRD-077 (#281) + PRD-078 (#283). Related: PRD-079 a/b/c (#287/#289) capture durability, PR #285 queue home-anchoring.
 - 🟢 **BUG-03** (Critical) — mixed-width batched INSERT drop, fixed via PR #291.
+- 🟡 **BUG-04** (High) — root-caused live (NOT a query bug — intermittent Deeplake degraded-window transience) + diagnostic/secret-safety fix shipped (PR #293, "BUG-04a"). **BUG-04b** (durable controlled-write outbox, the PRD-079 twin) still open — memories are still dropped during degraded windows until it lands.
 - 🟡 **BUG-19** (High) — partially relieved by the BUG-17 latency fix; client-side poll-coalescing root still open.
-- 🔴 Still open (next-most-impactful): **BUG-02** (Cursor `/c:/…` captures gated) + **BUG-04** (memories not committing — `memory_controlled_write` dedup probe `query_error`), then the ROI/dashboard/skills/ops items below.
+- 🔴 Still open (next-most-impactful): **BUG-02** (Cursor `/c:/…` captures gated), then **BUG-04b** (controlled-write durable outbox) and the ROI/dashboard/skills/ops items below.
 
 ## Suggested fix order
 
