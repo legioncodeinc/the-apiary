@@ -21,7 +21,7 @@ import {
 } from "./api-shape.js";
 
 /** The desktop shell version — inert, informational; NOT a capability. */
-const SHELL_VERSION = "0.1.0";
+const SHELL_VERSION = "0.10.0";
 
 const apiaryApi: ApiaryApi = {
   version: SHELL_VERSION,

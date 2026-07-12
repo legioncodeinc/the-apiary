@@ -1,8 +1,8 @@
 {
-  "manifestVersion": "0.9.0",
+  "manifestVersion": "0.10.0",
   "products": {
     "honeycomb": {
-      "version": "0.8.0",
+      "version": "0.13.0",
       "packageName": "@legioncodeinc/honeycomb",
       "published": true
     },

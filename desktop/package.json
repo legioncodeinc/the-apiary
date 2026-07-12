@@ -1,6 +1,6 @@
 {
   "name": "@legioncodeinc/apiary-desktop",
-  "version": "0.1.0",
+  "version": "0.10.0",
   "private": true,
   "description": "Apiary Desktop Shell - Electron main process that supervises the fleet and renders the Hive dashboard in a native window.",
   "type": "module",
