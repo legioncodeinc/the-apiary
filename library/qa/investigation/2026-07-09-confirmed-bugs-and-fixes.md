@@ -15,9 +15,9 @@ This register is the actionable companion to the narrative reports. Each entry i
 |----|-------|-----------|-----|--------|------------|
 | [BUG-01](#bug-01) | Cursor `hooks.json` written without required numeric `version` | honeycomb | Critical | 🟡 stopgap | LIVE+CODE+PROVEN |
 | [BUG-02](#bug-02) | Cursor `/c:/…` `workspace_roots` not normalized → captures gated | honeycomb | Critical | 🔴 open | LIVE+CODE+PROVEN |
-| [BUG-03](#bug-03) | Variable-width batch INSERT drops captures (`15 != 19`) | honeycomb | Critical | 🔴 open | LIVE+CODE |
-| [BUG-04](#bug-04) | `memory_controlled_write` dedup probe `query_error` | honeycomb | High | 🔴 open | LIVE |
-| [BUG-17](#bug-17) | **Harness memory injection dead** — recall ~40s avg vs 2.5s per-turn budget (dashboard OK; corpus healthy) | honeycomb | **Critical** | 🔴 open | LIVE+PROVEN |
+| [BUG-03](#bug-03) | Variable-width batch INSERT drops captures (`15 != 19`) | honeycomb | Critical | 🟢 fixed (PR #291) | LIVE+CODE |
+| [BUG-04](#bug-04) | `memory_controlled_write` dedup probe `query_error` | honeycomb | High | 🟢 fixed (PR #293 diagnostics + #294 durability) | LIVE |
+| [BUG-17](#bug-17) | **Harness memory injection dead** — recall ~40s avg vs 2.5s per-turn budget (dashboard OK; corpus healthy) | honeycomb | **Critical** | 🟢 fixed (PR #281 + #283) | LIVE+PROVEN |
 | [BUG-05](#bug-05) | Skills/Sync hardcode Claude layout; miss Codex/Cursor + home dir | honeycomb | High | 🔴 open | CODE |
 | [BUG-06](#bug-06) | ROI net can't compute; trend is a hardcoded stub | honeycomb | High | 🔴 open | LIVE+CODE |
 | [BUG-07](#bug-07) | Projects "Open" is a silent no-op | hive | High | 🔴 open | CODE |
@@ -67,7 +67,7 @@ This register is the actionable companion to the narrative reports. Each entry i
 ## Memory formation (the "stuck at 2,107" chain)
 
 <a id="bug-03"></a>
-### BUG-03 — Variable-width batched INSERT drops captures (`row column count 15 != expected 19`) 🔴
+### BUG-03 — Variable-width batched INSERT drops captures (`row column count 15 != expected 19`) 🟢
 **Component:** honeycomb · **Severity:** Critical · **Confidence:** LIVE + CODE
 
 - **Symptom:** Memory/session count effectively frozen (2,107 → 2,108 all day); `capture.flush.failed` / `capture.batch_insert.failed` firing live (incl. for the active Claude Code session).
@@ -75,9 +75,10 @@ This register is the actionable companion to the narrative reports. Each entry i
 - **Evidence (LIVE):** `event_log`: `capture.flush.failed {"reason":"buildInsertMany: row column count 15 != expected 19"}` (70×), `capture.batch_insert.failed` (29×), latest firing minutes before capture, session id matching the active transcript.
 - **Fix:** make the batched INSERT tolerate heterogeneous rows — **(a)** pad every row to the full sessions column set (write explicit NULL/DEFAULT for absent usage columns → all rows 19-wide), or **(b)** sub-group the flush by column shape and emit one `buildInsertMany` per shape. Option (a) is simpler and matches the nullable-usage-column schema. Add a regression test that flushes a mixed batch (user turn + assistant-with-usage turn) in one scope group.
 - **Verify:** after fix, `capture.flush.failed` with the `15 != 19` reason stops appearing in `event_log`; `sessionCount` and `memoryCount` grow normally.
+- **FIXED 2026-07-11 (PR #291, honeycomb):** took option **(b)** — `groupBufferedRows` (`capture-handler.ts`) now sub-groups each scope by **column signature** (the ordered column-name list) so every `appendOnlyInsertMany` is uniform; absent-usage rows group together and keep those columns omitted (→ SQL NULL, preserving PRD-060a a-AC-6), while same-shape same-scope turns still coalesce into one write. This mirrors the scope+signature grouping PRD-079c added for the outbox drain, applied to the PRIMARY flush. `flushBatch` also hardened to continue-then-throw (a per-group failure defers that group to the durable outbox, PRD-079a, without stranding the others). Regression tests: a mixed user + assistant-with-usage window flushes as two uniform appends (both persisted, no drop); same-shape rows still coalesce into one. Note: since PR #287 the failed batch was already caught by the durable outbox rather than lost — this fixes the root so the primary flush succeeds instead of failing-then-recovering.
 
 <a id="bug-04"></a>
-### BUG-04 — `memory_controlled_write` dedup probe fails with `query_error` 🔴
+### BUG-04 — `memory_controlled_write` dedup probe fails with `query_error` 🟢
 **Component:** honeycomb · **Severity:** High · **Confidence:** LIVE
 
 - **Symptom:** Even when extraction succeeds, distilled memories don't commit; `memoryCount` flat.
@@ -85,11 +86,13 @@ This register is the actionable companion to the narrative reports. Each entry i
 - **Evidence (LIVE):** `event_log`: `stage.failed {"kind":"memory_controlled_write","attempt":5,"reason":"controlled-write dedup probe failed: query_error"}` (505×).
 - **Fix:** capture the exact failing query first (the log fields only say `query_error`) — add the query text / underlying error to the event, then fix the dedup-probe query. Likely related to scope/column mismatch on the `memories` table probe.
 - **Verify:** `stage.failed` for `memory_controlled_write` stops; `memoryFormation.committedSinceBoot` climbs after extractions.
+- **ROOT-CAUSED + PARTIALLY FIXED 2026-07-11 (PR #293, honeycomb) — the "scope/column mismatch" hypothesis above is REFUTED by live evidence.** Measured read-only against the production `apiary` workspace: the probe SQL **works** (`SELECT id FROM "memories" WHERE content_hash = '…' LIMIT 1` → HTTP 200; `content_hash` **exists** on the live `memories` table, 2,145 rows), and `classifyFailure` **correctly** classifies the real Deeplake missing-column/missing-table wire strings (→ heal-then-INSERT). The live local job queue showed **101 failed** `memory_controlled_write` jobs (×5 attempts = the 505) alongside **236 done**, **all with the identical correct scope** (`apiary`/`the-apiary`). Same scope → both successes AND failures ⇒ the failure is **intermittent = Deeplake degraded/flapping windows** (5xx / 429 / 402-balance / eventual-consistency). `classifyFailure` correctly routes those to `other` so the stage **correctly throws** (safety: never an unguarded duplicate insert); when a window outlasts all 5 attempts the memory is permanently dropped. **PR #293 (BUG-04a)** closes the *confirmed* defect — diagnostic **opacity**: it surfaces the previously-discarded `dedup.message` + HTTP status in a secret-free `controlled_write.dedup_probe_failed { classification, kind, status, transient, reason }` event + the thrown error (redacting the SHA-256 `content_hash` so it can't persist at-rest in `last_error_class` — a High the security pass caught), preserving the safety throw. Close-out: security CLEAN at High+ (leak fixed), quality SHIP. **REMAINING (BUG-04b, open):** a **durable retry-later outbox for controlled-writes** — the PRD-079 twin (recall + capture were insulated from Deeplake availability via `recallFast` + `capture_outbox`; controlled-writes never were). Until it lands, memories distilled during a degraded window that outlasts 5 attempts are still dropped, and the 101 already-failed jobs are terminal (need a one-time re-drive). So the register's Verify criteria (`stage.failed` stops / `committedSinceBoot` climbs through outages) are NOT yet met — this is 🟡, not 🟢.
+- **BUG-04b FIXED 2026-07-11 (PRD-080, PR #294, honeycomb) → the whole of BUG-04 is now 🟢.** The durability follow-up — a **durable controlled-write outbox**, the write-side twin of PRD-079's `capture_outbox`, applied to the memory-formation pipeline — shipped. On a **transient** controlled-write failure (`isTransientResult` gate at both the dedup-probe and INSERT throw points) the resolved write is persisted to a durable `memory_outbox` (sibling to `capture_outbox` in the home-anchored `local-queue.db`) and the stage returns `deferred` (the job acks, never burns its 5 attempts); a background drainer re-commits when the backend recovers, with bounded backoff, dead-letter, caps + dedup-preserving coalescing. **Idempotent** — replay re-runs the `content_hash` dedup, so an already-landed memory is `deduped` (no duplicate). A **genuine** non-transient failure still throws (safety invariant intact). Drain-recovered commits feed the memory-formation tracker so **`committedSinceBoot` climbs through the window** and **`stage.failed` no longer drops memories during degraded windows** — the register's Verify criteria are now met. **`honeycomb memory redrive`** (CLI + a `protect:true` diagnostics route) re-enqueues the terminal `memory_controlled_write` jobs, **recovering the ~101 already-dropped memories**. Close-out: security CLEAN at High+ (the outbox surfaces no Deeplake error text — no error column at rest, counts-only events; structurally better than the capture path), quality SHIP (all 13 code ACs + a-AC-8 verified-by-mechanism; the `committedSinceBoot` gap W-1 was closed before ship). Full `npm run ci` green (4,898 tests). PRD-080 is in `honeycomb/library/requirements/completed/`.
 
 ---
 
 <a id="bug-17"></a>
-### BUG-17 — Harness memory injection is dead: recall latency (avg ~40s) far exceeds the 2.5s per-turn budget 🔴
+### BUG-17 — Harness memory injection is dead: recall latency (avg ~40s) far exceeds the 2.5s per-turn budget 🟢
 **Component:** honeycomb · **Severity:** Critical · **Confidence:** LIVE + PROVEN
 
 - **Symptom (the owner's actual complaint):** memory recall *into the agent/harness session* "feels useless" — nothing useful is injected. The **dashboard Memories search works** (it is project-scoped and returns memories); the **harness injection path** is what's dead.
@@ -110,6 +113,7 @@ This register is the actionable companion to the narrative reports. Each entry i
 - **RETRACTED:** earlier framings that "the dashboard degrades to the `__unsorted__` inbox" and "only ~1 memory is embedded" were **synthetic-request / hypothesis artifacts and are wrong** — the dashboard is project-scoped and works; embeddings are present. (The inbox fallback for a cwd-less caller and the non-tokenized lexical arm are real *secondary* issues, but not the harness-injection cause.)
 - **Fix:** profile and drive recall to **sub-second** (fewer arms / parallelize instead of `Semaphore(6)` serialize, pass the query vector out-of-band rather than a giant inline literal, skip the dedup embedding refetch, cap over-fetch), and hunt the 25-minute tail (retry storm). The 2.5s per-turn budget is reasonable — recall must be fast enough to meet it. Then injection works.
 - **Impact:** the entire memory-injection value prop is inert in every harness session despite a healthy, well-embedded corpus. Highest-impact functional bug found.
+- **FIXED 2026-07-10/11 (PR #281 + #283, honeycomb):** two stacked PRDs. **PRD-077** (#281) added a dedicated single-round-trip `recallFast` hot lane — a read/write `StorageClient` split (recall no longer starved by capture writes / dashboard polls) + a server-side deadline race so per-turn recall is BOUNDED (`armsMs` dropped 73,273 → ~3,012ms) and fail-soft instead of hanging. That made recall bounded but it still returned 0 hits, because the `<#>` semantic scan is a ~2.6s brute-force full-column scan (Deeplake has no vector index) that overran the ~3s budget. **PRD-078** (#283) closed that with an in-daemon **local ANN index** (`InMemoryLocalVectorIndex`, cold-built on boot, content inline): the `memories` semantic arm answers from RAM (flat cosine, sub-100ms, cloud-independent) with the `<#>` SQL as fail-soft fallback, preserving the verbatim `((1+cos)/2)` norm + 049b project scope so RRF/recency are byte-identical. Dogfooded live: the local index returns the identical top-5 ranking to Deeplake's `<#>`, sub-100ms, and produced the **first real non-empty per-turn injection** of the session (`injectedRefs` non-empty). Related follow-ups shipped after: **PRD-079 a/b/c** (durable capture outbox + dead-letter/caps, PRs #287/#289) so the corpus is complete despite Deeplake degraded-window write drops, and **PR #285** home-anchored the memory-pipeline local queue. Still open as separate items: the `prime` session-start digest health, index freshness/eviction (078b/c), and the `sessions.message_embedding` arm.
 
 ## Skills / Sync / harness surface
 
@@ -224,6 +228,7 @@ This register is the actionable companion to the narrative reports. Each entry i
 - **⚠️ Load caveat:** during this audit the daemon was under heavy load from the investigation's own DeepLake probing, which aggravates the pending pile-up. The owner reports the dashboard normally populates — so this is a **fragility that bites whenever the daemon is slow** (which BUG-17 proves it is), not necessarily a permanent hang under light load. It should be reproduced on an idle daemon to grade severity precisely.
 - **Also observed:** a fresh browser loads with **ORG "local (unresolved)" and WORKSPACE "default"** (not the authed `apiary`), showing the empty state until switched — first-load should default to the authed scope. Health rail resolves correctly (hive/honeycomb/nectar → active/green). No JS console errors (one minor a11y warning: form fields missing `id`/`name`).
 - **Fix:** cap/stagger the health/harness/hive-graph/log poll cadence and coalesce them (one multiplexed status poll, or SSE — which [doctor ADR-0001] already prescribes for health) so polling can't starve data calls; make one-shot data calls resilient to a saturated pool (priority/abort-and-retry); default first-load scope to the authed org/workspace. Fixing BUG-17's recall/daemon latency also relieves this.
+- **PARTIALLY RELIEVED 2026-07-11:** BUG-17 is now fixed (PR #281 + #283), so the primary latency trigger (~40s recall / saturated read pool on every turn) is gone — the daemon is far less likely to be slow enough to pile up pending polls. The client-side ROOT (aggressive uncoalesced poll cadence saturating the browser connection pool; first-load scope defaulting to `local (unresolved)`) is UNTOUCHED, so the fragility remains under any future daemon-slow window. Kept 🔴 pending the poll-coalescing / SSE work.
 
 ## Security
 
@@ -258,10 +263,18 @@ The live state root is `~/.apiary/` (ADR-0003, migration complete). `~/.daemon` 
 
 ---
 
+## Progress (as of 2026-07-11)
+
+- 🟢 **BUG-17** (Critical) — harness memory injection, fixed via PRD-077 (#281) + PRD-078 (#283). Related: PRD-079 a/b/c (#287/#289) capture durability, PR #285 queue home-anchoring.
+- 🟢 **BUG-03** (Critical) — mixed-width batched INSERT drop, fixed via PR #291.
+- 🟢 **BUG-04** (High) — root-caused live (NOT a query bug — intermittent Deeplake degraded-window transience). BUG-04a diagnostics + secret-safety (PR #293) + BUG-04b **durable controlled-write outbox** (PRD-080, PR #294) — the PRD-079 twin: memories now survive degraded windows and `committedSinceBoot` climbs through them; `honeycomb memory redrive` recovers the ~101 already-dropped.
+- 🟡 **BUG-19** (High) — partially relieved by the BUG-17 latency fix; client-side poll-coalescing root still open.
+- 🔴 Still open (next-most-impactful): **BUG-02** (Cursor `/c:/…` captures gated), then the ROI/dashboard/skills/ops items below.
+
 ## Suggested fix order
 
 1. **BUG-02 + BUG-01** — the Cursor path-normalization + `version` fixes (honeycomb branch, rebuild bundle, reinstall). Gets Cursor reporting.
-2. **BUG-03** — the batched-insert width fix. Unfreezes the memory/session count for all harnesses.
+2. ✅ **BUG-03** — the batched-insert width fix (DONE — PR #291). Unfreezes the memory/session count for all harnesses.
 3. **BUG-04** — instrument then fix the dedup-probe query.
 4. **BUG-06** — thread `roiUsage`/`roiInfra` + build the usage meter. Unblocks ROI.
 5. **BUG-05** — de-Claude-centric the Skills/Sync scan (fixes both pages at once).
