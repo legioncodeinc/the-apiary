@@ -970,6 +970,48 @@ by a test.
 
 ---
 
+## ISS-023 — Embed supervisor's lifetime restart budget turns transient slowness into permanent lexical-only
+
+- **Status:** resolved 2026-07-13 (honeycomb#313 merged + deployed 0.20.0; post-merge security audit PASS; live health shows `embedSupervisor {state: warm, restartsUsed: 0, restartsCap: 5}`; reconstruction: the on-demand checkNow chain was load-correlated by construction — recall's embed-timeout fired the probe exactly during 10-27s inference saturation with a 1s confirm inside the same window, and the supervisor's events went to a no-op logger because assemble built it with no deps. Fixes: 30s on-demand confirm (periodic 1s kept), credit replenish per 10 warm minutes, backoff retries 1m-30m instead of terminal death, full event emission. OBSERVE over the next work sessions: restartsUsed should stay 0 under normal load)
+- **Reported:** 2026-07-13 (user: "embeddings daemon keeps getting marked failed, consistently degrading to lexical")
+- **Repo:** honeycomb
+- **Systemic patterns:** SP-3 (the supervisor's five kills were invisible — zero lifecycle events)
+
+### Symptom
+
+On 0.19.1 the embedder is repeatedly marked `failed`; recall consistently degrades to lexical.
+
+### Root cause (live-verified)
+
+Event trail: real `embed_timeout` degradations 00:45-00:48 (post-deploy load + cold CPU model
+loads), then `embed_not_ready` from 00:49 onward, and port 3851 **connection-refused** — the
+child is dead and the supervisor no longer respawns it. The #301 design uses a LIFETIME
+`maxRestarts=5` budget that never replenishes (deliberate anti-fork-bomb, reset only via
+explicit `restart()`), so five wedge-kill cycles — legitimate on this machine, where a cold
+model load takes 10-40s on CPU under post-deploy job load, against a 2s probe timeout and
+2-consecutive-miss kill rule — exhaust the budget and leave embeddings **permanently off until
+a full daemon restart**. Availability inversion: the protection against a crash-looping child
+converts transient slowness into a terminal outage. Compounding gap: the supervisor emits NO
+lifecycle events (probe miss, suspect, kill, respawn, budget-exhausted) into `event_log`, so the
+five kills happened invisibly — only the honest health chip (hive#27) surfaced the end state.
+
+### Fix (dispatched to embeddings-runtime-worker-bee)
+
+1. Restart budget heals on sustained health: N consecutive minutes warm restores/decays the
+   budget (a genuine crash-loop still exhausts it fast; transient bad patches do not).
+2. Terminal `failed` is never permanent: exponential-backoff retry (e.g. 1m → 30m cap) keeps
+   attempting a respawn instead of requiring a daemon restart.
+3. Warming-aware probe tolerance: probe deadline/kill rule must account for measured cold-load
+   time (10-40s CPU) and post-respawn load bursts.
+4. Observability: every supervisor transition (probe result, suspect, kill, respawn,
+   budget state, terminal) emitted as `event_log` events + counters in /health.
+
+### Ops note
+
+Interim recovery on any machine that hits this: restart the honeycomb daemon (budget resets).
+
+---
+
 ## Resolved
 
 *(none yet)*
