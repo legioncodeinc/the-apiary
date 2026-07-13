@@ -127,7 +127,7 @@ re-runs the gate / rebuilds the model client.
 
 ## ISS-002 — Memory Graph view never populates
 
-- **Status:** open (product decision needed + fix proposed)
+- **Status:** in-progress 2026-07-12 (product decision approved: graph persistence follows the memory switch; honeycomb `feat/memory-graph-default-on` + hive `feat/graph-page-honesty` in flight)
 - **Reported:** 2026-07-12 (recurring; previously logged as BUG-12 in
   `library/qa/investigation/2026-07-09-confirmed-bugs-and-fixes.md:182-186` and
   `library/qa/investigation/2026-07-08-graphs-investigation.md:17-44`)
@@ -342,7 +342,7 @@ concern is resolved — local queue is default-on in current code
 
 ## ISS-006 — Search does not return the memories the /memories list shows
 
-- **Status:** open (fix proposed)
+- **Status:** in-progress 2026-07-12 (revised acceptance criteria: actionability parity primary, corpus parity secondary; honeycomb `fix/search-list-corpus-parity` + hive `fix/search-result-card-parity` in flight)
 - **Repos:** honeycomb (recall SQL + scope), hive (add-memory form)
 - **Systemic patterns:** SP-3
 
@@ -350,6 +350,19 @@ concern is resolved — local queue is default-on in current code
 
 /memories shows clickable memories before searching; typing a search fails to return those same
 memories.
+
+**User clarification 2026-07-12 (the ACTUAL complaint): search returns a different RESULT TYPE
+than the list.** Browsing /memories renders interactive memory cards — clickable, nicely
+presented, with **edit** and **forget** actions. Searching renders inert recall hits (text +
+score) that cannot be clicked, edited, or forgotten. Same page, two object types.
+
+**Acceptance criteria (revised):**
+1. **Presentation parity (primary):** a memory returned by search renders as the SAME interactive
+   card as the pre-search list — clickable, edit, forget — which requires recall hits to carry
+   actionable memory identity (id/source) end to end.
+2. **Corpus parity (secondary, still real):** any memory visible in the pre-search list must be
+   findable by search when the query matches its content — same table, same scope semantics,
+   tokenized matching on top.
 
 ### Root cause (two independent divergences, both live-proven)
 
