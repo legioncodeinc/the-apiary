@@ -59,6 +59,30 @@ Conventions:
 - All campaign PRs merged: honeycomb #297/#298/#300/#301/#304, hive #24/#25/#26. Open:
   hive `fix/health-surface-honesty` (QA W-1/2/3, in flight).
 
+## Round 2 (same day): ISS-002 + ISS-006
+
+- **PRs (all merged + deployed: honeycomb 0.19.1, hive 0.11.0):** honeycomb#307 (hit identity +
+  corpus parity + tokenized lexical), #308 (graph.enabled vault-first, follows memory switch,
+  live-applies, why-empty reasons), #311 (security remediation of the #307 Aikido HIGHs:
+  lexical shaping caps + colSql tamper canary — Aikido re-scan PASSED); hive#27
+  (health-surface honesty), #28 (graph page reason states + toggle), #29 (search results are the
+  same interactive edit/forget cards), #30 (explicit Add-form destination selector — REVISED
+  from implicit view-stamping per user design review: SP-4 says a view filter must never gain a
+  durable write side effect).
+- **Live dogfood:** graph endpoint `reason=no_entities_yet, memoriesScanned=2182` (gate ON by
+  default — entities populate as new memories form); recall hits carry
+  `memoryId`/`memoryType` for memories-source (sessions stay passive by design);
+  `injectedTokens` climbed 3,054 → 7,642 during the round.
+- **NEW SYSTEMIC LESSON (SP-8 candidate): harness bundles are a THIRD deploy surface.** The
+  Claude Code plugin runs from a marketplace CACHE (`~/.claude/plugins/cache/...`), and
+  Cursor/Codex run bundle COPIES (`~/.cursor/honeycomb/`, `~/.codex/plugins/honeycomb/`) — a
+  global npm install updates NONE of them. All three sat at 0.13.0 while the daemon ran 0.17+.
+  Refresh recipe: `honeycomb setup` (cursor+codex copies) + `claude plugin marketplace update
+  honeycomb` + reinstall (`claude plugin update` errors "not found" on an installed plugin —
+  CLI bug worth reporting). Any release/deploy runbook must include the harness-refresh step.
+- ICYC registry row: settled stable at exactly 1 (the earlier x2 flicker was the backend's
+  merge window; independent reads confirm 1/1 per project).
+
 ---
 
 ## ISS-001 — Adding a provider key requires a daemon restart before memories form
@@ -127,7 +151,7 @@ re-runs the gate / rebuilds the model client.
 
 ## ISS-002 — Memory Graph view never populates
 
-- **Status:** in-progress 2026-07-12 (product decision approved: graph persistence follows the memory switch; honeycomb `feat/memory-graph-default-on` + hive `feat/graph-page-honesty` in flight)
+- **Status:** resolved 2026-07-12 (honeycomb#308 + hive#28, deployed 0.19.1/0.11.0; live-verified: gate ON by default following the memory switch, endpoint reports `no_entities_yet` with `memoriesScanned=2182` — populates as new memories carry entity triples)
 - **Reported:** 2026-07-12 (recurring; previously logged as BUG-12 in
   `library/qa/investigation/2026-07-09-confirmed-bugs-and-fixes.md:182-186` and
   `library/qa/investigation/2026-07-08-graphs-investigation.md:17-44`)
@@ -342,7 +366,7 @@ concern is resolved — local queue is default-on in current code
 
 ## ISS-006 — Search does not return the memories the /memories list shows
 
-- **Status:** in-progress 2026-07-12 (revised acceptance criteria: actionability parity primary, corpus parity secondary; honeycomb `fix/search-list-corpus-parity` + hive `fix/search-result-card-parity` in flight)
+- **Status:** resolved 2026-07-12 (honeycomb#307+#311, hive#29+#30, deployed; live-verified: memories-source hits carry `memoryId`+`memoryType` (interactive cards), sessions hits stay passive by design; corpus unified workspace-wide with inbox reachable; tokenized matching; Add-form destination is an explicit selector per user decision)
 - **Repos:** honeycomb (recall SQL + scope), hive (add-memory form)
 - **Systemic patterns:** SP-3
 
