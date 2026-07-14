@@ -1,6 +1,6 @@
 {
   "name": "@legioncodeinc/apiary-desktop",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "private": true,
   "description": "Apiary Desktop Shell - Electron main process that supervises the fleet and renders the Hive dashboard in a native window.",
   "type": "module",
@@ -19,9 +19,9 @@
     "dist:dir": "npm run build && npm run check-fleet-versions && electron-builder --dir"
   },
   "fleetVersions": {
-    "honeycomb": "0.13.0",
+    "honeycomb": "0.22.0",
     "doctor": "0.5.0",
-    "hive": "0.7.0",
+    "hive": "0.12.0",
     "nectar": "0.3.4"
   },
   "devDependencies": {
